@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && me().role == 'admin';
+    }
+
+    function isApprovedDriver() {
+      return signedIn() && me().role == 'driver' && me().get('isApproved', false) == true;
+    }
+
+    // Students may only touch student buses. Everyone else may ride any bus.
+    function canBoard(bus) {
+      return me().role != 'student' || bus.get('audience', 'student') == 'student';
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Sign up: only your own profile, never as admin, and only students start approved.
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role in ['student', 'teacher', 'driver']
+        && request.resource.data.isApproved == (request.resource.data.role == 'student');
+
+      // You can change your stop, but not your role, approval, KUET ID or email.
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'isApproved', 'kuetId', 'email']));
+
+      allow delete: if isAdmin();
+    }
+
+    match /schedules/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /routes/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /buses/{id} {
+      allow read: if signedIn();
+
+      allow create: if isApprovedDriver() && request.resource.data.driverId == request.auth.uid;
+
+      // The driver moves the bus. Riders who may board it can change only the crowd level.
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.driverId == request.auth.uid)
+        || (signedIn() && canBoard(resource.data)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['crowd']));
+
+      allow delete: if isAdmin() || (signedIn() && resource.data.driverId == request.auth.uid);
+    }
+  }
+}
