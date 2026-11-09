@@ -19,6 +19,7 @@ class BusViewModel: ObservableObject {
     @Published var etaPaths: [String: [CLLocationCoordinate2D]] = [:]    // bus ID -> road to my stop
     @Published var routeStops: [String: [Stop]] = [:]                    // route ID -> stops
     @Published var routePaths: [String: [CLLocationCoordinate2D]] = [:]  // route ID -> full road path
+    @Published var etaInfo: [String: RouteInfo] = [:]   // bus ID -> latest ETA (minutes and distance)
 
     // Set by the map screen from the rider's profile.
     var favoriteStop: Stop?
@@ -51,6 +52,14 @@ class BusViewModel: ObservableObject {
 
             for bus in self.buses {
                 self.refreshETA(for: bus)
+                // Crowd or signal changes reach the Lock Screen straight away.
+                LiveActivityManager.shared.refresh(bus: bus)
+            }
+
+            // The followed bus is gone: the driver ended the trip.
+            let live = LiveActivityManager.shared
+            if let followed = live.followedBusId, !self.buses.contains(where: { $0.id == followed }) {
+                live.stop()
             }
         }
     }
@@ -111,6 +120,15 @@ class BusViewModel: ObservableObject {
         return (nearest.element, nearest.offset, stops.count)
     }
 
+    // Shows this bus's ETA on the Lock Screen and in the Dynamic Island.
+    func follow(_ bus: Bus) {
+        guard let stop = favoriteStop else { return }
+        let info = bus.id.flatMap { etaInfo[$0] }
+        LiveActivityManager.shared.start(bus: bus, stopName: stop.name,
+                                         etaMinutes: info?.minutes, distanceKm: info?.kilometres)
+        refreshETA(for: bus, force: true)
+    }
+
     // Update: anyone allowed on the bus can report how crowded it is.
     func report(_ crowd: CrowdLevel, for bus: Bus) {
         guard let id = bus.id else { return }
@@ -134,6 +152,8 @@ class BusViewModel: ObservableObject {
             }
             self.etaText[busId] = info.summary
             self.etaPaths[busId] = info.path
+            self.etaInfo[busId] = info
+            LiveActivityManager.shared.update(bus: bus, etaMinutes: info.minutes, distanceKm: info.kilometres)
             self.checkArrivalAlert(bus: bus, minutes: info.minutes)
         }
     }

@@ -18,6 +18,7 @@ struct TripCard: View {
     let onDetails: () -> Void
     let onClose: () -> Void
     @EnvironmentObject var authViewModel: AuthViewModel
+    @ObservedObject private var liveActivity = LiveActivityManager.shared
 
     var canBoard: Bool {
         bus.allocation.canBoard(authViewModel.profile?.role ?? .student)
@@ -91,6 +92,23 @@ struct TripCard: View {
                     Text("No signal from this bus for over a minute. Its position may be out of date.")
                         .font(.caption)
                         .foregroundColor(.orange)
+                }
+
+                // Follow on Lock Screen: a Live Activity with the ETA, also in the Dynamic Island.
+                if authViewModel.profile?.favoriteStop != nil && liveActivity.isAvailable {
+                    Button {
+                        if liveActivity.isFollowing(bus) {
+                            liveActivity.stop()
+                        } else {
+                            busViewModel.follow(bus)
+                        }
+                    } label: {
+                        Label(liveActivity.isFollowing(bus) ? "Stop following" : "Follow on Lock Screen",
+                              systemImage: liveActivity.isFollowing(bus) ? "lock.slash" : "lock.iphone")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(bus.allocation.color)
                 }
 
                 // Actions
