@@ -10,6 +10,7 @@ import MapKit
 
 struct DriverHomeView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var announcementViewModel: AnnouncementViewModel
     @StateObject private var driverViewModel = DriverViewModel()
     @StateObject private var routeViewModel = RouteViewModel()
     @StateObject private var scheduleViewModel = ScheduleViewModel()
@@ -118,10 +119,29 @@ struct DriverHomeView: View {
             .navigationTitle("Driver")
             .toolbar {
                 NavigationLink {
+                    AnnouncementsView()
+                } label: {
+                    // A small red dot when there is news the driver hasn't read.
+                    Image(systemName: announcementViewModel.unreadCount > 0 ? "megaphone.fill" : "megaphone")
+                        .overlay(alignment: .topTrailing) {
+                            if announcementViewModel.unreadCount > 0 {
+                                Circle()
+                                    .fill(.red)
+                                    .frame(width: 9, height: 9)
+                                    .offset(x: 4, y: -4)
+                            }
+                        }
+                }
+                .accessibilityLabel("Announcements")
+                .accessibilityValue(announcementViewModel.unreadCount > 0
+                                    ? "\(announcementViewModel.unreadCount) unread" : "")
+
+                NavigationLink {
                     ProfileView()
                 } label: {
                     Image(systemName: "person.circle")
                 }
+                .accessibilityLabel("Profile")
             }
         }
         .onAppear {

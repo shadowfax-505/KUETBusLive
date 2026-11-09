@@ -14,6 +14,7 @@ import MapKit
 
 struct LiveMapView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var announcementViewModel: AnnouncementViewModel
     @StateObject private var busViewModel = BusViewModel()
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
@@ -26,6 +27,17 @@ struct LiveMapView: View {
     @State private var followBus = true
     @State private var showDetail = false
     @State private var locationPermission = CLLocationManager()
+    @State private var showAnnouncements = false
+
+    // Riders see the newest announcement as a banner until they close or read it.
+    var bannerAnnouncement: Announcement? {
+        guard authViewModel.profile?.role != .admin,
+              let latest = announcementViewModel.latest,
+              latest.createdAt > announcementViewModel.lastSeen else {
+            return nil
+        }
+        return latest
+    }
 
     var selectedBus: Bus? {
         guard let id = selectedBusId else { return nil }
@@ -87,12 +99,30 @@ struct LiveMapView: View {
                 MapScaleView()
             }
             .overlay(alignment: .top) {
-                if busViewModel.buses.isEmpty {
-                    Text("No buses are running right now")
-                        .padding()
-                        .background(.thinMaterial)
-                        .cornerRadius(10)
-                        .padding()
+                VStack(spacing: 8) {
+                    if let announcement = bannerAnnouncement {
+                        AnnouncementBanner(announcement: announcement,
+                                           onOpen: { showAnnouncements = true },
+                                           onClose: {
+                                               withAnimation {
+                                                   announcementViewModel.markAllRead()
+                                               }
+                                           })
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    if busViewModel.buses.isEmpty {
+                        Text("No buses are running right now")
+                            .padding()
+                            .background(.thinMaterial)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding(.top, 8)
+                .animation(.spring, value: bannerAnnouncement?.id)
+            }
+            .sheet(isPresented: $showAnnouncements) {
+                NavigationStack {
+                    AnnouncementsView()
                 }
             }
             .safeAreaInset(edge: .bottom) {

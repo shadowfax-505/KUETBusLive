@@ -5,7 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  Transport admin: keeps schedules up to date, approves teachers and drivers,
-//  and manages routes.
+//  edits routes and their stops, and posts announcements.
 //
 
 import SwiftUI
@@ -32,6 +32,13 @@ struct AdminTabView: View {
                 .tabItem {
                     Label("Routes", systemImage: "list.bullet")
                 }
+
+            NavigationStack {
+                AnnouncementsView()
+            }
+            .tabItem {
+                Label("News", systemImage: "megaphone")
+            }
 
             NavigationStack {
                 ProfileView()

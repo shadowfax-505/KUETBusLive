@@ -13,6 +13,8 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    // Shared by every signed-in screen: the announcements list, its unread badge and the banner.
+    @StateObject private var announcementViewModel = AnnouncementViewModel()
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("faceIDOn") private var faceIDOn = false
     @AppStorage("passcodeOn") private var passcodeOn = false
@@ -34,6 +36,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             screen
+                .environmentObject(announcementViewModel)
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 .id(screenName)
 
@@ -52,6 +55,19 @@ struct ContentView: View {
         .onChange(of: faceIDOn || passcodeOn) { _, lockOn in
             if lockOn && scenePhase == .active {
                 isUnlocked = true
+            }
+        }
+        // Listen to announcements only while someone is signed in (the rules require it).
+        .onAppear {
+            if authViewModel.isSignedIn {
+                announcementViewModel.startListening()
+            }
+        }
+        .onChange(of: authViewModel.isSignedIn) { _, signedIn in
+            if signedIn {
+                announcementViewModel.startListening()
+            } else {
+                announcementViewModel.stopListening()
             }
         }
         .onChange(of: scenePhase) { _, newPhase in

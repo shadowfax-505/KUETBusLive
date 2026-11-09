@@ -44,9 +44,19 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Routes and their stops: everyone signed in reads them, only the admin edits them.
     match /routes/{id} {
       allow read: if signedIn();
       allow write: if isAdmin();
+    }
+
+    // News from the transport office: everyone signed in reads, only the admin posts or deletes.
+    match /announcements/{id} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        && request.resource.data.title is string && request.resource.data.title.size() > 0
+        && request.resource.data.body is string && request.resource.data.body.size() > 0;
+      allow update, delete: if isAdmin();
     }
 
     match /buses/{id} {
