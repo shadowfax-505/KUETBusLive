@@ -206,6 +206,82 @@ test("ending a trip deletes the driver's own bus only", async () => {
   await assertSucceeds(deleteDoc(doc(db("admin"), "buses", "teacher-bus")));
 });
 
+// ---------- My places ----------
+
+function place(extra = {}) {
+  return { label: "Home", kind: "home", lat: 22.85, lng: 89.53, createdAt: new Date(), ...extra };
+}
+
+test("riders save up to five places of their own", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "users", "student", "places", "p1"), place()));
+  await assertSucceeds(setDoc(doc(db("student"), "users", "student", "places", "p5"), place({ kind: "tuition" })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p6"), place()));
+  await assertFails(setDoc(doc(db("student"), "users", "teacher", "places", "p1"), place()));
+});
+
+test("a place needs a short label, a known kind and a position", async () => {
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p1"), place({ label: "" })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p1"), place({ kind: "school" })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p1"), place({ lat: "near" })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p1"), place({ phone: "017" })));
+});
+
+test("nobody else reads your places", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "users", "student", "places", "p1"), place());
+  });
+  await assertSucceeds(getDoc(doc(db("student"), "users", "student", "places", "p1")));
+  await assertFails(getDoc(doc(db("teacher"), "users", "student", "places", "p1")));
+  await assertSucceeds(deleteDoc(doc(db("student"), "users", "student", "places", "p1")));
+});
+
+// ---------- Waves ----------
+
+function wave(uid, extra = {}) {
+  const now = Date.now();
+  return { uid, label: "Home", lat: 22.85, lng: 89.53, createdAt: new Date(now),
+           expiresAt: new Date(now + 15 * 60 * 1000), ...extra };
+}
+
+test("a rider waves at a running bus they may ride", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "buses", "student-bus", "waves", "student"), wave("student")));
+  await assertFails(setDoc(doc(db("student"), "buses", "teacher-bus", "waves", "student"), wave("student")));
+  await assertSucceeds(setDoc(doc(db("teacher"), "buses", "teacher-bus", "waves", "teacher"), wave("teacher")));
+  await assertFails(setDoc(doc(db("student"), "buses", "no-such-bus", "waves", "student"), wave("student")));
+});
+
+test("one wave per rider per bus, in their own name, for at most 20 minutes", async () => {
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "waves", "teacher"), wave("teacher")));
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "waves", "student"), wave("teacher")));
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "waves", "student"),
+    wave("student", { expiresAt: new Date(Date.now() + 60 * 60 * 1000) })));
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "waves", "student"),
+    wave("student", { phone: "017" })));
+});
+
+test("drivers and unapproved teachers cannot wave", async () => {
+  await assertFails(setDoc(doc(db("driver"), "buses", "student-bus", "waves", "driver"), wave("driver")));
+  await assertFails(setDoc(doc(db("newTeacher"), "buses", "teacher-bus", "waves", "newTeacher"), wave("newTeacher")));
+});
+
+test("the bus's driver sees and clears waves; other riders can't see them", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "buses", "student-bus", "waves", "student"), wave("student"));
+  });
+  await assertSucceeds(getDocs(collection(db("driver"), "buses", "student-bus", "waves")));
+  await assertFails(getDocs(collection(db("teacher"), "buses", "student-bus", "waves")));
+  await assertSucceeds(getDoc(doc(db("student"), "buses", "student-bus", "waves", "student")));
+  await assertFails(deleteDoc(doc(db("teacher"), "buses", "student-bus", "waves", "student")));
+  await assertSucceeds(deleteDoc(doc(db("driver"), "buses", "student-bus", "waves", "student")));
+});
+
+test("a rider cancels their own wave", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "buses", "student-bus", "waves", "student"), wave("student"));
+  });
+  await assertSucceeds(deleteDoc(doc(db("student"), "buses", "student-bus", "waves", "student")));
+});
+
 // ---------- Complaints ----------
 
 function complaint(uid, role, extra = {}) {

@@ -77,6 +77,20 @@ service cloud.firestore {
       allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
     }
 
+    // ---------- My places: a rider's own boarding points ----------
+
+    match /users/{uid}/places/{placeId} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+
+      // Only your own, at most five (IDs p1 ... p5), with a short label and a position.
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && placeId in ['p1', 'p2', 'p3', 'p4', 'p5']
+        && request.resource.data.keys().hasOnly(['label', 'kind', 'lat', 'lng', 'createdAt'])
+        && isShortText(request.resource.data.label, 40)
+        && request.resource.data.kind in ['home', 'tuition', 'other']
+        && request.resource.data.lat is number && request.resource.data.lng is number;
+    }
+
     // ---------- Timetable, routes and news: everyone reads, only the admin writes ----------
 
     match /schedules/{id} {
@@ -128,6 +142,37 @@ service cloud.firestore {
 
       // Ending a trip (or deleting the account) removes the driver's own bus.
       allow delete: if isAdmin() || (signedIn() && resource.data.driverId == request.auth.uid);
+    }
+
+    // ---------- "I'm waiting here" waves ----------
+
+    match /buses/{busId}/waves/{waveId} {
+      function bus() {
+        return get(/databases/$(database)/documents/buses/$(busId)).data;
+      }
+
+      function busExists() {
+        return exists(/databases/$(database)/documents/buses/$(busId));
+      }
+
+      // The rider who waved, the bus's driver, or the admin. Other riders can't see who waits where.
+      allow read: if signedIn()
+        && (waveId == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
+
+      // An approved rider waves at a running bus they may ride. The document ID is
+      // their uid (one wave per bus), and it must run out within 20 minutes.
+      allow create, update: if isApprovedRider() && waveId == request.auth.uid
+        && busExists() && canBoard(bus())
+        && request.resource.data.keys().hasOnly(['uid', 'label', 'lat', 'lng', 'createdAt', 'expiresAt'])
+        && request.resource.data.uid == request.auth.uid
+        && isShortText(request.resource.data.label, 60)
+        && request.resource.data.lat is number && request.resource.data.lng is number
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt <= request.time + duration.value(20, 'm');
+
+      // The rider cancels, or the driver clears it once the bus has passed.
+      allow delete: if signedIn()
+        && (waveId == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
     }
 
     // ---------- Complaints ----------
