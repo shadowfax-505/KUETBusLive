@@ -4,6 +4,10 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
+//  The live map. Tapping a bus works like a ride-hailing app: the bus's whole
+//  route is drawn, the road it will take to your stop is highlighted, and a
+//  trip card slides up with the ETA, speed and nearest stop.
+//
 
 import SwiftUI
 import MapKit
@@ -19,32 +23,68 @@ struct LiveMapView: View {
                            span: MKCoordinateSpan(latitudeDelta: 0.12, longitudeDelta: 0.12))
     )
     @State private var selectedBusId: String?
+    @State private var followBus = true
     @State private var showDetail = false
+    @State private var locationPermission = CLLocationManager()
+
+    var selectedBus: Bus? {
+        guard let id = selectedBusId else { return nil }
+        return busViewModel.bus(withId: id)
+    }
 
     var body: some View {
         NavigationStack {
             Map(position: $camera) {
+                // The rider's own blue dot.
+                UserAnnotation()
+
+                if let bus = selectedBus {
+                    // Whole route, drawn faintly.
+                    if let path = busViewModel.routePaths[bus.routeId], !path.isEmpty {
+                        MapPolyline(coordinates: path)
+                            .stroke(bus.allocation.color.opacity(0.35), lineWidth: 6)
+                    }
+                    // The road from the bus to my stop, drawn strongly.
+                    let toMyStop = busViewModel.remainingPath(for: bus)
+                    if !toMyStop.isEmpty {
+                        MapPolyline(coordinates: toMyStop)
+                            .stroke(bus.allocation.color,
+                                    style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                    }
+                    // Every stop on the route.
+                    if let stops = busViewModel.routeStops[bus.routeId] {
+                        ForEach(stops, id: \.self) { stop in
+                            Annotation(stop.name, coordinate: stop.coordinate) {
+                                Circle()
+                                    .fill(.white)
+                                    .stroke(bus.allocation.color, lineWidth: 3)
+                                    .frame(width: 12, height: 12)
+                            }
+                        }
+                    }
+                }
+
                 if let stop = authViewModel.profile?.favoriteStop {
                     Marker(stop.name, systemImage: "star.fill", coordinate: stop.coordinate)
-                        .tint(.blue)
+                        .tint(.orange)
                 }
 
                 ForEach(busViewModel.buses) { bus in
                     Annotation(bus.number, coordinate: bus.coordinate) {
-                        Button {
-                            selectedBusId = bus.id
-                            showDetail = true
-                        } label: {
-                            Image(systemName: "bus.fill")
-                                .padding(8)
-                                .foregroundColor(.white)
-                                .background(bus.crowd.color)
-                                .clipShape(Circle())
-                                // A purple ring marks teacher buses.
-                                .overlay(Circle().stroke(bus.allocation.color, lineWidth: 3))
-                        }
+                        BusMarker(bus: bus, isSelected: bus.id == selectedBusId)
+                            .onTapGesture {
+                                select(bus)
+                            }
                     }
+                    // The trip card already shows the selected bus's name, and the
+                    // label would cover the heading arrow when the bus drives south.
+                    .annotationTitles(bus.id == selectedBusId ? .hidden : .automatic)
                 }
+            }
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+                MapScaleView()
             }
             .overlay(alignment: .top) {
                 if busViewModel.buses.isEmpty {
@@ -55,6 +95,17 @@ struct LiveMapView: View {
                         .padding()
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if let bus = selectedBus {
+                    TripCard(bus: bus,
+                             busViewModel: busViewModel,
+                             followBus: $followBus,
+                             onDetails: { showDetail = true },
+                             onClose: { selectedBusId = nil })
+                        .transition(.move(edge: .bottom))
+                }
+            }
+            .animation(.spring, value: selectedBusId)
             .navigationTitle("Live Buses")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $showDetail) {
@@ -69,6 +120,7 @@ struct LiveMapView: View {
             busViewModel.favoriteStop = authViewModel.profile?.favoriteStop
             busViewModel.viewerRole = authViewModel.profile?.role ?? .student
             busViewModel.startListening()
+            locationPermission.requestWhenInUseAuthorization()
         }
         .onDisappear {
             busViewModel.stopListening()
@@ -80,5 +132,58 @@ struct LiveMapView: View {
                 busViewModel.refreshETA(for: bus, force: true)
             }
         }
+        // Follow mode: keep the camera on the selected bus as it moves.
+        .onChange(of: selectedBus?.lat) {
+            if followBus, let bus = selectedBus {
+                withAnimation(.easeInOut(duration: 1)) {
+                    camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
+                }
+            }
+        }
+        // The selected bus ended its trip.
+        .onChange(of: busViewModel.buses.count) {
+            if selectedBusId != nil && selectedBus == nil {
+                selectedBusId = nil
+            }
+        }
+    }
+
+    func select(_ bus: Bus) {
+        selectedBusId = bus.id
+        followBus = true
+        busViewModel.loadRoute(for: bus)
+        busViewModel.refreshETA(for: bus, force: true)
+        withAnimation(.easeInOut(duration: 1)) {
+            camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
+        }
+    }
+}
+
+// The bus icon: colour shows the crowd level, the ring shows who may ride it,
+// and the small arrow points where the bus is heading.
+struct BusMarker: View {
+    let bus: Bus
+    let isSelected: Bool
+
+    var body: some View {
+        ZStack {
+            Image(systemName: "bus.fill")
+                .padding(8)
+                .foregroundColor(.white)
+                .background(bus.crowd.color)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(bus.allocation.color, lineWidth: 3))
+                .opacity(bus.isStale ? 0.5 : 1)
+            // Drawn after the icon so it sits on top, just outside the ring.
+            if let heading = bus.heading {
+                Image(systemName: "arrowtriangle.up.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(bus.allocation.color)
+                    .offset(y: -27)
+                    .rotationEffect(.degrees(heading))
+            }
+        }
+        .scaleEffect(isSelected ? 1.3 : 1)
+        .shadow(radius: isSelected ? 4 : 1)
     }
 }
