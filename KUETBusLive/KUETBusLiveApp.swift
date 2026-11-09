@@ -10,6 +10,8 @@ import FirebaseCore
 
 @main
 struct KUETBusLiveApp: App {
+    // Receives the push notification token from iOS (see PushManager).
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     // StateObject is created lazily, so FirebaseApp.configure() in init runs first.
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showSplash = true

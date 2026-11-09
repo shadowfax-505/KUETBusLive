@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B1000000000000000000A001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B1000000000000000000C001 /* FirebaseAuth */; };
 		B1000000000000000000A002 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = B1000000000000000000C002 /* FirebaseFirestore */; };
+		B1000000000000000000A003 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = B1000000000000000000C003 /* FirebaseMessaging */; };
 		B1000000000000000000A010 /* KUETBusWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B1000000000000000000F004 /* KUETBusWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -80,6 +81,7 @@
 			files = (
 				B1000000000000000000A001 /* FirebaseAuth in Frameworks */,
 				B1000000000000000000A002 /* FirebaseFirestore in Frameworks */,
+				B1000000000000000000A003 /* FirebaseMessaging in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,6 +149,7 @@
 			packageProductDependencies = (
 				B1000000000000000000C001 /* FirebaseAuth */,
 				B1000000000000000000C002 /* FirebaseFirestore */,
+				B1000000000000000000C003 /* FirebaseMessaging */,
 			);
 			productName = KUETBusLive;
 			productReference = B1000000000000000000F001 /* KUETBusLive.app */;
@@ -580,6 +583,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B10000000000000000007001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		B1000000000000000000C003 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10000000000000000007001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

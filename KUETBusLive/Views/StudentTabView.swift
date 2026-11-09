@@ -59,6 +59,7 @@ struct StudentTabView: View {
         // The route with my stop on it, drawn on the large widget's map.
         .onReceive(widgetRoutes.$routes) { routes in
             WidgetSync.saveRoute(from: routes, favoriteStop: authViewModel.profile?.favoriteStopName)
+            updatePushTopic(routes)
         }
         // New timetable from Firestore, or a new favourite stop: tell the widget.
         .onReceive(widgetSchedules.$schedules) { schedules in
@@ -67,7 +68,18 @@ struct StudentTabView: View {
         .onChange(of: authViewModel.profile?.favoriteStopName) {
             updateWidget(widgetSchedules.schedules)
             WidgetSync.saveRoute(from: widgetRoutes.routes, favoriteStop: authViewModel.profile?.favoriteStopName)
+            updatePushTopic(widgetRoutes.routes)
         }
+    }
+
+    // Server push: listen to the route that has my stop on it ("Normal-2 just left campus").
+    func updatePushTopic(_ routes: [BusRoute]) {
+        guard let stopName = authViewModel.profile?.favoriteStopName, !routes.isEmpty else { return }
+        let myRoute = routes.first { route in
+            route.stops.contains { $0.name == stopName }
+        }
+        PushManager.shared.subscribe(toRouteId: myRoute?.id)
+        PushManager.shared.saveTokenForCurrentUser()
     }
 
     func updateWidget(_ schedules: [BusSchedule]) {
