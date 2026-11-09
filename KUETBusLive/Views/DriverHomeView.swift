@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct DriverHomeView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -33,6 +34,24 @@ struct DriverHomeView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // The route the driver is about to drive, with their own position.
+                Section {
+                    Map {
+                        UserAnnotation()
+                        if !driverViewModel.routePath.isEmpty {
+                            MapPolyline(coordinates: driverViewModel.routePath)
+                                .stroke(.blue, lineWidth: 5)
+                        }
+                        if let route = selectedRoute {
+                            ForEach(route.stops, id: \.self) { stop in
+                                Marker(stop.name, systemImage: "mappin", coordinate: stop.coordinate)
+                            }
+                        }
+                    }
+                    .frame(height: 220)
+                    .listRowInsets(EdgeInsets())
+                }
+
                 Section(header: Text("Trip")) {
                     SchedulePicker(schedules: tripChoices,
                                    selectedId: $selectedScheduleId)
@@ -104,6 +123,10 @@ struct DriverHomeView: View {
             if selectedRouteId.isEmpty, let firstId = routeViewModel.routes.first?.id {
                 selectedRouteId = firstId
             }
+            driverViewModel.loadPath(for: selectedRoute)
+        }
+        .onChange(of: selectedRouteId) { _, _ in
+            driverViewModel.loadPath(for: selectedRoute)
         }
         .onChange(of: scheduleViewModel.schedules.count) { _, _ in
             if selectedScheduleId.isEmpty, let firstId = tripChoices.first?.id {
