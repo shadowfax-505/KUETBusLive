@@ -4,8 +4,9 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  REST API + JSON parsing: asks the free OSRM routing server how long the
-//  drive is from the bus to a stop. No API key is needed.
+//  Talks to the public OSRM routing API. It answers two questions:
+//  - how long the bus needs to reach my stop (and the road it will take)
+//  - the full road path of a route through all its stops, to draw on the map
 //
 
 import Foundation
@@ -14,12 +15,33 @@ import CoreLocation
 class ETAService {
     static let baseURL = "https://router.project-osrm.org/route/v1/driving/"
 
+    // Bus -> my stop: travel time, distance and the road path.
     func fetchETA(from start: CLLocationCoordinate2D,
                   to end: CLLocationCoordinate2D,
                   completion: @escaping (RouteInfo?) -> Void) {
-        // OSRM wants longitude first, then latitude.
-        let path = "\(start.longitude),\(start.latitude);\(end.longitude),\(end.latitude)"
-        guard let url = URL(string: Self.baseURL + path + "?overview=false") else {
+        fetchRoute(through: [start, end], completion: completion)
+    }
+
+    // A whole bus route: the road path through every stop, in order.
+    func fetchPath(through stops: [CLLocationCoordinate2D],
+                   completion: @escaping ([CLLocationCoordinate2D]) -> Void) {
+        fetchRoute(through: stops) { info in
+            completion(info?.path ?? [])
+        }
+    }
+
+    private func fetchRoute(through points: [CLLocationCoordinate2D],
+                            completion: @escaping (RouteInfo?) -> Void) {
+        guard points.count >= 2 else {
+            completion(nil)
+            return
+        }
+        // OSRM wants longitude first, then latitude, with points separated by ";".
+        let path = points
+            .map { "\($0.longitude),\($0.latitude)" }
+            .joined(separator: ";")
+        let options = "?overview=full&geometries=geojson"
+        guard let url = URL(string: Self.baseURL + path + options) else {
             completion(nil)
             return
         }
