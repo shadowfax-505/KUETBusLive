@@ -14,5 +14,6 @@ import SwiftUI
 struct KUETBusWidgetBundle: WidgetBundle {
     var body: some Widget {
         KUETBusWidget()
+        BusLiveActivity()
     }
 }
