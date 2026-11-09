@@ -50,6 +50,8 @@ struct Bus: Identifiable, Codable {
     var crowd: CrowdLevel
     var audience: BusAudience?
     var scheduleId: String?
+    var heading: Double?   // degrees from north, from the driver's GPS
+    var speed: Double?     // metres per second
 
     // Older trips saved before allocation existed count as student buses.
     var allocation: BusAudience {
@@ -58,6 +60,16 @@ struct Bus: Identifiable, Codable {
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: lat, longitude: lng)
+    }
+
+    var speedText: String {
+        guard let speed = speed, speed >= 0 else { return "--" }
+        return "\(Int(speed * 3.6)) km/h"
+    }
+
+    // No position for a minute usually means the driver lost signal.
+    var isStale: Bool {
+        Date().timeIntervalSince(updatedAt) > 60
     }
 
     var lastUpdateText: String {

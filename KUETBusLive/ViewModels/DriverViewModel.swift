@@ -18,11 +18,13 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     @Published var statusMessage = "Not on a trip"
     @Published var currentLat: Double?
     @Published var currentLng: Double?
+    @Published var routePath: [CLLocationCoordinate2D] = []
 
     static let sendIntervalSeconds: TimeInterval = 5
 
     private let db = Firestore.firestore()
     private let locationManager = LocationManager()
+    private let etaService = ETAService()
     private var busDocId: String?
     private var pendingBus: Bus?
     private var hasCreatedDocument = false
@@ -74,6 +76,17 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         statusMessage = "Trip ended"
     }
 
+    // The road path of the chosen route, drawn on the driver's map.
+    func loadPath(for route: BusRoute?) {
+        guard let route = route else {
+            routePath = []
+            return
+        }
+        etaService.fetchPath(through: route.stops.map { $0.coordinate }) { path in
+            self.routePath = path
+        }
+    }
+
     // MARK: - LocationUpdateDelegate
 
     func didUpdateLocation(_ location: CLLocation) {
@@ -91,6 +104,8 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             bus.lat = location.coordinate.latitude
             bus.lng = location.coordinate.longitude
             bus.updatedAt = Date()
+            bus.heading = location.course >= 0 ? location.course : nil
+            bus.speed = location.speed >= 0 ? location.speed : nil
             do {
                 try busRef.setData(from: bus)
                 hasCreatedDocument = true
@@ -100,11 +115,19 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             }
         } else {
             // Later positions: only update the moving fields, so crowd reports are kept.
-            busRef.updateData([
+            var fields: [String: Any] = [
                 "lat": location.coordinate.latitude,
                 "lng": location.coordinate.longitude,
                 "updatedAt": Date()
-            ])
+            ]
+            // CoreLocation reports -1 when it doesn't know the direction or speed yet.
+            if location.course >= 0 {
+                fields["heading"] = location.course
+            }
+            if location.speed >= 0 {
+                fields["speed"] = location.speed
+            }
+            busRef.updateData(fields)
         }
 
         updatesSent += 1
