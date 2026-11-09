@@ -176,7 +176,7 @@ struct DriverHomeView: View {
     func startTrip() {
         guard let uid = authViewModel.user?.uid else { return }
         guard let schedule = selectedSchedule, let route = selectedRoute else {
-            driverViewModel.statusMessage = "Pick a bus and a route first"
+            driverViewModel.statusMessage = String(localized: "Pick a bus and a route first")
             return
         }
         driverViewModel.startTrip(schedule: schedule, route: route, driverId: uid)

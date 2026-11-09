@@ -20,26 +20,26 @@ enum UserRole: String, Codable, CaseIterable {
     var title: String {
         switch self {
         case .student:
-            return "Student"
+            return String(localized: "Student")
         case .teacher:
-            return "Teacher"
+            return String(localized: "Teacher")
         case .driver:
-            return "Driver"
+            return String(localized: "Driver")
         case .admin:
-            return "Transport Admin"
+            return String(localized: "Transport Admin")
         }
     }
 
     var idLabel: String {
         switch self {
         case .student:
-            return "Roll number"
+            return String(localized: "Roll number")
         case .teacher:
-            return "Employee ID"
+            return String(localized: "Employee ID")
         case .driver:
-            return "Driver ID"
+            return String(localized: "Driver ID")
         case .admin:
-            return "Staff ID"
+            return String(localized: "Staff ID")
         }
     }
 }

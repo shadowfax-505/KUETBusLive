@@ -21,9 +21,9 @@ enum BusAudience: String, Codable, CaseIterable {
     var title: String {
         switch self {
         case .student:
-            return "Student bus"
+            return String(localized: "Student bus")
         case .teacher:
-            return "Teacher bus"
+            return String(localized: "Teacher bus")
         }
     }
 
@@ -59,9 +59,9 @@ enum TripDays: String, Codable, CaseIterable {
     var title: String {
         switch self {
         case .sunToThu:
-            return "Sunday to Thursday"
+            return String(localized: "Sunday to Thursday")
         case .saturday:
-            return "Saturday"
+            return String(localized: "Saturday")
         }
     }
 
@@ -84,7 +84,16 @@ enum TripPeriod: String, Codable, CaseIterable {
     case night
 
     var title: String {
-        rawValue.capitalized
+        switch self {
+        case .morning:
+            return String(localized: "Morning")
+        case .noon:
+            return String(localized: "Noon")
+        case .afternoon:
+            return String(localized: "Afternoon")
+        case .night:
+            return String(localized: "Night")
+        }
     }
 }
 

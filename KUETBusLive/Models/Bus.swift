@@ -17,11 +17,11 @@ enum CrowdLevel: String, Codable, CaseIterable {
     var label: String {
         switch self {
         case .unknown:
-            return "No report yet"
+            return String(localized: "No report yet")
         case .seats:
-            return "Seats available"
+            return String(localized: "Seats available")
         case .full:
-            return "Full"
+            return String(localized: "Full")
         }
     }
 
@@ -64,7 +64,7 @@ struct Bus: Identifiable, Codable {
 
     var speedText: String {
         guard let speed = speed, speed >= 0 else { return "--" }
-        return "\(Int(speed * 3.6)) km/h"
+        return String(localized: "\(Int(speed * 3.6)) km/h")
     }
 
     // No position for a minute usually means the driver lost signal.
@@ -75,8 +75,8 @@ struct Bus: Identifiable, Codable {
     var lastUpdateText: String {
         let seconds = Int(Date().timeIntervalSince(updatedAt))
         if seconds < 60 {
-            return "\(max(seconds, 0)) s ago"
+            return String(localized: "\(max(seconds, 0)) s ago")
         }
-        return "\(seconds / 60) min ago"
+        return String(localized: "\(seconds / 60) min ago")
     }
 }

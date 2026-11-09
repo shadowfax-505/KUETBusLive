@@ -148,7 +148,7 @@ struct RouteEditorView: View {
         routeViewModel.save(route) { error in
             isSaving = false
             if let error = error {
-                errorMessage = "Could not save: \(error)"
+                errorMessage = String(localized: "Could not save: \(error)")
             } else {
                 dismiss()
             }

@@ -160,7 +160,7 @@ class BusViewModel: ObservableObject {
 
         etaService.fetchETA(from: bus.coordinate, to: stop.coordinate) { info in
             guard let info = info else {
-                self.etaText[busId] = "ETA unavailable"
+                self.etaText[busId] = String(localized: "ETA unavailable")
                 return
             }
             self.etaText[busId] = info.summary

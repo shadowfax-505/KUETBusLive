@@ -47,13 +47,13 @@ struct ProfileView: View {
                 }
                 if isRider {
                     LabeledContent("Can ride", value: authViewModel.profile?.role == .teacher
-                                   ? "Any bus" : "Student buses only")
+                                   ? String(localized: "Any bus") : String(localized: "Student buses only"))
                 }
             }
 
             if isRider {
                 Section(header: Text("My stop")) {
-                    Text(authViewModel.profile?.favoriteStopName ?? "Not set. Pick one in Routes.")
+                    Text(authViewModel.profile?.favoriteStopName ?? String(localized: "Not set. Pick one in Routes."))
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
                 }
             }
@@ -70,6 +70,24 @@ struct ProfileView: View {
                         showSetPasscode = true
                     }
                 }
+            }
+
+            // The app has English and Bangla text. iOS picks one from the phone's language.
+            Section {
+                Button {
+                    // Opens this app's page in Settings, where its language can be changed.
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    LabeledContent("Language", value: Locale.current.localizedString(
+                        forLanguageCode: Locale.current.language.languageCode?.identifier ?? "en") ?? "English")
+                }
+                .foregroundColor(.primary)
+            } header: {
+                Text("Language")
+            } footer: {
+                Text("The app follows your phone's language. To use it in Bangla, set Bangla in Settings > General > Language & Region, or choose it for this app only in Settings > KUET Bus Live > Language.")
             }
 
             Section {

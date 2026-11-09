@@ -35,7 +35,7 @@ struct RouteInfo: Codable {
     }
 
     var summary: String {
-        "\(minutes) min, \(String(format: "%.1f", kilometres)) km"
+        String(localized: "\(minutes) min, \(String(format: "%.1f", kilometres)) km")
     }
 
     // The road path as map coordinates, ready for a MapPolyline.

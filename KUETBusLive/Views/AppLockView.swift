@@ -37,11 +37,11 @@ struct AppLockView: View {
                 .fontWeight(.bold)
 
             if passcodeOn {
-                PasscodePad(title: "Enter app passcode", message: message, shakes: shakes) { code in
+                PasscodePad(title: String(localized: "Enter app passcode"), message: message, shakes: shakes) { code in
                     if AppPasscode.check(code) {
                         onUnlock()
                     } else {
-                        message = "Wrong passcode"
+                        message = String(localized: "Wrong passcode")
                         shakes += 1
                     }
                 }
@@ -98,7 +98,7 @@ struct AppLockView: View {
             if success {
                 onUnlock()
             } else if !passcodeOn {
-                message = error ?? "Couldn't unlock. Try again."
+                message = error ?? String(localized: "Couldn't unlock. Try again.")
             }
         }
     }

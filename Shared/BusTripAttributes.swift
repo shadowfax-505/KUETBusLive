@@ -34,9 +34,9 @@ struct BusTripAttributes: ActivityAttributes {
 
         var crowdText: String {
             switch crowd {
-            case "seats": return "Seats available"
-            case "full": return "Full"
-            default: return "No crowd report"
+            case "seats": return String(localized: "Seats available")
+            case "full": return String(localized: "Full")
+            default: return String(localized: "No crowd report")
             }
         }
     }

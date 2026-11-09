@@ -15,7 +15,7 @@ import FirebaseFirestore
 class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     @Published var isOnTrip = false
     @Published var updatesSent = 0
-    @Published var statusMessage = "Not on a trip"
+    @Published var statusMessage = String(localized: "Not on a trip")
     @Published var currentLat: Double?
     @Published var currentLng: Double?
     @Published var routePath: [CLLocationCoordinate2D] = []
@@ -37,7 +37,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     // The driver picks the trip from the timetable, so the bus knows who may ride it.
     func startTrip(schedule: BusSchedule, route: BusRoute, driverId: String) {
         guard let routeId = route.id, let scheduleId = schedule.id else {
-            statusMessage = "Pick a trip and a route first"
+            statusMessage = String(localized: "Pick a trip and a route first")
             return
         }
         busDocId = "bus-\(scheduleId)"
@@ -56,7 +56,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         lastSent = .distantPast
         updatesSent = 0
         isOnTrip = true
-        statusMessage = "Waiting for GPS..."
+        statusMessage = String(localized: "Waiting for GPS...")
         // Keep sending the position even if the driver locks the phone or opens another app.
         locationManager.start(inBackground: true)
     }
@@ -78,7 +78,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         busDocId = nil
         pendingBus = nil
         isOnTrip = false
-        statusMessage = "Trip ended"
+        statusMessage = String(localized: "Trip ended")
     }
 
     // The road path of the chosen route, drawn on the driver's map.
@@ -115,7 +115,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
                 try busRef.setData(from: bus)
                 hasCreatedDocument = true
             } catch {
-                statusMessage = "Could not start trip: \(error.localizedDescription)"
+                statusMessage = String(localized: "Could not start trip: \(error.localizedDescription)")
                 return
             }
         } else {
@@ -136,7 +136,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         }
 
         updatesSent += 1
-        statusMessage = "Sharing live location"
+        statusMessage = String(localized: "Sharing live location")
     }
 
     func didFailWithLocationError(_ message: String) {

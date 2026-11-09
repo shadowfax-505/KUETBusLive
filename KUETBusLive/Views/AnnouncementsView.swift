@@ -151,7 +151,7 @@ struct ComposeAnnouncementView: View {
                                    postedBy: authViewModel.profile?.name ?? "Transport office") { error in
             isPosting = false
             if let error = error {
-                errorMessage = "Could not post: \(error)"
+                errorMessage = String(localized: "Could not post: \(error)")
             } else {
                 dismiss()
             }

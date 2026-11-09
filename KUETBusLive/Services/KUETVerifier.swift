@@ -64,32 +64,32 @@ struct KUETVerifier {
         switch role {
         case .student:
             guard isValidRoll(id) else {
-                return "Roll number must be 7 digits, like 2207001."
+                return String(localized: "Roll number must be 7 digits, like 2207001.")
             }
             if demo { return nil }
             guard isStudentEmail(email) else {
-                return "Use your KUET student email (ending in @\(studentEmailDomain))."
+                return String(localized: "Use your KUET student email (ending in @\(studentEmailDomain)).")
             }
             guard email.contains(id) else {
-                return "The roll number doesn't match the one in your KUET email."
+                return String(localized: "The roll number doesn't match the one in your KUET email.")
             }
             return nil
         case .teacher:
             guard !id.isEmpty else {
-                return "Enter your KUET employee ID."
+                return String(localized: "Enter your KUET employee ID.")
             }
             if demo { return nil }
             guard isStaffEmail(email) else {
-                return "Use your KUET staff email (ending in \(staffEmailDomain))."
+                return String(localized: "Use your KUET staff email (ending in \(staffEmailDomain)).")
             }
             return nil
         case .driver:
             guard !id.isEmpty else {
-                return "Enter your driver ID."
+                return String(localized: "Enter your driver ID.")
             }
             return nil
         case .admin:
-            return "Transport admin accounts are set up by the transport office."
+            return String(localized: "Transport admin accounts are set up by the transport office.")
         }
     }
 

@@ -23,11 +23,11 @@ struct SignUpView: View {
     var roleHint: String {
         switch role {
         case .student:
-            return "Use your @\(KUETVerifier.studentEmailDomain) email. Your roll number must match the one in it. We'll email you a link to confirm."
+            return String(localized: "Use your @\(KUETVerifier.studentEmailDomain) email. Your roll number must match the one in it. We'll email you a link to confirm.")
         case .teacher:
-            return "Use your KUET staff email. We'll email you a link, and the transport office checks your employee ID."
+            return String(localized: "Use your KUET staff email. We'll email you a link, and the transport office checks your employee ID.")
         case .driver:
-            return "The transport office checks your driver ID before you can start trips."
+            return String(localized: "The transport office checks your driver ID before you can start trips.")
         case .admin:
             return ""
         }

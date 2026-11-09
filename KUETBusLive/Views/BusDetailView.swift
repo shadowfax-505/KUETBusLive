@@ -41,7 +41,7 @@ struct BusDetailView: View {
                         if let stop = authViewModel.profile?.favoriteStop {
                             Text("To \(stop.name)")
                                 .foregroundColor(.secondary)
-                            Text(busViewModel.etaText[busId] ?? "Calculating...")
+                            Text(busViewModel.etaText[busId] ?? String(localized: "Calculating..."))
                                 .font(.title2)
                                 .fontWeight(.bold)
                         } else {
@@ -83,6 +83,6 @@ struct BusDetailView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .navigationTitle(bus?.number ?? "Bus")
+        .navigationTitle(bus?.number ?? String(localized: "Bus"))
     }
 }

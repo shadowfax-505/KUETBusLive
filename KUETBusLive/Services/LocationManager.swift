@@ -73,13 +73,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     var permissionText: String {
         switch manager.authorizationStatus {
         case .authorizedAlways:
-            return "Location: Always (keeps sharing when the app is closed)"
+            return String(localized: "Location: Always (keeps sharing when the app is closed)")
         case .authorizedWhenInUse:
-            return "Location: While Using (keeps sharing while a trip is running)"
+            return String(localized: "Location: While Using (keeps sharing while a trip is running)")
         case .denied, .restricted:
-            return "Location: Off"
+            return String(localized: "Location: Off")
         default:
-            return "Location: not asked yet"
+            return String(localized: "Location: not asked yet")
         }
     }
 

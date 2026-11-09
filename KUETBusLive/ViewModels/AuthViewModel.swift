@@ -67,14 +67,14 @@ class AuthViewModel: ObservableObject {
                 // Add: the profile document uses the Auth uid as its ID.
                 try self.db.collection("users").document(firebaseUser.uid).setData(from: newProfile)
             } catch {
-                self.errorMessage = "Could not save profile: \(error.localizedDescription)"
+                self.errorMessage = String(localized: "Could not save profile: \(error.localizedDescription)")
                 return
             }
 
             if KUETVerifier.needsEmailVerification(role: role, email: email) {
                 firebaseUser.sendEmailVerification { error in
                     if let error = error {
-                        self.errorMessage = "Could not send verification email: \(error.localizedDescription)"
+                        self.errorMessage = String(localized: "Could not send verification email: \(error.localizedDescription)")
                     }
                 }
             }
@@ -141,7 +141,7 @@ class AuthViewModel: ObservableObject {
             self.user = Auth.auth().currentUser
             self.isEmailVerified = Auth.auth().currentUser?.isEmailVerified ?? false
             if !self.isEmailVerified {
-                self.infoMessage = "Not verified yet. Open the link in your KUET email first."
+                self.infoMessage = String(localized: "Not verified yet. Open the link in your KUET email first.")
             }
         }
     }
@@ -153,7 +153,8 @@ class AuthViewModel: ObservableObject {
                 self.errorMessage = error.localizedDescription
                 return
             }
-            self.infoMessage = "Verification email sent to \(self.user?.email ?? "your email")."
+            let email = self.user?.email ?? String(localized: "your email")
+            self.infoMessage = String(localized: "Verification email sent to \(email).")
         }
     }
 

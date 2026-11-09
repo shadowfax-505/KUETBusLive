@@ -21,7 +21,7 @@ struct SetPasscodeView: View {
         NavigationStack {
             VStack {
                 Spacer()
-                PasscodePad(title: firstEntry == nil ? "Choose a 4-digit passcode" : "Enter it again",
+                PasscodePad(title: firstEntry == nil ? String(localized: "Choose a 4-digit passcode") : String(localized: "Enter it again"),
                             message: message,
                             shakes: shakes) { code in
                     handle(code)
@@ -54,7 +54,7 @@ struct SetPasscodeView: View {
             dismiss()
         } else {
             firstEntry = nil
-            message = "The passcodes didn't match. Try again."
+            message = String(localized: "The passcodes didn't match. Try again.")
             shakes += 1
         }
     }

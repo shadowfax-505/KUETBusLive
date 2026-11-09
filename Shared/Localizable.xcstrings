@@ -1,0 +1,2157 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "": {},
+    "%@ %@, %lld percent of the trip done": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, যাত্রার %3$lld শতাংশ শেষ"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@, %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        }
+      }
+    },
+    "%@: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        }
+      }
+    },
+    "%lld km/h": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld কিমি/ঘণ্টা"
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট"
+          }
+        }
+      }
+    },
+    "%lld min ago": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট আগে"
+          }
+        }
+      }
+    },
+    "%lld min, %@ km": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld মিনিট, %2$@ কিমি"
+          }
+        }
+      }
+    },
+    "%lld of %lld digits entered": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$lldটির মধ্যে %1$lldটি অঙ্ক দেওয়া হয়েছে"
+          }
+        }
+      }
+    },
+    "%lld percent of the way from %@ to %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ থেকে %3$@ পর্যন্ত পথের %1$lld শতাংশ"
+          }
+        }
+      }
+    },
+    "%lld s ago": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld সেকেন্ড আগে"
+          }
+        }
+      }
+    },
+    "%lld stops": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldটি স্টপ"
+          }
+        }
+      }
+    },
+    "%lld unread": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldটি পড়া হয়নি"
+          }
+        }
+      }
+    },
+    "Account": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট"
+          }
+        }
+      }
+    },
+    "Add a trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ যোগ করুন"
+          }
+        }
+      }
+    },
+    "Add or reload trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ যোগ বা আবার লোড করুন"
+          }
+        }
+      }
+    },
+    "Add sample KUET routes": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নমুনা KUET রুট যোগ করুন"
+          }
+        }
+      }
+    },
+    "Afternoon": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বিকেল"
+          }
+        }
+      }
+    },
+    "Alert me before my bus arrives": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস আসার আগে আমাকে জানাও"
+          }
+        }
+      }
+    },
+    "All routes": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব রুট"
+          }
+        }
+      }
+    },
+    "Allocated to": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কাদের জন্য"
+          }
+        }
+      }
+    },
+    "Announcements": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঘোষণা"
+          }
+        }
+      }
+    },
+    "Any bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যেকোনো বাস"
+          }
+        }
+      }
+    },
+    "App Passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপ পাসকোড"
+          }
+        }
+      }
+    },
+    "App lock": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপ লক"
+          }
+        }
+      }
+    },
+    "App passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপ পাসকোড"
+          }
+        }
+      }
+    },
+    "Approvals": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুমোদন"
+          }
+        }
+      }
+    },
+    "Approve": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুমোদন দিন"
+          }
+        }
+      }
+    },
+    "Arrival": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানো"
+          }
+        }
+      }
+    },
+    "Bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস"
+          }
+        }
+      }
+    },
+    "Bus Schedule": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাসের সময়সূচি"
+          }
+        }
+      }
+    },
+    "Calculating...": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "হিসাব হচ্ছে..."
+          }
+        }
+      }
+    },
+    "Can ride": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যে বাসে উঠতে পারবেন"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল"
+          }
+        }
+      }
+    },
+    "Change passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসকোড বদলান"
+          }
+        }
+      }
+    },
+    "Choose a 4-digit passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "৪ অঙ্কের একটা পাসকোড বেছে নিন"
+          }
+        }
+      }
+    },
+    "Close announcement": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঘোষণা বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Close trip card": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ কার্ড বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Could not post: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পোস্ট করা যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Could not save profile: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোফাইল সেভ করা যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Could not save: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেভ করা যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Could not send verification email: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যাচাইয়ের ইমেইল পাঠানো যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Could not start trip: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ শুরু করা যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Couldn't unlock. Try again.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খোলা যায়নি। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "Create an account": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট খুলুন"
+          }
+        }
+      }
+    },
+    "Crowd": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিড়"
+          }
+        }
+      }
+    },
+    "Days": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দিন"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মুছে ফেলুন"
+          }
+        }
+      }
+    },
+    "Delete last digit": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ অঙ্ক মুছুন"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বিস্তারিত"
+          }
+        }
+      }
+    },
+    "Driver": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ড্রাইভার"
+          }
+        }
+      }
+    },
+    "Driver ID": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ড্রাইভার আইডি"
+          }
+        }
+      }
+    },
+    "During a trip the bus keeps sharing its position when you lock the phone. The blue pill at the top of the screen shows this. Ending the trip turns it off.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ চলাকালে ফোন লক করলেও বাসের লোকেশন শেয়ার হতে থাকবে। স্ক্রিনের ওপরে নীল চিহ্নটা সেটাই দেখায়। ট্রিপ শেষ করলে এটা বন্ধ হয়ে যায়।"
+          }
+        }
+      }
+    },
+    "ETA unavailable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সময় পাওয়া যাচ্ছে না"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এডিট"
+          }
+        }
+      }
+    },
+    "Edit route": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুট এডিট করুন"
+          }
+        }
+      }
+    },
+    "Edit trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ এডিট করুন"
+          }
+        }
+      }
+    },
+    "Email": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ইমেইল"
+          }
+        }
+      }
+    },
+    "Employee ID": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কর্মচারী আইডি"
+          }
+        }
+      }
+    },
+    "End trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ শেষ করুন"
+          }
+        }
+      }
+    },
+    "Enter app passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপের পাসকোড দিন"
+          }
+        }
+      }
+    },
+    "Enter it again": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আবার দিন"
+          }
+        }
+      }
+    },
+    "Enter your KUET employee ID.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার KUET কর্মচারী আইডি দিন।"
+          }
+        }
+      }
+    },
+    "Enter your driver ID.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ড্রাইভার আইডি দিন।"
+          }
+        }
+      }
+    },
+    "Follow on Lock Screen": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লক স্ক্রিনে ফলো করুন"
+          }
+        }
+      }
+    },
+    "Forgot? Sign out": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভুলে গেছেন? সাইন আউট করুন"
+          }
+        }
+      }
+    },
+    "Full": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভরা"
+          }
+        }
+      }
+    },
+    "How crowded is it?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিড় কেমন?"
+          }
+        }
+      }
+    },
+    "How early": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কত আগে"
+          }
+        }
+      }
+    },
+    "I am a": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি একজন"
+          }
+        }
+      }
+    },
+    "I've verified my email": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি ইমেইল যাচাই করেছি"
+          }
+        }
+      }
+    },
+    "KUET Bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET বাস"
+          }
+        }
+      }
+    },
+    "KUET Bus Live": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET Bus Live"
+          }
+        }
+      }
+    },
+    "KUET Bus Live is locked": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET Bus Live লক করা আছে"
+          }
+        }
+      }
+    },
+    "Keep the map on this bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপ এই বাসের ওপর রাখুন"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভাষা"
+          }
+        }
+      }
+    },
+    "Last update": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ আপডেট"
+          }
+        }
+      }
+    },
+    "Last update %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ আপডেট %@"
+          }
+        }
+      }
+    },
+    "Leaves %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ থেকে ছাড়ে"
+          }
+        }
+      }
+    },
+    "Leaves %@ %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ থেকে ছাড়ে %2$@"
+          }
+        }
+      }
+    },
+    "Leaves KUET": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET থেকে ছাড়ে"
+          }
+        }
+      }
+    },
+    "Leaves KUET %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET থেকে ছাড়ে %@"
+          }
+        }
+      }
+    },
+    "Leaves starting spot": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুরুর জায়গা থেকে ছাড়ে"
+          }
+        }
+      }
+    },
+    "Live Buses": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইভ বাস"
+          }
+        }
+      }
+    },
+    "Live location": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইভ লোকেশন"
+          }
+        }
+      }
+    },
+    "Load official KUET timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET-এর অফিসিয়াল সময়সূচি লোড করুন"
+          }
+        }
+      }
+    },
+    "Loading profile...": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোফাইল লোড হচ্ছে..."
+          }
+        }
+      }
+    },
+    "Location: Always (keeps sharing when the app is closed)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লোকেশন: সবসময় (অ্যাপ বন্ধ থাকলেও শেয়ার হয়)"
+          }
+        }
+      }
+    },
+    "Location: Off": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লোকেশন: বন্ধ"
+          }
+        }
+      }
+    },
+    "Location: While Using (keeps sharing while a trip is running)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লোকেশন: ব্যবহারের সময় (ট্রিপ চলাকালে শেয়ার হয়)"
+          }
+        }
+      }
+    },
+    "Location: not asked yet": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লোকেশন: এখনো অনুমতি চাওয়া হয়নি"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপ"
+          }
+        }
+      }
+    },
+    "Map of the route to %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ পর্যন্ত রুটের ম্যাপ"
+          }
+        }
+      }
+    },
+    "Message": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বার্তা"
+          }
+        }
+      }
+    },
+    "Morning": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সকাল"
+          }
+        }
+      }
+    },
+    "My stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার স্টপ"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নাম"
+          }
+        }
+      }
+    },
+    "Near %@ · stop %lld of %lld": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@-এর কাছে · %3$lldটির মধ্যে %2$lld নম্বর স্টপ"
+          }
+        }
+      }
+    },
+    "New announcement": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নতুন ঘোষণা"
+          }
+        }
+      }
+    },
+    "New route": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নতুন রুট"
+          }
+        }
+      }
+    },
+    "New trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নতুন ট্রিপ"
+          }
+        }
+      }
+    },
+    "News": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খবর"
+          }
+        }
+      }
+    },
+    "News from the KUET transport office will appear here.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET পরিবহন দপ্তরের খবর এখানে দেখা যাবে।"
+          }
+        }
+      }
+    },
+    "Next KUET bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরের KUET বাস"
+          }
+        }
+      }
+    },
+    "Next bus you can take today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আপনার জন্য পরের বাস"
+          }
+        }
+      }
+    },
+    "Night": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রাত"
+          }
+        }
+      }
+    },
+    "No announcements": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো ঘোষণা নেই"
+          }
+        }
+      }
+    },
+    "No buses are running right now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখন কোনো বাস চলছে না"
+          }
+        }
+      }
+    },
+    "No buses this week": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই সপ্তাহে কোনো বাস নেই"
+          }
+        }
+      }
+    },
+    "No crowd report": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিড়ের খবর নেই"
+          }
+        }
+      }
+    },
+    "No more buses this week": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই সপ্তাহে আর কোনো বাস নেই"
+          }
+        }
+      }
+    },
+    "No one is waiting for approval": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুমোদনের জন্য কেউ অপেক্ষায় নেই"
+          }
+        }
+      }
+    },
+    "No report yet": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনো কেউ জানায়নি"
+          }
+        }
+      }
+    },
+    "No routes yet": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনো কোনো রুট নেই"
+          }
+        }
+      }
+    },
+    "No signal": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সিগন্যাল নেই"
+          }
+        }
+      }
+    },
+    "No signal from this bus for over a minute. Its position may be out of date.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এক মিনিটের বেশি সময় ধরে এই বাস থেকে সিগন্যাল আসছে না। অবস্থানটা পুরোনো হতে পারে।"
+          }
+        }
+      }
+    },
+    "No stops yet": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনো কোনো স্টপ নেই"
+          }
+        }
+      }
+    },
+    "Noon": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দুপুর"
+          }
+        }
+      }
+    },
+    "Not on a trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো ট্রিপে নেই"
+          }
+        }
+      }
+    },
+    "Not set. Pick one in Routes.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঠিক করা হয়নি। রুট থেকে একটা বেছে নিন।"
+          }
+        }
+      }
+    },
+    "Not verified yet. Open the link in your KUET email first.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনো যাচাই হয়নি। আগে আপনার KUET ইমেইলের লিংকটা খুলুন।"
+          }
+        }
+      }
+    },
+    "Opens all announcements": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব ঘোষণা খোলে"
+          }
+        }
+      }
+    },
+    "Part of day": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দিনের সময়"
+          }
+        }
+      }
+    },
+    "Passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসকোড"
+          }
+        }
+      }
+    },
+    "Password": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসওয়ার্ড"
+          }
+        }
+      }
+    },
+    "Password (6+ characters)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"
+          }
+        }
+      }
+    },
+    "Pick a bus and a route first": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আগে একটা বাস আর রুট বেছে নিন"
+          }
+        }
+      }
+    },
+    "Pick a trip and a route first": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আগে একটা ট্রিপ আর রুট বেছে নিন"
+          }
+        }
+      }
+    },
+    "Post": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পোস্ট করুন"
+          }
+        }
+      }
+    },
+    "Profile": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোফাইল"
+          }
+        }
+      }
+    },
+    "Reject": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল করুন"
+          }
+        }
+      }
+    },
+    "Reload official timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অফিসিয়াল সময়সূচি আবার লোড করুন"
+          }
+        }
+      }
+    },
+    "Remarks": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মন্তব্য"
+          }
+        }
+      }
+    },
+    "Replace": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলে দিন"
+          }
+        }
+      }
+    },
+    "Replace every trip with the timetable shipped in the app?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব ট্রিপ অ্যাপের সাথে থাকা সময়সূচি দিয়ে বদলে দেবেন?"
+          }
+        }
+      }
+    },
+    "Role": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভূমিকা"
+          }
+        }
+      }
+    },
+    "Roll number": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রোল নম্বর"
+          }
+        }
+      }
+    },
+    "Roll number must be 7 digits, like 2207001.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রোল নম্বর ৭ অঙ্কের হতে হবে, যেমন 2207001।"
+          }
+        }
+      }
+    },
+    "Route": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুট"
+          }
+        }
+      }
+    },
+    "Route it takes back": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফেরার রুট"
+          }
+        }
+      }
+    },
+    "Route name, e.g. KUET to Sonadanga": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুটের নাম, যেমন KUET to Sonadanga"
+          }
+        }
+      }
+    },
+    "Routes": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুট"
+          }
+        }
+      }
+    },
+    "Saturday": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শনিবার"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেভ করুন"
+          }
+        }
+      }
+    },
+    "Schedule": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি"
+          }
+        }
+      }
+    },
+    "Schedules": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি"
+          }
+        }
+      }
+    },
+    "Seats": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সিট আছে"
+          }
+        }
+      }
+    },
+    "Seats available": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সিট খালি আছে"
+          }
+        }
+      }
+    },
+    "Send the link again": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লিংকটা আবার পাঠান"
+          }
+        }
+      }
+    },
+    "Set as my stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার স্টপ করুন"
+          }
+        }
+      }
+    },
+    "Set your stop in Routes to see the ETA.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সময় দেখতে রুট থেকে আপনার স্টপ ঠিক করুন।"
+          }
+        }
+      }
+    },
+    "Set your stop in the Routes tab to see the ETA.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সময় দেখতে রুট ট্যাব থেকে আপনার স্টপ ঠিক করুন।"
+          }
+        }
+      }
+    },
+    "Sharing live location": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইভ লোকেশন শেয়ার হচ্ছে"
+          }
+        }
+      }
+    },
+    "Shows the trip card with the ETA": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সময়সহ ট্রিপ কার্ড দেখায়"
+          }
+        }
+      }
+    },
+    "Sign In": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইন ইন"
+          }
+        }
+      }
+    },
+    "Sign Out": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইন আউট"
+          }
+        }
+      }
+    },
+    "Sign Up": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইন আপ"
+          }
+        }
+      }
+    },
+    "Special trips are teacher buses, so they are hidden. Students can only ride Normal trips.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Special ট্রিপগুলো শিক্ষকদের বাস, তাই লুকানো আছে। শিক্ষার্থীরা শুধু Normal ট্রিপে উঠতে পারে।"
+          }
+        }
+      }
+    },
+    "Staff ID": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টাফ আইডি"
+          }
+        }
+      }
+    },
+    "Start trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ শুরু করুন"
+          }
+        }
+      }
+    },
+    "Starting spot, e.g. Rupsha": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুরুর জায়গা, যেমন Rupsha"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টপ"
+          }
+        }
+      }
+    },
+    "Stop %lld, %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld নম্বর স্টপ, %2$@"
+          }
+        }
+      }
+    },
+    "Stop following": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফলো করা বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Stop name": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টপের নাম"
+          }
+        }
+      }
+    },
+    "Stop: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টপ: %@"
+          }
+        }
+      }
+    },
+    "Stops (%lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টপ (%lld)"
+          }
+        }
+      }
+    },
+    "Student": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষার্থী"
+          }
+        }
+      }
+    },
+    "Student bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষার্থীদের বাস"
+          }
+        }
+      }
+    },
+    "Student buses only": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুধু শিক্ষার্থীদের বাস"
+          }
+        }
+      }
+    },
+    "Students can't ride a %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষার্থীরা %@-এ উঠতে পারে না।"
+          }
+        }
+      }
+    },
+    "Sunday to Thursday": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রবিবার থেকে বৃহস্পতিবার"
+          }
+        }
+      }
+    },
+    "Tap Edit to drag stops into the right order. Swipe a stop to delete it. A route needs at least two stops.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্টপগুলো টেনে সঠিক ক্রমে সাজাতে এডিট চাপুন। কোনো স্টপ মুছতে সোয়াইপ করুন। একটা রুটে কমপক্ষে দুটো স্টপ লাগে।"
+          }
+        }
+      }
+    },
+    "Tap the map to add a stop at that spot. The line joins the stops in order.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপের যেখানে ট্যাপ করবেন সেখানে স্টপ যোগ হবে। লাইনটা ক্রম অনুযায়ী স্টপগুলো জোড়ে।"
+          }
+        }
+      }
+    },
+    "Teacher": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষক"
+          }
+        }
+      }
+    },
+    "Teacher bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষকদের বাস"
+          }
+        }
+      }
+    },
+    "Teachers can ride any bus, Normal or Special.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিক্ষকরা Normal বা Special যেকোনো বাসে উঠতে পারেন।"
+          }
+        }
+      }
+    },
+    "The KUET transport office will check your %@ (%@). This screen opens the app as soon as you're approved.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET পরিবহন দপ্তর আপনার %1$@ (%2$@) যাচাই করবে। অনুমোদন পেলেই এই স্ক্রিন থেকে অ্যাপ খুলে যাবে।"
+          }
+        }
+      }
+    },
+    "The app follows your phone's language. To use it in Bangla, set Bangla in Settings > General > Language & Region, or choose it for this app only in Settings > KUET Bus Live > Language.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপটা আপনার ফোনের ভাষা অনুসরণ করে। বাংলায় ব্যবহার করতে Settings > General > Language & Region-এ বাংলা বেছে নিন, অথবা শুধু এই অ্যাপের জন্য Settings > KUET Bus Live > Language থেকে বেছে নিন।"
+          }
+        }
+      }
+    },
+    "The app locks when you leave it. With both on, Face ID is tried first and the passcode is the backup.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপ থেকে বের হলেই এটা লক হয়ে যায়। দুটোই চালু থাকলে আগে Face ID, তারপর পাসকোড।"
+          }
+        }
+      }
+    },
+    "The next bus you can take, how long until it leaves, and how far along it is.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার পরের বাস, ছাড়তে কত বাকি, আর কতদূর এসেছে।"
+          }
+        }
+      }
+    },
+    "The passcodes didn't match. Try again.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসকোড মেলেনি। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The roll number doesn't match the one in your KUET email.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রোল নম্বরটা আপনার KUET ইমেইলের রোলের সাথে মিলছে না।"
+          }
+        }
+      }
+    },
+    "The transport admin hasn't added trips or routes yet.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন অ্যাডমিন এখনো ট্রিপ বা রুট যোগ করেননি।"
+          }
+        }
+      }
+    },
+    "The transport office checks your driver ID before you can start trips.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ শুরু করার আগে পরিবহন দপ্তর আপনার ড্রাইভার আইডি যাচাই করবে।"
+          }
+        }
+      }
+    },
+    "This bus has ended its trip.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই বাসের ট্রিপ শেষ হয়েছে।"
+          }
+        }
+      }
+    },
+    "Times (24-hour, e.g. 17:10)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময় (২৪ ঘণ্টা, যেমন 17:10)"
+          }
+        }
+      }
+    },
+    "Title, e.g. Normal-2 is late": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শিরোনাম, যেমন Normal-2 দেরিতে আসবে"
+          }
+        }
+      }
+    },
+    "To %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ পর্যন্ত"
+          }
+        }
+      }
+    },
+    "To %@ · %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ পর্যন্ত · %2$@"
+          }
+        }
+      }
+    },
+    "Transport Admin": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন অ্যাডমিন"
+          }
+        }
+      }
+    },
+    "Transport admin accounts are set up by the transport office.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন অ্যাডমিন অ্যাকাউন্ট পরিবহন দপ্তর খুলে দেয়।"
+          }
+        }
+      }
+    },
+    "Trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ"
+          }
+        }
+      }
+    },
+    "Trip card for %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর ট্রিপ কার্ড"
+          }
+        }
+      }
+    },
+    "Trip ended": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ শেষ"
+          }
+        }
+      }
+    },
+    "Trip name, e.g. Normal-1": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপের নাম, যেমন Normal-1"
+          }
+        }
+      }
+    },
+    "Trip progress": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যাত্রার অগ্রগতি"
+          }
+        }
+      }
+    },
+    "Unlock with %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ দিয়ে খুলুন"
+          }
+        }
+      }
+    },
+    "Updates sent: %lld": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাঠানো আপডেট: %lld"
+          }
+        }
+      }
+    },
+    "Use %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ব্যবহার করুন"
+          }
+        }
+      }
+    },
+    "Use your @%@ email. Your roll number must match the one in it. We'll email you a link to confirm.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার @%@ ইমেইল ব্যবহার করুন। রোল নম্বরটা ইমেইলের রোলের সাথে মিলতে হবে। নিশ্চিত করতে আমরা একটা লিংক পাঠাব।"
+          }
+        }
+      }
+    },
+    "Use your KUET staff email (ending in %@).": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার KUET স্টাফ ইমেইল ব্যবহার করুন (শেষে %@)।"
+          }
+        }
+      }
+    },
+    "Use your KUET staff email. We'll email you a link, and the transport office checks your employee ID.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার KUET স্টাফ ইমেইল ব্যবহার করুন। আমরা একটা লিংক পাঠাব, আর পরিবহন দপ্তর আপনার কর্মচারী আইডি যাচাই করবে।"
+          }
+        }
+      }
+    },
+    "Use your KUET student email (ending in @%@).": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার KUET শিক্ষার্থী ইমেইল ব্যবহার করুন (শেষে @%@)।"
+          }
+        }
+      }
+    },
+    "Verification email sent to %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ যাচাইয়ের ইমেইল পাঠানো হয়েছে।"
+          }
+        }
+      }
+    },
+    "Verify your KUET email": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার KUET ইমেইল যাচাই করুন"
+          }
+        }
+      }
+    },
+    "Waiting for GPS...": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS-এর অপেক্ষায়..."
+          }
+        }
+      }
+    },
+    "Waiting for approval": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুমোদনের অপেক্ষায়"
+          }
+        }
+      }
+    },
+    "We sent a link to %@. Open it, then come back and tap the button below.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ একটা লিংক পাঠিয়েছি। সেটা খুলে এখানে ফিরে নিচের বোতামে চাপুন।"
+          }
+        }
+      }
+    },
+    "Wrong passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভুল পাসকোড"
+          }
+        }
+      }
+    },
+    "Your details": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার তথ্য"
+          }
+        }
+      }
+    },
+    "to %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ পর্যন্ত"
+          }
+        }
+      }
+    },
+    "your email": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ইমেইল"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
