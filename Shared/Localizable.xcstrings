@@ -312,6 +312,26 @@
         }
       }
     },
+    "Arriving in": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আসছে"
+          }
+        }
+      }
+    },
+    "At your stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার স্টপে"
+          }
+        }
+      }
+    },
     "Bus": {
       "localizations": {
         "bn": {
@@ -692,6 +712,16 @@
         }
       }
     },
+    "Here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এসে গেছে"
+          }
+        }
+      }
+    },
     "How crowded is it?": {
       "localizations": {
         "bn": {
@@ -1058,6 +1088,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "পরের KUET বাস"
+          }
+        }
+      }
+    },
+    "Next bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরের বাস"
           }
         }
       }
@@ -2128,6 +2168,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার তথ্য"
+          }
+        }
+      }
+    },
+    "hours": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঘণ্টা"
+          }
+        }
+      }
+    },
+    "min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মিনিট"
           }
         }
       }

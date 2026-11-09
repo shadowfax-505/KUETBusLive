@@ -8,21 +8,11 @@
 //  - small: a ring showing how far along the trip is, with minutes left inside
 //  - medium: the next bus plus the trip track from KUET to my stop
 //  - large: a route map, the track, and the bus name, ETA and crowd
+//  Colours and type come from WidgetTheme.
 //
 
 import WidgetKit
 import SwiftUI
-
-// KUET colours, matching the app icon: deep blue with a warm yellow accent.
-enum KUETWidgetStyle {
-    static let blue = Color(red: 0.05, green: 0.20, blue: 0.45)
-    static let lightBlue = Color(red: 0.12, green: 0.40, blue: 0.75)
-    static let yellow = Color(red: 1.0, green: 0.78, blue: 0.20)
-
-    static var background: some View {
-        LinearGradient(colors: [blue, lightBlue], startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-}
 
 struct NextBusWidgetView: View {
     let entry: NextBusEntry
@@ -44,17 +34,24 @@ struct NextBusWidgetView: View {
                 small
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(WidgetTheme.primary)
+    }
+
+    // "ARRIVING IN" while a bus is on its way, otherwise "NEXT BUS".
+    private var headline: String {
+        entry.live != nil ? String(localized: "Arriving in") : String(localized: "Next bus")
     }
 
     private var header: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Image(systemName: "bus.fill")
-                .foregroundStyle(KUETWidgetStyle.yellow)
-            Text("KUET Bus")
-                .font(.caption.bold())
-                .foregroundStyle(.white.opacity(0.85))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(WidgetTheme.accent)
+                .widgetAccentable()
+            Text(headline)
+                .widgetLabel()
         }
+        .font(.caption2)
         .accessibilityHidden(true)
     }
 
@@ -65,62 +62,78 @@ struct NextBusWidgetView: View {
         }
         guard let next = entry.trips.first else { return "--" }
         let minutes = Int(next.leavesAt.timeIntervalSince(entry.date) / 60)
-        return minutes < 100 ? "\(max(minutes, 0))" : "\(minutes / 60)h"
+        return minutes < 100 ? "\(max(minutes, 0))" : "\(minutes / 60)"
+    }
+
+    // Under 100 minutes the ring counts minutes, after that whole hours.
+    private var minutesCaption: String {
+        guard entry.live == nil, let next = entry.trips.first,
+              next.leavesAt.timeIntervalSince(entry.date) >= 100 * 60 else {
+            return String(localized: "min")
+        }
+        return String(localized: "hours")
     }
 
     private var track: some View {
         TripProgressView(progress: entry.progress, endLabel: stopName,
-                         tint: KUETWidgetStyle.yellow, trackColor: .white.opacity(0.3))
-            .environment(\.colorScheme, .dark)   // white labels on the blue background
+                         tint: WidgetTheme.accent, trackColor: WidgetTheme.track,
+                         refined: true, stopColor: WidgetTheme.stopRing,
+                         busGlyphColor: WidgetTheme.busGlyph, labelColor: WidgetTheme.secondary)
+    }
+
+    private var hairline: some View {
+        Rectangle()
+            .fill(WidgetTheme.hairline)
+            .frame(height: 1)
     }
 
     // MARK: - Small
 
     private var small: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
             header
-            HStack(alignment: .center, spacing: 8) {
+            Spacer(minLength: 4)
+            HStack {
+                Spacer(minLength: 0)
                 TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
-                                 tint: KUETWidgetStyle.yellow)
-                    .frame(width: 64, height: 64)
+                                 caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
+                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24)
+                    .frame(width: 66, height: 66)
                 Spacer(minLength: 0)
             }
-            if let live = entry.live {
-                Text(live.busNumber)
-                    .font(.caption.bold())
-                    .lineLimit(1)
-                Text("to \(live.stopName)")
-                    .font(.caption2)
-                    .opacity(0.8)
-                    .lineLimit(1)
-            } else if let next = entry.trips.first {
-                Text(next.trip.tripName)
-                    .font(.caption.bold())
-                Text(next.leavesAt, style: .time)
-                    .font(.caption2)
-                    .foregroundStyle(KUETWidgetStyle.yellow)
-            } else {
-                Text("No buses this week")
-                    .font(.caption)
+            Spacer(minLength: 4)
+            Group {
+                if let live = entry.live {
+                    Text(live.busNumber)
+                        .font(.widgetSerif(.footnote))
+                    Text(live.stopName)
+                        .widgetLabel()
+                        .padding(.top, 1)
+                } else if let next = entry.trips.first {
+                    Text(next.trip.tripName)
+                        .font(.widgetSerif(.footnote))
+                    Text(next.leavesAt, style: .time)
+                        .widgetLabel()
+                        .padding(.top, 1)
+                } else {
+                    Text("No buses this week")
+                        .font(.widgetSerif(.footnote))
+                }
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
     // MARK: - Medium
 
     private var medium: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
-                header
-                Spacer()
-                Label(stopName, systemImage: "star.fill")
-                    .font(.caption.bold())
-                    .foregroundStyle(KUETWidgetStyle.yellow)
-                    .lineLimit(1)
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            header
             busSummary
+            Spacer(minLength: 0)
             track
         }
         .accessibilityElement(children: .combine)
@@ -130,43 +143,55 @@ struct NextBusWidgetView: View {
     @ViewBuilder
     private var busSummary: some View {
         if let live = entry.live {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .lastTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(live.busNumber)
-                        .font(.headline)
+                        .font(.widgetSerif(.title3))
                         .lineLimit(1)
-                    Label(live.crowdText, systemImage: "person.3.fill")
-                        .font(.caption2)
-                        .opacity(0.85)
+                        .minimumScaleFactor(0.8)
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(WidgetTheme.crowdColor(live.crowd))
+                            .frame(width: 6, height: 6)
+                        Text(live.crowdText)
+                            .font(.caption2)
+                            .foregroundStyle(WidgetTheme.secondary)
+                    }
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text("\(live.etaMinutes) min")
-                        .font(.title2.bold())
-                        .foregroundStyle(KUETWidgetStyle.yellow)
+                VStack(alignment: .trailing, spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text("\(live.etaMinutes)")
+                            .font(.widgetSerif(size: 34))
+                            .monospacedDigit()
+                        Text("min")
+                            .widgetLabel()
+                    }
                     Text(String(format: "%.1f km", live.distanceKm))
                         .font(.caption2)
-                        .opacity(0.8)
+                        .monospacedDigit()
+                        .foregroundStyle(WidgetTheme.secondary)
                 }
             }
         } else if let next = entry.trips.first {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .lastTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(next.trip.title)
-                        .font(.headline)
+                        .font(.widgetSerif(.title3))
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     countdown(next)
                         .font(.caption2)
-                        .opacity(0.85)
+                        .foregroundStyle(WidgetTheme.secondary)
                 }
                 Spacer()
                 Text(next.leavesAt, style: .time)
-                    .font(.title3.bold())
-                    .foregroundStyle(KUETWidgetStyle.yellow)
+                    .font(.widgetSerif(size: 26))
+                    .monospacedDigit()
             }
         } else {
             Text("No more buses this week")
-                .font(.headline)
+                .font(.widgetSerif(.title3))
         }
     }
 
@@ -184,14 +209,13 @@ struct NextBusWidgetView: View {
     // MARK: - Large
 
     private var large: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 header
                 Spacer()
                 if let route = entry.route {
                     Text(route.name)
-                        .font(.caption2)
-                        .opacity(0.8)
+                        .widgetLabel()
                         .lineLimit(1)
                 }
             }
@@ -201,18 +225,27 @@ struct NextBusWidgetView: View {
                 Image(uiImage: map)
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: 170)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .frame(maxWidth: .infinity, maxHeight: 160)
+                    .clipped()
+                    // A soft fade from the map into the background below it.
+                    .mask(
+                        LinearGradient(stops: [.init(color: .black, location: 0),
+                                               .init(color: .black, location: 0.7),
+                                               .init(color: .clear, location: 1)],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
                     .accessibilityLabel("Map of the route to \(stopName)")
             } else {
                 HStack {
                     Spacer()
                     TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
-                                     tint: KUETWidgetStyle.yellow, lineWidth: 10)
-                        .frame(width: 110, height: 110)
+                                     caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
+                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40)
+                        .frame(width: 120, height: 120)
                     Spacer()
                 }
-                .frame(maxHeight: 170)
+                .frame(maxHeight: 160)
             }
 
             busSummary
@@ -220,15 +253,20 @@ struct NextBusWidgetView: View {
 
             // The next two buses from the timetable.
             if entry.live == nil {
-                ForEach(entry.trips.dropFirst().prefix(2), id: \.self) { later in
-                    HStack {
-                        Text(later.trip.title)
-                            .lineLimit(1)
-                        Spacer()
-                        Text(later.leavesAt, style: .time)
+                let later = Array(entry.trips.dropFirst().prefix(2))
+                if !later.isEmpty {
+                    hairline
+                    ForEach(later, id: \.self) { trip in
+                        HStack {
+                            Text(trip.trip.title)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(trip.leavesAt, style: .time)
+                                .monospacedDigit()
+                        }
+                        .font(.caption)
+                        .foregroundStyle(WidgetTheme.secondary)
                     }
-                    .font(.caption)
-                    .opacity(0.85)
                 }
             }
             Spacer(minLength: 0)

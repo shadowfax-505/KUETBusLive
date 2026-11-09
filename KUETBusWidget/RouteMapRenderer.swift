@@ -6,13 +6,15 @@
 //
 //  Widgets can't show a live, moving MapKit map. Instead MKMapSnapshotter takes
 //  a still picture of the map, and the route is drawn on top of that picture:
-//  the line through the stops, a dot for each stop, my stop in orange, and the
-//  bus where it was last seen. One light and one dark picture are made, so the
-//  widget matches the phone's appearance.
+//  a thin brass line through the stops, a small ivory dot for each stop, my stop
+//  as a filled brass dot, and the bus where it was last seen. The map itself is
+//  muted, with no points of interest, so the route stands out. One light and
+//  one dark picture are made, so the widget matches the phone's appearance.
 //
 
 import MapKit
 import UIKit
+import CoreImage
 
 enum RouteMapRenderer {
 
@@ -41,6 +43,9 @@ enum RouteMapRenderer {
         options.scale = 2   // sharp on the screen, but small enough for the widget's memory limit
         options.traitCollection = UITraitCollection(userInterfaceStyle: style)
         options.pointOfInterestFilter = .excludingAll
+        let configuration = MKStandardMapConfiguration(emphasisStyle: .muted)
+        configuration.pointOfInterestFilter = .excludingAll
+        options.preferredConfiguration = configuration
 
         MKMapSnapshotter(options: options).start { snapshot, error in
             guard let snapshot = snapshot else {
@@ -48,7 +53,7 @@ enum RouteMapRenderer {
                 completion(nil)
                 return
             }
-            completion(draw(on: snapshot, stops: stops, live: live))
+            completion(draw(on: snapshot, stops: stops, live: live, dark: style == .dark))
         }
     }
 
@@ -64,51 +69,72 @@ enum RouteMapRenderer {
     }
 
     private static func draw(on snapshot: MKMapSnapshotter.Snapshot, stops: [SharedStop],
-                             live: LiveTripSnapshot?) -> UIImage {
+                             live: LiveTripSnapshot?, dark: Bool) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: snapshot.image.size)
-        let blue = UIColor(red: 0.12, green: 0.40, blue: 0.75, alpha: 1)
+        let brass = dark ? WidgetTheme.brass : WidgetTheme.brassDeep
+        let ivory = WidgetTheme.ivory
+        let ink = WidgetTheme.inkNavy
         return renderer.image { context in
-            snapshot.image.draw(at: .zero)
+            // Most of the map's colour is taken out, so only the brass route stands out.
+            muted(snapshot.image, saturation: dark ? 0.2 : 0.35).draw(at: .zero)
             let points = stops.map { snapshot.point(for: $0.coordinate) }
 
-            // The route line
+            // The route line, with a soft glow under it
             let line = UIBezierPath()
             for (index, point) in points.enumerated() {
                 index == 0 ? line.move(to: point) : line.addLine(to: point)
             }
-            line.lineWidth = 4
+            line.lineWidth = 3
             line.lineCapStyle = .round
             line.lineJoinStyle = .round
-            blue.setStroke()
+            context.cgContext.saveGState()
+            context.cgContext.setShadow(offset: .zero, blur: 4, color: brass.withAlphaComponent(0.5).cgColor)
+            brass.setStroke()
             line.stroke()
+            context.cgContext.restoreGState()
 
-            // Stop dots; the last one is my stop, bigger and orange.
+            // Stop dots; the last one is my stop, a filled brass dot.
             for (index, point) in points.enumerated() {
                 let isMine = index == points.count - 1
-                let radius: CGFloat = isMine ? 7 : 4
+                let radius: CGFloat = isMine ? 7 : 3.5
                 let dot = UIBezierPath(ovalIn: CGRect(x: point.x - radius, y: point.y - radius,
                                                       width: radius * 2, height: radius * 2))
-                (isMine ? UIColor.systemOrange : UIColor.white).setFill()
+                (isMine ? brass : ivory).setFill()
                 dot.fill()
-                blue.setStroke()
-                dot.lineWidth = 2
+                (isMine ? ivory : brass).setStroke()
+                dot.lineWidth = 1.5
                 dot.stroke()
             }
 
-            // The bus, if one is running
+            // The bus, if one is running: a brass circle with the bus in ink
             if let live = live {
                 let point = snapshot.point(for: CLLocationCoordinate2D(latitude: live.busLat, longitude: live.busLng))
-                let circle = UIBezierPath(ovalIn: CGRect(x: point.x - 11, y: point.y - 11, width: 22, height: 22))
-                blue.setFill()
+                let circle = UIBezierPath(ovalIn: CGRect(x: point.x - 10, y: point.y - 10, width: 20, height: 20))
+                context.cgContext.saveGState()
+                context.cgContext.setShadow(offset: .zero, blur: 4, color: brass.withAlphaComponent(0.5).cgColor)
+                brass.setFill()
                 circle.fill()
-                UIColor.white.setStroke()
-                circle.lineWidth = 2
+                context.cgContext.restoreGState()
+                ivory.setStroke()
+                circle.lineWidth = 1.5
                 circle.stroke()
                 if let bus = UIImage(systemName: "bus.fill")?
-                    .withTintColor(.white, renderingMode: .alwaysOriginal) {
-                    bus.draw(in: CGRect(x: point.x - 6, y: point.y - 6, width: 12, height: 12))
+                    .withTintColor(ink, renderingMode: .alwaysOriginal) {
+                    bus.draw(in: CGRect(x: point.x - 5.5, y: point.y - 5.5, width: 11, height: 11))
                 }
             }
         }
+    }
+
+    private static let ciContext = CIContext()
+
+    private static func muted(_ image: UIImage, saturation: Double) -> UIImage {
+        guard let input = CIImage(image: image),
+              let filter = CIFilter(name: "CIColorControls") else { return image }
+        filter.setValue(input, forKey: kCIInputImageKey)
+        filter.setValue(saturation, forKey: kCIInputSaturationKey)
+        guard let output = filter.outputImage,
+              let cgImage = ciContext.createCGImage(output, from: input.extent) else { return image }
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
 }

@@ -681,10 +681,20 @@ A **WidgetKit** extension (`KUETBusWidget`) shows the next bus without opening t
 | Large | A map of my route with the bus on it, then the same track, ETA and crowd |
 
 <p align="center">
-  <img src="docs/widget-home-screen.png" alt="Small and medium widgets" width="30%">
-  <img src="docs/widget-large-light.png" alt="Large widget, light" width="30%">
-  <img src="docs/widget-large-dark.png" alt="Large widget, dark" width="30%">
+  <img src="docs/widget-home-screen.png" alt="Medium widget" width="30%">
+  <img src="docs/widget-large-light.png" alt="Large and small widgets, light" width="30%">
+  <img src="docs/widget-large-dark.png" alt="Large and small widgets, dark" width="30%">
 </p>
+
+**Look.** The colours live in one file, `KUETBusWidget/WidgetTheme.swift`, with a light and a dark version of each:
+
+| | Dark | Light |
+| --- | --- | --- |
+| Background | ink navy gradient `#0B1622` to `#13263A` | warm ivory `#F6F1E7` to `#EFE7D8` |
+| Text | ivory `#F3EEE4` (60% for small text) | ink `#14202C` (55% for small text) |
+| Accent (ring, track, bus) | brass `#C8A45D` | deeper brass `#A8823A` |
+
+Crowd and signal use muted colours instead of traffic-light ones: sage for seats free and terracotta for full or no signal, with amber kept in the theme for a "filling up" level. Bus names and big numbers are set in the serif New York face with even-width digits, and the small labels ("ARRIVING IN", "NEXT BUS") are uppercase with wide letter spacing. The large widget's map is a muted, mostly grey snapshot with the route drawn in brass, fading into the background. The accent parts are marked `widgetAccentable()`, so they take the tint colour on a tinted home screen. The Live Activity always uses the ink background with ivory text and brass, and the Dynamic Island keylines are brass.
 
 The widget is a separate small program, so it can't read the app's memory or Firestore. The app and the widget share data through an **App Group**: a `UserDefaults` that both can open (`group.KUETBusLive`).
 
@@ -836,7 +846,7 @@ flowchart LR
   <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla with the language note" width="30%">
 </p>
 
-**Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widget and Live Activity keep the KUET blue in both modes, and the large widget's map picture has a dark version.
+**Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widgets switch between ink navy and warm ivory, the Live Activity stays ink in both modes, and the large widget's map picture has a dark version.
 
 **VoiceOver.** Bus markers read as "Normal-1 · Rupsha, Student bus, Seats available", the passcode dots read "2 of 4 digits entered", the delete key and every icon-only button have names, and the progress track reads "45 percent of the way from KUET to Shibbari More".
 

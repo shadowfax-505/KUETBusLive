@@ -144,7 +144,7 @@ struct KUETBusWidget: Widget {
         StaticConfiguration(kind: kind, provider: NextBusProvider()) { entry in
             NextBusWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
-                    KUETWidgetStyle.background
+                    WidgetTheme.background
                 }
         }
         .configurationDisplayName("Next KUET bus")

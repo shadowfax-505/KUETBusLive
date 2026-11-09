@@ -16,63 +16,120 @@ import WidgetKit
 import SwiftUI
 
 struct BusLiveActivity: Widget {
+    private typealias Night = WidgetTheme.Night
+
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: BusTripAttributes.self) { context in
             // Lock Screen and notification banner
             LockScreenTripView(attributes: context.attributes, state: context.state)
-                .activityBackgroundTint(KUETWidgetStyle.blue)
-                .activitySystemActionForegroundColor(.white)
+                .activityBackgroundTint(Night.background.opacity(0.92))
+                .activitySystemActionForegroundColor(Night.primary)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     Image(systemName: "bus.fill")
-                        .font(.title2)
-                        .foregroundStyle(KUETWidgetStyle.yellow)
+                        .font(.title3)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(Night.accent)
+                        .padding(.leading, 4)
                         .accessibilityHidden(true)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(context.state.etaText)
-                        .font(.title3.bold())
-                        .foregroundStyle(KUETWidgetStyle.yellow)
-                        .contentTransition(.numericText())
+                    MinutesText(state: context.state, size: 26)
+                        .padding(.trailing, 4)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(context.attributes.busNumber)
-                            .font(.headline)
-                        Text("To \(context.attributes.stopName) · \(context.state.distanceText)")
-                            .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(context.attributes.busNumber)
+                                .font(.widgetSerif(.headline))
+                                .foregroundStyle(Night.primary)
+                            Text("To \(context.attributes.stopName) · \(context.state.distanceText)")
+                                .font(.caption)
+                                .foregroundStyle(Night.secondary)
+                        }
                         // A thin version of the trip track.
                         TripProgressView(progress: context.state.progress,
                                          endLabel: context.attributes.stopName,
-                                         tint: KUETWidgetStyle.yellow,
-                                         trackColor: .white.opacity(0.25),
+                                         tint: Night.accent,
+                                         trackColor: Night.track,
                                          showLabels: false,
-                                         thin: true)
-                        HStack {
-                            Label(context.state.crowdText, systemImage: "person.3.fill")
-                            Spacer()
-                            if context.state.isStale {
-                                Label("No signal", systemImage: "wifi.exclamationmark")
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                                         thin: true,
+                                         refined: true,
+                                         stopColor: Night.stopRing,
+                                         busGlyphColor: WidgetTheme.busGlyph)
+                        StatusLine(state: context.state)
                     }
+                    .padding(.horizontal, 4)
                 }
             } compactLeading: {
                 Image(systemName: "bus.fill")
-                    .foregroundStyle(KUETWidgetStyle.yellow)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Night.accent)
             } compactTrailing: {
                 Text(context.state.etaText)
-                    .font(.caption.bold())
-                    .foregroundStyle(context.state.isStale ? .orange : .white)
+                    .font(.system(.footnote, design: .serif).weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(context.state.isStale ? WidgetTheme.terracotta : Night.primary)
+                    .contentTransition(.numericText())
             } minimal: {
                 Image(systemName: "bus.fill")
-                    .foregroundStyle(KUETWidgetStyle.yellow)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Night.accent)
             }
-            .keylineTint(KUETWidgetStyle.yellow)
+            .keylineTint(Night.accent)
+        }
+    }
+}
+
+// Minutes left in serif with a small "MIN" beside it, or "Here" once the bus arrives.
+private struct MinutesText: View {
+    let state: BusTripAttributes.ContentState
+    var size: CGFloat
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 3) {
+            if state.hasArrived {
+                Text("Here")
+                    .font(.widgetSerif(size: size))
+            } else {
+                Text("\(state.etaMinutes)")
+                    .font(.widgetSerif(size: size))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                Text("min")
+                    .widgetLabel(WidgetTheme.Night.secondary)
+            }
+        }
+        .foregroundStyle(WidgetTheme.Night.primary)
+    }
+}
+
+// Crowd with a small status dot, and a warning when the bus stops sending GPS.
+private struct StatusLine: View {
+    let state: BusTripAttributes.ContentState
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(crowdColor)
+                .frame(width: 6, height: 6)
+            Text(state.crowdText)
+            Spacer()
+            if state.isStale {
+                Label("No signal", systemImage: "wifi.exclamationmark")
+                    .foregroundStyle(WidgetTheme.terracotta)
+            }
+        }
+        .font(.caption2)
+        .foregroundStyle(WidgetTheme.Night.secondary)
+    }
+
+    private var crowdColor: Color {
+        switch state.crowd {
+        case "seats": return WidgetTheme.sage
+        case "full": return WidgetTheme.terracotta
+        default: return WidgetTheme.Night.secondary
         }
     }
 }
@@ -80,51 +137,49 @@ struct BusLiveActivity: Widget {
 struct LockScreenTripView: View {
     let attributes: BusTripAttributes
     let state: BusTripAttributes.ContentState
+    private typealias Night = WidgetTheme.Night
 
     var body: some View {
-        VStack(spacing: 10) {
-        HStack(spacing: 14) {
-            Image(systemName: "bus.fill")
-                .font(.title)
-                .foregroundStyle(KUETWidgetStyle.yellow)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(attributes.busNumber)
-                    .font(.headline)
-                Text("To \(attributes.stopName) · \(state.distanceText)")
-                    .font(.subheadline)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .foregroundStyle(.white.opacity(0.8))
-                HStack(spacing: 10) {
-                    Label(state.crowdText, systemImage: "person.3.fill")
-                    if state.isStale {
-                        Label("No signal", systemImage: "wifi.exclamationmark")
-                            .foregroundStyle(.orange)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "bus.fill")
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(Night.accent)
+                        Text(state.hasArrived ? "At your stop" : "Arriving in")
+                            .widgetLabel(Night.secondary)
                     }
+                    .font(.caption2)
+                    .accessibilityHidden(true)
+                    Text(attributes.busNumber)
+                        .font(.widgetSerif(.title3))
+                        .foregroundStyle(Night.primary)
+                        .lineLimit(1)
+                    Text("To \(attributes.stopName) · \(state.distanceText)")
+                        .font(.footnote)
+                        .foregroundStyle(Night.secondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.8))
+                Spacer()
+                MinutesText(state: state, size: 40)
             }
 
-            Spacer()
+            // KUET to my stop, like a parcel tracker.
+            TripProgressView(progress: state.progress,
+                             endLabel: attributes.stopName,
+                             tint: Night.accent,
+                             trackColor: Night.track,
+                             refined: true,
+                             stopColor: Night.stopRing,
+                             busGlyphColor: WidgetTheme.busGlyph,
+                             labelColor: Night.secondary)
 
-            Text(state.etaText)
-                .font(.title.bold())
-                .foregroundStyle(KUETWidgetStyle.yellow)
-                .contentTransition(.numericText())
+            StatusLine(state: state)
         }
-
-        // KUET to my stop, like a parcel tracker.
-        TripProgressView(progress: state.progress,
-                         endLabel: attributes.stopName,
-                         tint: KUETWidgetStyle.yellow,
-                         trackColor: .white.opacity(0.3))
-            .environment(\.colorScheme, .dark)
-        }
-        .foregroundStyle(.white)
-        .padding()
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
         .accessibilityElement(children: .combine)
     }
 }
