@@ -81,7 +81,7 @@ struct DriverHomeView: View {
                     }
                 }
 
-                Section(header: Text("Live location")) {
+                Section {
                     Button {
                         if driverViewModel.isOnTrip {
                             driverViewModel.endTrip()
@@ -103,6 +103,16 @@ struct DriverHomeView: View {
                     }
 
                     Text("Updates sent: \(driverViewModel.updatesSent)")
+
+                    if driverViewModel.isOnTrip {
+                        Label(driverViewModel.permissionText, systemImage: "location.fill")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Text("Live location")
+                } footer: {
+                    Text("During a trip the bus keeps sharing its position when you lock the phone. The blue pill at the top of the screen shows this. Ending the trip turns it off.")
                 }
             }
             .navigationTitle("Driver")

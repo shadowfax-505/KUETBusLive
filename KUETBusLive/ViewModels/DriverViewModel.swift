@@ -57,7 +57,12 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         updatesSent = 0
         isOnTrip = true
         statusMessage = "Waiting for GPS..."
-        locationManager.start()
+        // Keep sending the position even if the driver locks the phone or opens another app.
+        locationManager.start(inBackground: true)
+    }
+
+    var permissionText: String {
+        locationManager.permissionText
     }
 
     // Delete: ending the trip removes the bus from every student's map.
