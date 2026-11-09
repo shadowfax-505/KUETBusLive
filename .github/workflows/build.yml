@@ -52,3 +52,27 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             SYMROOT=$PWD/build/Products \
             build
+
+      # Picks the first available iPhone simulator on the runner, so the job
+      # doesn't break when GitHub changes which simulators are installed.
+      - name: Unit tests
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime, items in sorted(devices.items(), reverse=True):
+              if "iOS" not in runtime:
+                  continue
+              for d in items:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"]); sys.exit()
+          ')
+          echo "Testing on simulator $UDID"
+          xcodebuild -project KUETBusLive.xcodeproj \
+            -scheme KUETBusLive \
+            -destination "id=$UDID" \
+            -clonedSourcePackagesDirPath build/SourcePackages \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            SYMROOT=$PWD/build/Products \
+            test

@@ -110,10 +110,23 @@ struct BusSchedule: Identifiable, Codable {
 
     // The trip still has a departure later today (from campus or from the city).
     var isUpcoming: Bool {
-        guard runsToday else { return false }
-        let now = BusSchedule.minutesNow()
+        isUpcoming(at: Date())
+    }
+
+    // Same check for any moment, so unit tests can use a fixed date and time.
+    func isUpcoming(at date: Date) -> Bool {
+        guard days.includes(date) else { return false }
+        let now = BusSchedule.minutesNow(date)
         let times = [campusTime, spotTime].compactMap { BusSchedule.minutes(from: $0) }
         return times.contains { $0 >= now }
+    }
+
+    // The first trip (by campus time) this person may ride that still leaves later that day.
+    static func nextTrip(in schedules: [BusSchedule], for role: UserRole, at date: Date = Date()) -> BusSchedule? {
+        let sorted = schedules.sorted {
+            (minutes(from: $0.campusTime) ?? 0) < (minutes(from: $1.campusTime) ?? 0)
+        }
+        return sorted.first { $0.audience.canBoard(role) && $0.isUpcoming(at: date) }
     }
 
     // "13:30" -> 810 minutes after midnight. Returns nil for anything that isn't a valid time.

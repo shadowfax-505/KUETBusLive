@@ -45,7 +45,7 @@ class ScheduleViewModel: ObservableObject {
 
     // The next trip today this person can ride.
     func nextTrip(for role: UserRole) -> BusSchedule? {
-        schedules.first { $0.audience.canBoard(role) && $0.isUpcoming }
+        BusSchedule.nextTrip(in: schedules, for: role)
     }
 
     // Add a new trip, or Update an existing one (it already has a document ID).
