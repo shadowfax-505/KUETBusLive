@@ -11,6 +11,8 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
+import UserNotifications
+import WidgetKit
 
 class AuthViewModel: ObservableObject {
     @Published var user: User? = nil
@@ -155,6 +157,94 @@ class AuthViewModel: ObservableObject {
             }
             let email = self.user?.email ?? String(localized: "your email")
             self.infoMessage = String(localized: "Verification email sent to \(email).")
+        }
+    }
+
+    // Delete: removes the account for good (App Store rule 5.1.1(v)).
+    // 1. Checks the password again, because Firebase only deletes a login that signed in recently.
+    // 2. Ends a driver's trip, then deletes their bus and the profile (which holds the push token).
+    // 3. Deletes the Firebase Auth login, then forgets everything this phone saved.
+    // Calls completion with nil when done, or with a message to show.
+    func deleteAccount(password: String, beforeDeleting: (() -> Void)? = nil,
+                       completion: @escaping (String?) -> Void) {
+        guard let firebaseUser = Auth.auth().currentUser, let email = firebaseUser.email,
+              let profile = profile else {
+            completion(String(localized: "You are not signed in."))
+            return
+        }
+        let uid = firebaseUser.uid
+
+        Task { @MainActor in
+            do {
+                // The last admin can't leave, or nobody could approve teachers and drivers.
+                if profile.role == .admin {
+                    let admins = try await db.collection("users")
+                        .whereField("role", isEqualTo: UserRole.admin.rawValue)
+                        .getDocuments()
+                    if let reason = AccountDeletion.blockReason(role: .admin, adminCount: admins.count) {
+                        completion(reason)
+                        return
+                    }
+                }
+
+                let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+                try await firebaseUser.reauthenticate(with: credential)
+
+                // Only now that the password is right: stop GPS and take the bus off the map.
+                beforeDeleting?()
+                let buses = try await db.collection("buses").whereField("driverId", isEqualTo: uid).getDocuments()
+                for bus in buses.documents {
+                    try await bus.reference.delete()
+                }
+
+                profileListener?.remove()
+                profileListener = nil
+                try await db.collection("users").document(uid).delete()
+                try await firebaseUser.delete()
+            } catch {
+                completion(Self.deletionMessage(for: error))
+                // A failed step may have stopped the profile listener; start it again.
+                if profileListener == nil, Auth.auth().currentUser != nil {
+                    listenToProfile(uid: uid)
+                }
+                return
+            }
+
+            clearLocalData()
+            signOut()
+            completion(nil)
+        }
+    }
+
+    // Everything this phone kept for the account: lock settings, passcode, alerts,
+    // the push topic, the widget's trips and any Live Activity.
+    private func clearLocalData() {
+        PushManager.shared.forgetDevice()
+        AccountDeletion.clearLocalSettings(in: .standard)
+        AppPasscode.remove()
+        SharedStore.clear()
+        WidgetCenter.shared.reloadAllTimelines()
+        LiveActivityManager.shared.stop()
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
+
+    private static func deletionMessage(for error: Error) -> String {
+        let nsError = error as NSError
+        if nsError.domain == FirestoreErrorDomain, nsError.code == FirestoreErrorCode.unavailable.rawValue {
+            return String(localized: "No internet connection. Nothing was deleted. Try again when you're online.")
+        }
+        guard nsError.domain == AuthErrorDomain else {
+            return String(localized: "Could not delete the account: \(error.localizedDescription)")
+        }
+        switch AuthErrorCode(rawValue: nsError.code) {
+        case .wrongPassword, .invalidCredential:
+            return String(localized: "That password is not right. Nothing was deleted.")
+        case .networkError:
+            return String(localized: "No internet connection. Nothing was deleted. Try again when you're online.")
+        case .tooManyRequests:
+            return String(localized: "Too many tries. Wait a few minutes and try again.")
+        default:
+            return String(localized: "Could not delete the account: \(error.localizedDescription)")
         }
     }
 

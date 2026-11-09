@@ -137,7 +137,7 @@ struct DriverHomeView: View {
                                     ? "\(announcementViewModel.unreadCount) unread" : "")
 
                 NavigationLink {
-                    ProfileView()
+                    ProfileView(endActiveTrip: driverViewModel.isOnTrip ? { driverViewModel.endTrip() } : nil)
                 } label: {
                     Image(systemName: "person.circle")
                 }

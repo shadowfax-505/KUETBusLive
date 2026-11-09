@@ -25,7 +25,7 @@ import FirebaseMessaging
 class PushManager: NSObject, MessagingDelegate {
     static let shared = PushManager()
 
-    private static let topicKey = "pushRouteTopic"
+    static let topicKey = "pushRouteTopic"
     private(set) var fcmToken: String?
 
     private override init() {
@@ -71,6 +71,21 @@ class PushManager: NSObject, MessagingDelegate {
         Firestore.firestore().collection("users").document(uid).updateData(["fcmToken": token]) { error in
             if let error = error {
                 print("Could not save FCM token: \(error)")
+            }
+        }
+    }
+
+    // After the account is deleted: leave the route topic and throw the push token away,
+    // so this phone gets no more notifications for that account.
+    func forgetDevice() {
+        if let topic = UserDefaults.standard.string(forKey: Self.topicKey) {
+            Messaging.messaging().unsubscribe(fromTopic: topic)
+        }
+        UserDefaults.standard.removeObject(forKey: Self.topicKey)
+        fcmToken = nil
+        Messaging.messaging().deleteToken { error in
+            if let error = error {
+                print("Could not delete FCM token: \(error)")
             }
         }
     }

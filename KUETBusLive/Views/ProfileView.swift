@@ -16,6 +16,14 @@ struct ProfileView: View {
     @AppStorage("passcodeOn") private var passcodeOn = false
     @State private var showSetPasscode = false
 
+    // Set by the driver screen while a trip runs, so deleting the account can end it first.
+    var endActiveTrip: (() -> Void)? = nil
+
+    @State private var showDeleteConfirm = false
+    @State private var deletePassword = ""
+    @State private var isDeleting = false
+    @State private var deleteError: String?
+
     static let privacyPolicyURL = URL(string: "https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md")!
 
     // "1.0 (1)": the version and build number set in Xcode.
@@ -112,6 +120,25 @@ struct ProfileView: View {
                     authViewModel.signOut()
                 }
             }
+
+            Section {
+                Button(role: .destructive) {
+                    deletePassword = ""
+                    showDeleteConfirm = true
+                } label: {
+                    HStack {
+                        Text("Delete account")
+                        if isDeleting {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+                }
+                .foregroundColor(.red)
+                .disabled(isDeleting)
+            } footer: {
+                Text("Removes your profile and login for good.")
+            }
         }
         .navigationTitle("Profile")
         .sheet(isPresented: $showSetPasscode) {
@@ -120,6 +147,26 @@ struct ProfileView: View {
                     passcodeOn = true
                 }
             }
+        }
+        .alert("Delete account?", isPresented: $showDeleteConfirm) {
+            SecureField("Password", text: $deletePassword)
+            Button("Delete", role: .destructive) {
+                deleteAccount()
+            }
+            Button("Cancel", role: .cancel) {
+                deletePassword = ""
+            }
+        } message: {
+            Text(AccountDeletion.explanation(role: authViewModel.profile?.role ?? .student,
+                                             isOnTrip: endActiveTrip != nil))
+        }
+        .alert("Account not deleted", isPresented: Binding(
+            get: { deleteError != nil },
+            set: { if !$0 { deleteError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteError ?? "")
         }
         .onChange(of: faceIDOn) { _, newValue in
             // Make sure the person can actually unlock before turning the lock on.
@@ -134,6 +181,22 @@ struct ProfileView: View {
             if newValue {
                 NotificationManager.shared.requestPermission()
             }
+        }
+    }
+}
+
+extension ProfileView {
+    func deleteAccount() {
+        let password = deletePassword
+        deletePassword = ""
+        guard !password.isEmpty else {
+            deleteError = String(localized: "Enter your password to delete the account.")
+            return
+        }
+        isDeleting = true
+        authViewModel.deleteAccount(password: password, beforeDeleting: endActiveTrip) { problem in
+            isDeleting = false
+            deleteError = problem
         }
     }
 }

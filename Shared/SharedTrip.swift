@@ -141,6 +141,13 @@ enum SharedStore {
         }
     }
 
+    // Removes everything the app saved for the widget, for example after the account is deleted.
+    static func clear() {
+        for key in [tripsKey, stopKey, liveKey, routeKey] {
+            defaults.removeObject(forKey: key)
+        }
+    }
+
     // The official timetable shipped inside the bundle (student trips only),
     // used when the app hasn't saved anything yet.
     static func bundledTrips() -> [SharedTrip] {

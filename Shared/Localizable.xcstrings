@@ -172,6 +172,16 @@
         }
       }
     },
+    "Account not deleted": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট মোছা হয়নি"
+          }
+        }
+      }
+    },
     "Add a trip": {
       "localizations": {
         "bn": {
@@ -258,6 +268,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "যেকোনো বাস"
+          }
+        }
+      }
+    },
+    "Any bus you left on the map is removed too.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপে আপনার রেখে যাওয়া কোনো বাসও সরিয়ে ফেলা হবে।"
           }
         }
       }
@@ -432,6 +452,16 @@
         }
       }
     },
+    "Could not delete the account: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট মোছা যায়নি: %@"
+          }
+        }
+      }
+    },
     "Could not post: %@": {
       "localizations": {
         "bn": {
@@ -528,6 +558,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "মুছে ফেলুন"
+          }
+        }
+      }
+    },
+    "Delete account": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট মুছে ফেলুন"
+          }
+        }
+      }
+    },
+    "Delete account?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট মুছে ফেলবেন?"
           }
         }
       }
@@ -688,6 +738,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার ড্রাইভার আইডি দিন।"
+          }
+        }
+      }
+    },
+    "Enter your password to confirm.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিশ্চিত করতে আপনার পাসওয়ার্ড দিন।"
+          }
+        }
+      }
+    },
+    "Enter your password to delete the account.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট মুছতে আপনার পাসওয়ার্ড দিন।"
           }
         }
       }
@@ -1182,6 +1252,16 @@
         }
       }
     },
+    "No internet connection. Nothing was deleted. Try again when you're online.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ইন্টারনেট সংযোগ নেই। কিছুই মোছা হয়নি। অনলাইনে এসে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
     "No more buses this week": {
       "localizations": {
         "bn": {
@@ -1288,6 +1368,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এখনো যাচাই হয়নি। আগে আপনার KUET ইমেইলের লিংকটা খুলুন।"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঠিক আছে"
           }
         }
       }
@@ -1418,6 +1508,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "মন্তব্য"
+          }
+        }
+      }
+    },
+    "Removes your profile and login for good.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার প্রোফাইল ও লগইন চিরতরে মুছে দেয়।"
           }
         }
       }
@@ -1862,6 +1962,16 @@
         }
       }
     },
+    "That password is not right. Nothing was deleted.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাসওয়ার্ডটি সঠিক নয়। কিছুই মোছা হয়নি।"
+          }
+        }
+      }
+    },
     "The KUET transport office will check your %@ (%@). This screen opens the app as soon as you're approved.": {
       "localizations": {
         "bn": {
@@ -1952,6 +2062,16 @@
         }
       }
     },
+    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
+          }
+        }
+      }
+    },
     "Times (24-hour, e.g. 17:10)": {
       "localizations": {
         "bn": {
@@ -1988,6 +2108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ পর্যন্ত · %2$@"
+          }
+        }
+      }
+    },
+    "Too many tries. Wait a few minutes and try again.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনেকবার চেষ্টা করা হয়েছে। কয়েক মিনিট অপেক্ষা করে আবার চেষ্টা করুন।"
           }
         }
       }
@@ -2202,12 +2332,42 @@
         }
       }
     },
+    "You are not signed in.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি সাইন ইন করেননি।"
+          }
+        }
+      }
+    },
+    "You are the only transport admin. Make another account an admin in the Firebase console before deleting this one.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনিই একমাত্র ট্রান্সপোর্ট অ্যাডমিন। এই অ্যাকাউন্ট মোছার আগে Firebase কনসোলে অন্য একটি অ্যাকাউন্টকে অ্যাডমিন করুন।"
+          }
+        }
+      }
+    },
     "Your details": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "আপনার তথ্য"
+          }
+        }
+      }
+    },
+    "Your running trip will be ended first.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আগে আপনার চলমান ট্রিপ শেষ করা হবে।"
           }
         }
       }
