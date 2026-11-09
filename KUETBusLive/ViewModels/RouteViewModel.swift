@@ -33,6 +33,34 @@ class RouteViewModel: ObservableObject {
         listener = nil
     }
 
+    // Add a new route, or Update an existing one (it already has a document ID).
+    // Renaming, adding, moving and deleting stops all save the whole route again.
+    func save(_ route: BusRoute, completion: @escaping (String?) -> Void) {
+        do {
+            if let id = route.id {
+                try db.collection("routes").document(id).setData(from: route) { error in
+                    completion(error?.localizedDescription)
+                }
+            } else {
+                _ = try db.collection("routes").addDocument(from: route) { error in
+                    completion(error?.localizedDescription)
+                }
+            }
+        } catch {
+            completion(error.localizedDescription)
+        }
+    }
+
+    // Delete
+    func delete(_ route: BusRoute) {
+        guard let id = route.id else { return }
+        db.collection("routes").document(id).delete { error in
+            if let error = error {
+                print("Error deleting route: \(error)")
+            }
+        }
+    }
+
     // Add: two sample routes so a fresh Firebase project has data to show.
     // Coordinates are approximate.
     func addSampleRoutes() {
