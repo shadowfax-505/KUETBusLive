@@ -277,7 +277,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "KUET Bus Live";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Unlock KUET Bus Live with Face ID.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shares the bus position while you drive.";
+				INFOPLIST_FILE = "KUETBusLive-Info.plist";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keeps sharing the bus position during a trip, even when the app is in the background or the screen is locked.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shares the bus position while you drive, and shows you on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -310,7 +312,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "KUET Bus Live";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Unlock KUET Bus Live with Face ID.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shares the bus position while you drive.";
+				INFOPLIST_FILE = "KUETBusLive-Info.plist";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keeps sharing the bus position during a trip, even when the app is in the background or the screen is locked.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shares the bus position while you drive, and shows you on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
