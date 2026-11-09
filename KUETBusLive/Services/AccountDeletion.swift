@@ -21,7 +21,7 @@ enum AccountDeletion {
 
     // What the confirmation alert tells the person before they type their password.
     static func explanation(role: UserRole, isOnTrip: Bool) -> String {
-        var text = String(localized: "This permanently deletes your profile (name, email, KUET ID and favourite stop), your push token and your login, and clears the app's settings on this phone. It cannot be undone.")
+        var text = String(localized: "This permanently deletes your profile (name, email, KUET ID and favourite stop), your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.")
         if role == .driver {
             text += " " + (isOnTrip
                 ? String(localized: "Your running trip will be ended first.")

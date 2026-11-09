@@ -117,6 +117,22 @@ struct ProfileView: View {
                 Text("The app follows your phone's language. To use it in Bangla, set Bangla in Settings > General > Language & Region, or choose it for this app only in Settings > KUET Bus Live > Language.")
             }
 
+            // Riders and drivers can tell the transport office about a problem.
+            if authViewModel.profile?.role != .admin {
+                Section(header: Text("Help")) {
+                    NavigationLink {
+                        ReportProblemView()
+                    } label: {
+                        Label("Report a problem", systemImage: "exclamationmark.bubble")
+                    }
+                    NavigationLink {
+                        MyComplaintsView()
+                    } label: {
+                        Label("My complaints", systemImage: "tray.full")
+                    }
+                }
+            }
+
             Section(header: Text("About")) {
                 Link(destination: Self.privacyPolicyURL) {
                     Label("Privacy policy", systemImage: "hand.raised")

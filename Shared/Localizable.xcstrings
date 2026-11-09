@@ -212,6 +212,16 @@
         }
       }
     },
+    "Add the time": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময় যোগ করুন"
+          }
+        }
+      }
+    },
     "Afternoon": {
       "localizations": {
         "bn": {
@@ -228,6 +238,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "বাস আসার আগে আমাকে জানাও"
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সব"
           }
         }
       }
@@ -312,6 +332,16 @@
         }
       }
     },
+    "App problem": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপের সমস্যা"
+          }
+        }
+      }
+    },
     "Approvals": {
       "localizations": {
         "bn": {
@@ -382,6 +412,36 @@
         }
       }
     },
+    "Bus condition": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাসের অবস্থা"
+          }
+        }
+      }
+    },
+    "Bus late / didn't come": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস দেরি করেছে / আসেনি"
+          }
+        }
+      }
+    },
+    "Bus, e.g. Normal-2": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস, যেমন Normal-2"
+          }
+        }
+      }
+    },
     "Calculating...": {
       "localizations": {
         "bn": {
@@ -408,6 +468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "বাতিল"
+          }
+        }
+      }
+    },
+    "Category": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ধরন"
           }
         }
       }
@@ -448,6 +518,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ট্রিপ কার্ড বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Complaints": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অভিযোগ"
           }
         }
       }
@@ -622,6 +702,16 @@
         }
       }
     },
+    "Driver behaviour": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালকের আচরণ"
+          }
+        }
+      }
+    },
     "During a trip the bus keeps sharing its position when you lock the phone. The blue pill at the top of the screen shows this. Ending the trip turns it off.": {
       "localizations": {
         "bn": {
@@ -792,6 +882,16 @@
         }
       }
     },
+    "Help": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাহায্য"
+          }
+        }
+      }
+    },
     "Here": {
       "localizations": {
         "bn": {
@@ -858,6 +958,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আমি ইমেইল যাচাই করেছি"
+          }
+        }
+      }
+    },
+    "In review": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পর্যালোচনায়"
           }
         }
       }
@@ -1112,6 +1222,16 @@
         }
       }
     },
+    "My complaints": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার অভিযোগ"
+          }
+        }
+      }
+    },
     "My stop": {
       "localizations": {
         "bn": {
@@ -1262,6 +1382,26 @@
         }
       }
     },
+    "No complaints": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো অভিযোগ নেই"
+          }
+        }
+      }
+    },
+    "No complaints with this status.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই অবস্থার কোনো অভিযোগ নেই।"
+          }
+        }
+      }
+    },
     "No crowd report": {
       "localizations": {
         "bn": {
@@ -1382,12 +1522,32 @@
         }
       }
     },
+    "Not sure": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিশ্চিত নই"
+          }
+        }
+      }
+    },
     "Not verified yet. Open the link in your KUET email first.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "এখনো যাচাই হয়নি। আগে আপনার KUET ইমেইলের লিংকটা খুলুন।"
+          }
+        }
+      }
+    },
+    "Nothing here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে কিছু নেই"
           }
         }
       }
@@ -1402,12 +1562,52 @@
         }
       }
     },
+    "Only you and the transport admin can read this. You can't change it after sending.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুধু আপনি ও পরিবহন অ্যাডমিন এটি পড়তে পারবেন। পাঠানোর পর আর বদলানো যাবে না।"
+          }
+        }
+      }
+    },
+    "Open": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খোলা"
+          }
+        }
+      }
+    },
     "Opens all announcements": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "সব ঘোষণা খোলে"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অন্যান্য"
+          }
+        }
+      }
+    },
+    "Overcrowding": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অতিরিক্ত ভিড়"
           }
         }
       }
@@ -1492,6 +1692,16 @@
         }
       }
     },
+    "Problems you report will appear here with the transport office's reply.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার জানানো সমস্যা এখানে পরিবহন দপ্তরের উত্তরসহ দেখাবে।"
+          }
+        }
+      }
+    },
     "Profile": {
       "localizations": {
         "bn": {
@@ -1558,6 +1768,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "সব ট্রিপ অ্যাপের সাথে থাকা সময়সূচি দিয়ে বদলে দেবেন?"
+          }
+        }
+      }
+    },
+    "Reply": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উত্তর"
+          }
+        }
+      }
+    },
+    "Report a problem": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সমস্যা জানান"
+          }
+        }
+      }
+    },
+    "Resolved": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সমাধান হয়েছে"
           }
         }
       }
@@ -1692,12 +1932,32 @@
         }
       }
     },
+    "Send": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাঠান"
+          }
+        }
+      }
+    },
     "Send the link again": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "লিংকটা আবার পাঠান"
+          }
+        }
+      }
+    },
+    "Sent": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাঠানো হয়েছে"
           }
         }
       }
@@ -1848,6 +2108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "শুরুর জায়গা, যেমন Rupsha"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থা"
           }
         }
       }
@@ -2012,6 +2282,26 @@
         }
       }
     },
+    "Tell the transport office what happened": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন দপ্তরকে জানান কী হয়েছিল"
+          }
+        }
+      }
+    },
+    "Thank you. You can follow it in My complaints.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ধন্যবাদ। আমার অভিযোগ থেকে এর অবস্থা দেখতে পারবেন।"
+          }
+        }
+      }
+    },
     "That password is not right. Nothing was deleted.": {
       "localizations": {
         "bn": {
@@ -2072,6 +2362,16 @@
         }
       }
     },
+    "The person who sent it sees this reply in My complaints.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যিনি পাঠিয়েছেন তিনি আমার অভিযোগ-এ এই উত্তর দেখবেন।"
+          }
+        }
+      }
+    },
     "The roll number doesn't match the one in your KUET email.": {
       "localizations": {
         "bn": {
@@ -2112,12 +2412,12 @@
         }
       }
     },
-    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
+    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
+            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), আপনার অভিযোগ, পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
           }
         }
       }
@@ -2188,6 +2488,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "পরিবহন অ্যাডমিন অ্যাকাউন্ট পরিবহন দপ্তর খুলে দেয়।"
+          }
+        }
+      }
+    },
+    "Transport office replied": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন দপ্তরের উত্তর"
           }
         }
       }
@@ -2378,6 +2688,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@-এ একটা লিংক পাঠিয়েছি। সেটা খুলে এখানে ফিরে নিচের বোতামে চাপুন।"
+          }
+        }
+      }
+    },
+    "What happened?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কী হয়েছিল?"
+          }
+        }
+      }
+    },
+    "When": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কখন"
+          }
+        }
+      }
+    },
+    "Which bus? (optional)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোন বাস? (ঐচ্ছিক)"
+          }
+        }
+      }
+    },
+    "Write a reply": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উত্তর লিখুন"
           }
         }
       }

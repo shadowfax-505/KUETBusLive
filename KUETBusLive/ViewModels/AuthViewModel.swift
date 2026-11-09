@@ -162,7 +162,7 @@ class AuthViewModel: ObservableObject {
 
     // Delete: removes the account for good (App Store rule 5.1.1(v)).
     // 1. Checks the password again, because Firebase only deletes a login that signed in recently.
-    // 2. Ends a driver's trip, then deletes their bus and the profile (which holds the push token).
+    // 2. Ends a driver's trip, then deletes their bus, their complaints and the profile (which holds the push token).
     // 3. Deletes the Firebase Auth login, then forgets everything this phone saved.
     // Calls completion with nil when done, or with a message to show.
     func deleteAccount(password: String, beforeDeleting: (() -> Void)? = nil,
@@ -195,6 +195,12 @@ class AuthViewModel: ObservableObject {
                 let buses = try await db.collection("buses").whereField("driverId", isEqualTo: uid).getDocuments()
                 for bus in buses.documents {
                     try await bus.reference.delete()
+                }
+
+                // Complaints this person sent.
+                let complaints = try await db.collection("complaints").whereField("uid", isEqualTo: uid).getDocuments()
+                for complaint in complaints.documents {
+                    try await complaint.reference.delete()
                 }
 
                 profileListener?.remove()
