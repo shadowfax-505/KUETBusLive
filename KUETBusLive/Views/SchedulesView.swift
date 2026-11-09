@@ -137,7 +137,7 @@ struct ScheduleRow: View {
             }
             Text("Leaves KUET \(BusSchedule.display(schedule.campusTime))")
                 .font(.subheadline)
-            Text("Leaves \(schedule.spot) \(BusSchedule.display(schedule.spotTime))")
+            Text("Leaves \(schedule.spotDisplayName) \(BusSchedule.display(schedule.spotTime))")
                 .font(.subheadline)
             if !schedule.remarks.isEmpty {
                 Text(schedule.remarks)

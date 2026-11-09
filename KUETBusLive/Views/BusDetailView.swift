@@ -32,7 +32,7 @@ struct BusDetailView: View {
                             Spacer()
                             AudienceBadge(audience: bus.allocation)
                         }
-                        LabeledContent("Route", value: bus.routeName)
+                        LabeledContent("Route", value: PlaceNames.display(bus.routeName))
                         LabeledContent("Last update", value: bus.lastUpdateText)
                         LabeledContent("Crowd", value: bus.crowd.label)
                     }

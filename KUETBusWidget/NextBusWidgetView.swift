@@ -20,7 +20,7 @@ struct NextBusWidgetView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var stopName: String {
-        entry.live?.stopName ?? entry.favoriteStop ?? "My stop"
+        PlaceNames.display(entry.live?.stopName ?? entry.favoriteStop ?? String(localized: "My stop"))
     }
 
     var body: some View {
@@ -104,9 +104,9 @@ struct NextBusWidgetView: View {
             Spacer(minLength: 4)
             Group {
                 if let live = entry.live {
-                    Text(live.busNumber)
+                    Text(PlaceNames.display(live.busNumber))
                         .font(.widgetSerif(.footnote))
-                    Text(live.stopName)
+                    Text(PlaceNames.display(live.stopName))
                         .widgetLabel()
                         .padding(.top, 1)
                 } else if let next = entry.trips.first {
@@ -145,7 +145,7 @@ struct NextBusWidgetView: View {
         if let live = entry.live {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(live.busNumber)
+                    Text(PlaceNames.display(live.busNumber))
                         .font(.widgetSerif(.title3))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -176,7 +176,7 @@ struct NextBusWidgetView: View {
         } else if let next = entry.trips.first {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(next.trip.title)
+                    Text(PlaceNames.display(next.trip.title))
                         .font(.widgetSerif(.title3))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -214,7 +214,7 @@ struct NextBusWidgetView: View {
                 header
                 Spacer()
                 if let route = entry.route {
-                    Text(route.name)
+                    Text(route.displayName)
                         .widgetLabel()
                         .lineLimit(1)
                 }
@@ -258,7 +258,7 @@ struct NextBusWidgetView: View {
                     hairline
                     ForEach(later, id: \.self) { trip in
                         HStack {
-                            Text(trip.trip.title)
+                            Text(PlaceNames.display(trip.trip.title))
                                 .lineLimit(1)
                             Spacer()
                             Text(trip.leavesAt, style: .time)

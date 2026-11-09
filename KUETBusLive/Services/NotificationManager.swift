@@ -39,8 +39,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     func sendArrivalAlert(busNumber: String, stopName: String, minutes: Int) {
         let content = UNMutableNotificationContent()
-        content.title = "\(busNumber) is almost here"
-        content.body = "About \(minutes) min to \(stopName)."
+        // Place names in Bangla when the app is in Bangla, e.g. "Normal-2 · রূপসা".
+        let bus = PlaceNames.display(busNumber)
+        let stop = PlaceNames.display(stopName)
+        content.title = String(localized: "\(bus) is almost here")
+        content.body = String(localized: "About \(minutes) min to \(stop).")
         content.sound = .default
 
         // trigger nil means show it right away.

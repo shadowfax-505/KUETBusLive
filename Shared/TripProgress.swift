@@ -19,6 +19,11 @@ import CoreLocation
 // A stop in the small form the widget understands.
 struct SharedStop: Codable, Hashable {
     var name: String
+    var nameBn: String? = nil
+
+    var displayName: String {
+        PlaceNames.display(name, bangla: nameBn)
+    }
     var lat: Double
     var lng: Double
 

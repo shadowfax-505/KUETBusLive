@@ -64,19 +64,19 @@ class RouteViewModel: ObservableObject {
     // Add: two sample routes so a fresh Firebase project has data to show.
     // Coordinates are approximate.
     func addSampleRoutes() {
-        let sonadanga = BusRoute(name: "KUET to Sonadanga", stops: [
-            Stop(name: "KUET Main Gate", lat: 22.8999, lng: 89.5024),
-            Stop(name: "Fulbarigate", lat: 22.8890, lng: 89.5095),
-            Stop(name: "Daulatpur", lat: 22.8660, lng: 89.5170),
-            Stop(name: "Notun Rasta", lat: 22.8460, lng: 89.5330),
-            Stop(name: "Sonadanga Bus Terminal", lat: 22.8170, lng: 89.5440)
+        let sonadanga = BusRoute(name: "KUET to Sonadanga", nameBn: "কুয়েট – সোনাডাঙ্গা", stops: [
+            Stop(name: "KUET Main Gate", nameBn: "কুয়েট মেইন গেট", lat: 22.8999, lng: 89.5024),
+            Stop(name: "Fulbarigate", nameBn: "ফুলবাড়ীগেট", lat: 22.8890, lng: 89.5095),
+            Stop(name: "Daulatpur", nameBn: "দৌলতপুর", lat: 22.8660, lng: 89.5170),
+            Stop(name: "Notun Rasta", nameBn: "নতুন রাস্তা", lat: 22.8460, lng: 89.5330),
+            Stop(name: "Sonadanga Bus Terminal", nameBn: "সোনাডাঙ্গা বাস টার্মিনাল", lat: 22.8170, lng: 89.5440)
         ])
-        let royalMore = BusRoute(name: "KUET to Royal More", stops: [
-            Stop(name: "KUET Main Gate", lat: 22.8999, lng: 89.5024),
-            Stop(name: "Fulbarigate", lat: 22.8890, lng: 89.5095),
-            Stop(name: "Daulatpur", lat: 22.8660, lng: 89.5170),
-            Stop(name: "Shibbari More", lat: 22.8150, lng: 89.5590),
-            Stop(name: "Royal More", lat: 22.8105, lng: 89.5630)
+        let royalMore = BusRoute(name: "KUET to Royal More", nameBn: "কুয়েট – রয়্যাল মোড়", stops: [
+            Stop(name: "KUET Main Gate", nameBn: "কুয়েট মেইন গেট", lat: 22.8999, lng: 89.5024),
+            Stop(name: "Fulbarigate", nameBn: "ফুলবাড়ীগেট", lat: 22.8890, lng: 89.5095),
+            Stop(name: "Daulatpur", nameBn: "দৌলতপুর", lat: 22.8660, lng: 89.5170),
+            Stop(name: "Shibbari More", nameBn: "শিববাড়ী মোড়", lat: 22.8150, lng: 89.5590),
+            Stop(name: "Royal More", nameBn: "রয়্যাল মোড়", lat: 22.8105, lng: 89.5630)
         ])
 
         for route in [sonadanga, royalMore] {

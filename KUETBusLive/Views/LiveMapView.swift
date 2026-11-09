@@ -85,14 +85,14 @@ struct LiveMapView: View {
                 }
 
                 ForEach(busViewModel.buses) { bus in
-                    Annotation(bus.number, coordinate: bus.coordinate) {
+                    Annotation(PlaceNames.display(bus.number), coordinate: bus.coordinate) {
                         BusMarker(bus: bus, isSelected: bus.id == selectedBusId)
                             .onTapGesture {
                                 select(bus)
                             }
                             // VoiceOver: "Normal-1 · Rupsha, Student bus, Seats available"
                             .accessibilityElement(children: .ignore)
-                            .accessibilityLabel("\(bus.number), \(bus.allocation.title), \(bus.crowd.label)")
+                            .accessibilityLabel("\(PlaceNames.display(bus.number)), \(bus.allocation.title), \(bus.crowd.label)")
                             .accessibilityHint("Shows the trip card with the ETA")
                             .accessibilityAddTraits(.isButton)
                             .accessibilityAction {

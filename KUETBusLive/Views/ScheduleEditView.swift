@@ -50,6 +50,11 @@ struct ScheduleEditView: View {
                 Section(header: Text("Times (24-hour, e.g. 17:10)")) {
                     TextField("Leaves KUET", text: $draft.campusTime)
                     TextField("Starting spot, e.g. Rupsha", text: $draft.spot)
+                    // Optional. Known places already have a Bangla name built in.
+                    TextField("Bangla name (optional)", text: Binding(
+                        get: { draft.spotBn ?? "" },
+                        set: { draft.spotBn = $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 }
+                    ))
                     TextField("Leaves starting spot", text: $draft.spotTime)
                 }
 

@@ -28,7 +28,7 @@ struct RoutesListView: View {
                         }
                     } label: {
                         VStack(alignment: .leading) {
-                            Text(route.name)
+                            Text(route.displayName)
                                 .font(.headline)
                             Text("\(route.stops.count) stops")
                                 .font(.subheadline)

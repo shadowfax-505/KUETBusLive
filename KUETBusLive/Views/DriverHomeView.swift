@@ -65,12 +65,12 @@ struct DriverHomeView: View {
                             AudienceBadge(audience: schedule.audience)
                         }
                         LabeledContent("Leaves KUET", value: BusSchedule.display(schedule.campusTime))
-                        LabeledContent("Leaves \(schedule.spot)", value: BusSchedule.display(schedule.spotTime))
+                        LabeledContent("Leaves \(schedule.spotDisplayName)", value: BusSchedule.display(schedule.spotTime))
                     }
 
                     Picker("Route", selection: $selectedRouteId) {
                         ForEach(routeViewModel.routes) { route in
-                            Text(route.name).tag(route.id ?? "")
+                            Text(route.displayName).tag(route.id ?? "")
                         }
                     }
                 }
@@ -192,7 +192,7 @@ struct SchedulePicker: View {
     var body: some View {
         Picker("Trip", selection: $selectedId) {
             ForEach(schedules) { schedule in
-                Text("\(schedule.title), \(BusSchedule.display(schedule.campusTime))")
+                Text("\(schedule.displayTitle), \(BusSchedule.display(schedule.campusTime))")
                     .tag(schedule.id ?? "")
             }
         }

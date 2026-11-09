@@ -12,6 +12,16 @@
         }
       }
     },
+    "%@ is almost here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ প্রায় চলে এসেছে"
+          }
+        }
+      }
+    },
     "%@ · %@": {
       "localizations": {
         "bn": {
@@ -158,6 +168,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সম্পর্কে"
+          }
+        }
+      }
+    },
+    "About %lld min to %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ পৌঁছাতে আর প্রায় %1$lld মিনিট।"
           }
         }
       }
@@ -388,6 +408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার স্টপে"
+          }
+        }
+      }
+    },
+    "Bangla name (optional)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাংলা নাম (ঐচ্ছিক)"
           }
         }
       }

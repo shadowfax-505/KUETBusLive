@@ -105,7 +105,7 @@ struct AnnouncementRow: View {
                 .font(.body)
             HStack {
                 if let route = announcement.routeName {
-                    Label(route, systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    Label(PlaceNames.display(route), systemImage: "point.topleft.down.to.point.bottomright.curvepath")
                 }
                 Spacer()
                 Text("\(announcement.postedBy) · \(announcement.timeText)")
@@ -149,7 +149,7 @@ struct ComposeAnnouncementView: View {
                     Picker("Route", selection: $routeName) {
                         Text("All routes").tag("")
                         ForEach(routeViewModel.routes) { route in
-                            Text(route.name).tag(route.name)
+                            Text(route.displayName).tag(route.name)
                         }
                     }
                 }

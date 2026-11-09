@@ -72,7 +72,7 @@ struct ProfileView: View {
 
             if isRider {
                 Section(header: Text("My stop")) {
-                    Text(authViewModel.profile?.favoriteStopName ?? String(localized: "Not set. Pick one in Routes."))
+                    Text(authViewModel.profile?.favoriteStopName.map { PlaceNames.display($0) } ?? String(localized: "Not set. Pick one in Routes."))
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
                 }
             }

@@ -46,9 +46,9 @@ struct TripCard: View {
                 HStack(alignment: .top) {
                     rowOrColumn {
                         VStack(alignment: .leading) {
-                            Text(bus.number)
+                            Text(PlaceNames.display(bus.number))
                                 .font(.headline)
-                            Text(bus.routeName)
+                            Text(PlaceNames.display(bus.routeName))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -86,7 +86,7 @@ struct TripCard: View {
                 // Where the bus is between KUET and my stop, like a parcel tracker.
                 if let track = busViewModel.tripProgress(for: bus),
                    let stopName = authViewModel.profile?.favoriteStop?.name {
-                    TripProgressView(progress: track, endLabel: stopName, tint: bus.allocation.color)
+                    TripProgressView(progress: track, endLabel: PlaceNames.display(stopName), tint: bus.allocation.color)
                         .animation(.easeInOut, value: track.fraction)
                 } else if let progress = busViewModel.nearestStop(for: bus) {
                     // My stop isn't on this route: show the nearest stop instead.
@@ -176,7 +176,7 @@ struct TripCard: View {
             .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .accessibilityElement(children: .contain)
-            .accessibilityLabel("Trip card for \(bus.number)")
+            .accessibilityLabel("Trip card for \(PlaceNames.display(bus.number))")
             .padding(.horizontal)
             .padding(.bottom, 8)
             // A small tap on the phone when a crowd report lands.

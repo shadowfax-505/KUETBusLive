@@ -22,7 +22,7 @@ struct RouteDetailView: View {
                     Image(systemName: isMyStop(stop) ? "star.fill" : "mappin.circle")
                         .foregroundColor(isMyStop(stop) ? .yellow : .blue)
                         .accessibilityLabel(isMyStop(stop) ? "My stop" : "Stop")
-                    Text(stop.name)
+                    Text(stop.displayName)
                     Spacer()
                     if !isMyStop(stop) {
                         Button("Set as my stop") {
@@ -34,6 +34,6 @@ struct RouteDetailView: View {
                 }
             }
         }
-        .navigationTitle(route.name)
+        .navigationTitle(route.displayName)
     }
 }

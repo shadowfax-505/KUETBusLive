@@ -46,6 +46,8 @@ struct RouteEditorView: View {
         List {
             Section {
                 TextField("Route name, e.g. KUET to Sonadanga", text: $route.name)
+                // Optional. Shown to people using the app in Bangla.
+                TextField("Bangla name (optional)", text: banglaBinding($route.nameBn))
             } header: {
                 Text("Name")
             }
@@ -97,7 +99,12 @@ struct RouteEditorView: View {
                             .frame(width: 22, height: 22)
                             .background(Circle().fill(.blue))
                             .accessibilityHidden(true)
-                        TextField("Stop name", text: $route.stops[index].name)
+                        VStack(alignment: .leading) {
+                            TextField("Stop name", text: $route.stops[index].name)
+                            TextField("Bangla name (optional)", text: banglaBinding($route.stops[index].nameBn))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .onMove { from, to in
@@ -139,6 +146,18 @@ struct RouteEditorView: View {
         withAnimation {
             route.stops.append(stop)
         }
+    }
+
+    // A text field for an optional Bangla name: an empty field saves no Bangla name,
+    // so the app falls back to its built-in list or the English name.
+    func banglaBinding(_ value: Binding<String?>) -> Binding<String> {
+        Binding(
+            get: { value.wrappedValue ?? "" },
+            set: { newValue in
+                let trimmed = newValue.trimmingCharacters(in: .whitespaces)
+                value.wrappedValue = trimmed.isEmpty ? nil : newValue
+            }
+        )
     }
 
     func save() {

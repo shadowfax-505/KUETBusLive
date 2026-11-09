@@ -50,7 +50,7 @@ struct ReportProblemView: View {
                 Picker("Route", selection: $routeName) {
                     Text("Not sure").tag("")
                     ForEach(routeViewModel.routes) { route in
-                        Text(route.name).tag(route.name)
+                        Text(route.displayName).tag(route.name)
                     }
                 }
                 TextField("Bus, e.g. Normal-2", text: $busName)

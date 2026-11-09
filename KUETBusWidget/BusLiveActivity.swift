@@ -41,16 +41,16 @@ struct BusLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(context.attributes.busNumber)
+                            Text(PlaceNames.display(context.attributes.busNumber))
                                 .font(.widgetSerif(.headline))
                                 .foregroundStyle(Night.primary)
-                            Text("To \(context.attributes.stopName) · \(context.state.distanceText)")
+                            Text("To \(PlaceNames.display(context.attributes.stopName)) · \(context.state.distanceText)")
                                 .font(.caption)
                                 .foregroundStyle(Night.secondary)
                         }
                         // A thin version of the trip track.
                         TripProgressView(progress: context.state.progress,
-                                         endLabel: context.attributes.stopName,
+                                         endLabel: PlaceNames.display(context.attributes.stopName),
                                          tint: Night.accent,
                                          trackColor: Night.track,
                                          showLabels: false,
@@ -152,11 +152,11 @@ struct LockScreenTripView: View {
                     }
                     .font(.caption2)
                     .accessibilityHidden(true)
-                    Text(attributes.busNumber)
+                    Text(PlaceNames.display(attributes.busNumber))
                         .font(.widgetSerif(.title3))
                         .foregroundStyle(Night.primary)
                         .lineLimit(1)
-                    Text("To \(attributes.stopName) · \(state.distanceText)")
+                    Text("To \(PlaceNames.display(attributes.stopName)) · \(state.distanceText)")
                         .font(.footnote)
                         .foregroundStyle(Night.secondary)
                         .lineLimit(2)
@@ -168,7 +168,7 @@ struct LockScreenTripView: View {
 
             // KUET to my stop, like a parcel tracker.
             TripProgressView(progress: state.progress,
-                             endLabel: attributes.stopName,
+                             endLabel: PlaceNames.display(attributes.stopName),
                              tint: Night.accent,
                              trackColor: Night.track,
                              refined: true,

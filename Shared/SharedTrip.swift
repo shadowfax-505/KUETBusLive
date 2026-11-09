@@ -82,6 +82,11 @@ struct LiveTripSnapshot: Codable {
 // The rider's route, for the map in the large widget.
 struct SharedRoute: Codable {
     var name: String
+    var nameBn: String? = nil
+
+    var displayName: String {
+        PlaceNames.display(name, bangla: nameBn)
+    }
     var stops: [SharedStop]
     var riderStopIndex: Int     // which stop is the rider's
 }

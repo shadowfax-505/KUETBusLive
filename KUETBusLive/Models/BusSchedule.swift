@@ -105,12 +105,23 @@ struct BusSchedule: Identifiable, Codable {
     var period: TripPeriod
     var campusTime: String     // 24-hour time the bus leaves KUET, e.g. "06:30"
     var spot: String           // starting spot in the city, e.g. "Rupsha"
+    var spotBn: String? = nil  // optional Bangla name of the spot, e.g. "রূপসা"
     var spotTime: String       // 24-hour time the bus leaves that spot
     var remarks: String
 
-    // Shown on the map and to the driver, e.g. "Normal-1 · Rupsha".
+    // Saved on the bus document and shown on the map, e.g. "Normal-1 · Rupsha".
     var title: String {
         "\(tripName) · \(spot)"
+    }
+
+    // The starting spot in the app's language.
+    var spotDisplayName: String {
+        PlaceNames.display(spot, bangla: spotBn)
+    }
+
+    // "Normal-1 · রূপসা" in Bangla. Trip names such as Normal-1 stay as they are.
+    var displayTitle: String {
+        "\(tripName) · \(spotDisplayName)"
     }
 
     var runsToday: Bool {
