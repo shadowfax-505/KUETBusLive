@@ -39,6 +39,7 @@ enum AccountDeletion {
         "arrivalAlertOn",
         NotificationManager.alertMinutesKey,
         AnnouncementViewModel.lastSeenKey,
+        AnnouncementViewModel.showNewsKey,
         PushManager.topicKey
     ]
 

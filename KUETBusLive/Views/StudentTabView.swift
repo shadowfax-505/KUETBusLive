@@ -14,6 +14,7 @@ struct StudentTabView: View {
     // Only used to keep the home screen widget's timetable up to date.
     @StateObject private var widgetSchedules = ScheduleViewModel()
     @StateObject private var widgetRoutes = RouteViewModel()
+    @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
 
     var body: some View {
         TabView {
@@ -39,7 +40,8 @@ struct StudentTabView: View {
                 Label("News", systemImage: "megaphone")
             }
             // Red number on the tab: announcements posted since the list was last opened.
-            .badge(announcementViewModel.unreadCount)
+            // Turned off in Profile, the tab stays but the badge goes away.
+            .badge(showNews ? announcementViewModel.unreadCount : 0)
 
             NavigationStack {
                 ProfileView()

@@ -802,6 +802,26 @@
         }
       }
     },
+    "Hide": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লুকান"
+          }
+        }
+      }
+    },
+    "Hide hidden": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লুকানোগুলো আড়াল করুন"
+          }
+        }
+      }
+    },
     "How crowded is it?": {
       "localizations": {
         "bn": {
@@ -1722,6 +1742,36 @@
         }
       }
     },
+    "Show": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দেখান"
+          }
+        }
+      }
+    },
+    "Show hidden (%lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লুকানোগুলো দেখান (%lld)"
+          }
+        }
+      }
+    },
+    "Show news and announcements": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খবর ও ঘোষণা দেখান"
+          }
+        }
+      }
+    },
     "Shows the trip card with the ETA": {
       "localizations": {
         "bn": {
@@ -2188,6 +2238,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "যাত্রার অগ্রগতি"
+          }
+        }
+      }
+    },
+    "Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বন্ধ থাকলে কোনো ব্যাজ বা ম্যাপে ব্যানার দেখাবে না। আপনি নিজে খবর খুলতে পারবেন, আর সোয়াইপ করে একটি একটি ঘোষণা লুকাতে পারবেন।"
           }
         }
       }

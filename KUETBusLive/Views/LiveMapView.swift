@@ -28,10 +28,12 @@ struct LiveMapView: View {
     @State private var showDetail = false
     @State private var locationPermission = CLLocationManager()
     @State private var showAnnouncements = false
+    @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
 
-    // Riders see the newest announcement as a banner until they close or read it.
+    // Riders see the newest announcement as a banner until they close or read it,
+    // unless they turned news off in Profile.
     var bannerAnnouncement: Announcement? {
-        guard authViewModel.profile?.role != .admin,
+        guard showNews, authViewModel.profile?.role != .admin,
               let latest = announcementViewModel.latest,
               latest.createdAt > announcementViewModel.lastSeen else {
             return nil

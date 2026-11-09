@@ -14,6 +14,7 @@ struct DriverHomeView: View {
     @StateObject private var driverViewModel = DriverViewModel()
     @StateObject private var routeViewModel = RouteViewModel()
     @StateObject private var scheduleViewModel = ScheduleViewModel()
+    @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
 
     @State private var selectedScheduleId = ""
     @State private var selectedRouteId = ""
@@ -122,9 +123,9 @@ struct DriverHomeView: View {
                     AnnouncementsView()
                 } label: {
                     // A small red dot when there is news the driver hasn't read.
-                    Image(systemName: announcementViewModel.unreadCount > 0 ? "megaphone.fill" : "megaphone")
+                    Image(systemName: showNews && announcementViewModel.unreadCount > 0 ? "megaphone.fill" : "megaphone")
                         .overlay(alignment: .topTrailing) {
-                            if announcementViewModel.unreadCount > 0 {
+                            if showNews && announcementViewModel.unreadCount > 0 {
                                 Circle()
                                     .fill(.red)
                                     .frame(width: 9, height: 9)
@@ -133,7 +134,7 @@ struct DriverHomeView: View {
                         }
                 }
                 .accessibilityLabel("Announcements")
-                .accessibilityValue(announcementViewModel.unreadCount > 0
+                .accessibilityValue(showNews && announcementViewModel.unreadCount > 0
                                     ? "\(announcementViewModel.unreadCount) unread" : "")
 
                 NavigationLink {

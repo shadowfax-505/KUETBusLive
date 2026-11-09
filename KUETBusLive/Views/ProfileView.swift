@@ -14,6 +14,7 @@ struct ProfileView: View {
     @AppStorage("arrivalAlertOn") private var arrivalAlertOn = false
     @AppStorage("faceIDOn") private var faceIDOn = false
     @AppStorage("passcodeOn") private var passcodeOn = false
+    @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
     @State private var showSetPasscode = false
 
     // Set by the driver screen while a trip runs, so deleting the account can end it first.
@@ -73,6 +74,14 @@ struct ProfileView: View {
                 Section(header: Text("My stop")) {
                     Text(authViewModel.profile?.favoriteStopName ?? String(localized: "Not set. Pick one in Routes."))
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
+                }
+            }
+
+            // The admin writes the news, so only riders and drivers get this switch.
+            if authViewModel.profile?.role != .admin {
+                Section(header: Text("News"),
+                        footer: Text("Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.")) {
+                    Toggle("Show news and announcements", isOn: $showNews)
                 }
             }
 

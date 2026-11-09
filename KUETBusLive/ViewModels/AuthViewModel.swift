@@ -210,7 +210,7 @@ class AuthViewModel: ObservableObject {
                 return
             }
 
-            clearLocalData()
+            clearLocalData(uid: uid)
             signOut()
             completion(nil)
         }
@@ -218,9 +218,10 @@ class AuthViewModel: ObservableObject {
 
     // Everything this phone kept for the account: lock settings, passcode, alerts,
     // the push topic, the widget's trips and any Live Activity.
-    private func clearLocalData() {
+    private func clearLocalData(uid: String) {
         PushManager.shared.forgetDevice()
         AccountDeletion.clearLocalSettings(in: .standard)
+        UserDefaults.standard.removeObject(forKey: AnnouncementViewModel.hiddenKey(for: uid))
         AppPasscode.remove()
         SharedStore.clear()
         WidgetCenter.shared.reloadAllTimelines()

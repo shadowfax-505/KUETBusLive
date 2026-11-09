@@ -6,6 +6,8 @@
 //
 //  News from the transport office. Everyone sees the list, newest first.
 //  The admin also gets a "+" button to post and can swipe to delete.
+//  Everyone else can swipe to hide an announcement from their own list,
+//  and bring hidden ones back with "Show hidden".
 //
 
 import SwiftUI
@@ -14,26 +16,47 @@ struct AnnouncementsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var announcementViewModel: AnnouncementViewModel
     @State private var showCompose = false
+    @State private var showHidden = false
 
     var isAdmin: Bool {
         authViewModel.profile?.role == .admin
     }
 
+    // With "Show hidden" on, hidden ones are listed too (faded), so they can be brought back.
+    var shownAnnouncements: [Announcement] {
+        showHidden ? announcementViewModel.announcements : announcementViewModel.visibleAnnouncements
+    }
+
     var body: some View {
         List {
-            ForEach(announcementViewModel.announcements) { announcement in
+            ForEach(shownAnnouncements) { announcement in
+                let hidden = announcementViewModel.isHidden(announcement)
                 AnnouncementRow(announcement: announcement)
+                    .opacity(hidden ? 0.45 : 1)
+                    .swipeActions(edge: .trailing) {
+                        if isAdmin {
+                            // Admin: deletes it for everyone (the rules allow only the admin).
+                            Button("Delete", role: .destructive) {
+                                announcementViewModel.delete(announcement)
+                            }
+                        } else if hidden {
+                            Button("Show") {
+                                announcementViewModel.unhide(announcement)
+                            }
+                            .tint(.blue)
+                        } else {
+                            Button("Hide") {
+                                withAnimation {
+                                    announcementViewModel.hide(announcement)
+                                }
+                            }
+                            .tint(.gray)
+                        }
+                    }
             }
-            .onDelete { offsets in
-                guard isAdmin else { return }
-                for index in offsets {
-                    announcementViewModel.delete(announcementViewModel.announcements[index])
-                }
-            }
-            .deleteDisabled(!isAdmin)
         }
         .overlay {
-            if announcementViewModel.announcements.isEmpty {
+            if shownAnnouncements.isEmpty {
                 ContentUnavailableView("No announcements",
                                        systemImage: "megaphone",
                                        description: Text("News from the KUET transport office will appear here."))
@@ -41,6 +64,14 @@ struct AnnouncementsView: View {
         }
         .navigationTitle("Announcements")
         .toolbar {
+            if !isAdmin && announcementViewModel.hiddenCount > 0 {
+                Button(showHidden ? String(localized: "Hide hidden")
+                                  : String(localized: "Show hidden (\(announcementViewModel.hiddenCount))")) {
+                    withAnimation {
+                        showHidden.toggle()
+                    }
+                }
+            }
             if isAdmin {
                 Button {
                     showCompose = true
