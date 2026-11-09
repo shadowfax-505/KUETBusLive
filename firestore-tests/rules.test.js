@@ -21,7 +21,7 @@ const {
   assertFails,
   assertSucceeds,
 } = require("@firebase/rules-unit-testing");
-const { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } = require("firebase/firestore");
+const { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } = require("firebase/firestore");
 
 let env;
 
@@ -204,6 +204,68 @@ test("ending a trip deletes the driver's own bus only", async () => {
   await assertFails(deleteDoc(doc(db("student"), "buses", "student-bus")));
   await assertSucceeds(deleteDoc(doc(db("driver"), "buses", "student-bus")));
   await assertSucceeds(deleteDoc(doc(db("admin"), "buses", "teacher-bus")));
+});
+
+// ---------- Complaints ----------
+
+function complaint(uid, role, extra = {}) {
+  return {
+    uid, userName: "Someone", userRole: role, category: "late", busName: "Normal-2",
+    text: "The bus did not come at 7:10.", createdAt: new Date(), status: "open", readByAdmin: false, ...extra,
+  };
+}
+
+async function seedComplaint(id, data) {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "complaints", id), data);
+  });
+}
+
+test("riders and drivers file complaints as themselves", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student")));
+  await assertSucceeds(setDoc(doc(db("driver"), "complaints", "c2"), complaint("driver", "driver")));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c3"), complaint("teacher", "teacher")));
+  await assertFails(setDoc(doc(db(), "complaints", "c4"), complaint("student", "student")));
+});
+
+test("a new complaint starts open and unread, with no reply", async () => {
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student", { status: "resolved" })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student", { adminReply: "done" })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student", { readByAdmin: true })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student", { category: "spam" })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "admin")));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"), complaint("student", "student", { text: "" })));
+});
+
+test("you read only your own complaints, the admin reads all", async () => {
+  await seedComplaint("c1", complaint("student", "student"));
+  await assertSucceeds(getDoc(doc(db("student"), "complaints", "c1")));
+  await assertFails(getDoc(doc(db("teacher"), "complaints", "c1")));
+  await assertSucceeds(getDoc(doc(db("admin"), "complaints", "c1")));
+  await assertSucceeds(getDocs(query(collection(db("student"), "complaints"), where("uid", "==", "student"))));
+  await assertFails(getDocs(collection(db("student"), "complaints")));
+  await assertSucceeds(getDocs(collection(db("admin"), "complaints")));
+});
+
+test("nobody edits a complaint after sending it", async () => {
+  await seedComplaint("c1", complaint("student", "student"));
+  await assertFails(updateDoc(doc(db("student"), "complaints", "c1"), { text: "changed" }));
+  await assertFails(updateDoc(doc(db("student"), "complaints", "c1"), { status: "resolved" }));
+});
+
+test("the admin changes status and replies, but not the complaint itself", async () => {
+  await seedComplaint("c1", complaint("student", "student"));
+  await assertSucceeds(updateDoc(doc(db("admin"), "complaints", "c1"),
+    { status: "inReview", adminReply: "We are checking.", repliedAt: new Date(), readByAdmin: true }));
+  await assertFails(updateDoc(doc(db("admin"), "complaints", "c1"), { text: "rewritten" }));
+  await assertFails(updateDoc(doc(db("admin"), "complaints", "c1"), { status: "closed" }));
+});
+
+test("you can delete your own complaints (account deletion)", async () => {
+  await seedComplaint("c1", complaint("student", "student"));
+  await seedComplaint("c2", complaint("teacher", "teacher"));
+  await assertFails(deleteDoc(doc(db("student"), "complaints", "c2")));
+  await assertSucceeds(deleteDoc(doc(db("student"), "complaints", "c1")));
 });
 
 // ---------- Everything else ----------

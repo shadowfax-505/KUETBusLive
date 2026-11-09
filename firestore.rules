@@ -130,6 +130,39 @@ service cloud.firestore {
       allow delete: if isAdmin() || (signedIn() && resource.data.driverId == request.auth.uid);
     }
 
+    // ---------- Complaints ----------
+
+    match /complaints/{id} {
+      function categories() {
+        return ['late', 'driverBehaviour', 'overcrowding', 'busCondition', 'app', 'other'];
+      }
+
+      // The sender, or the admin.
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      // Anyone signed in with a profile files a complaint as themselves.
+      // It starts open, unread and without a reply.
+      allow create: if hasProfile()
+        && request.resource.data.keys().hasOnly(['uid', 'userName', 'userRole', 'category',
+            'routeName', 'busName', 'tripTime', 'text', 'createdAt', 'status', 'readByAdmin'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.userRole == me().role
+        && request.resource.data.category in categories()
+        && isShortText(request.resource.data.text, 2000)
+        && request.resource.data.status == 'open'
+        && request.resource.data.readByAdmin == false;
+
+      // Nobody edits a complaint after sending it. The admin changes only the
+      // status, the reply and whether it was read.
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'adminReply', 'repliedAt', 'readByAdmin'])
+        && request.resource.data.status in ['open', 'inReview', 'resolved'];
+
+      // Deleting your account removes your complaints too.
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
     // ---------- Everything else ----------
 
     match /{document=**} {
