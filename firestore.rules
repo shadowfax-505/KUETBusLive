@@ -2,6 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- Who is asking ----------
+
     function signedIn() {
       return request.auth != null;
     }
@@ -10,68 +12,128 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    function hasProfile() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function isAdmin() {
-      return signedIn() && me().role == 'admin';
+      return hasProfile() && me().role == 'admin';
+    }
+
+    function isApproved() {
+      return hasProfile() && me().get('isApproved', false) == true;
     }
 
     function isApprovedDriver() {
-      return signedIn() && me().role == 'driver' && me().get('isApproved', false) == true;
+      return isApproved() && me().role == 'driver';
     }
 
-    // Students may only touch student buses. Everyone else may ride any bus.
+    // Students and teachers ride buses. Teachers must be approved first; students start approved.
+    function isApprovedRider() {
+      return isApproved() && me().role in ['student', 'teacher'];
+    }
+
+    // Students may only touch student buses. Teachers may ride any bus.
     function canBoard(bus) {
       return me().role != 'student' || bus.get('audience', 'student') == 'student';
     }
 
+    // ---------- Small checks ----------
+
+    function isShortText(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+
+    function isCrowdLevel(value) {
+      return value in ['unknown', 'seats', 'full'];
+    }
+
+    // ---------- Users ----------
+
     match /users/{uid} {
+      // Your own profile, or anyone's if you are the admin (to approve teachers and drivers).
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
 
-      // Sign up: only your own profile, never as admin, and only students start approved.
+      // Sign up: only your own profile, with your own login email, never as admin,
+      // and only students start approved. Teachers and drivers wait for the admin.
       allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'kuetId', 'isApproved',
+            'favoriteStopName', 'favoriteStopLat', 'favoriteStopLng', 'fcmToken'])
+        && isShortText(request.resource.data.name, 100)
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.role in ['student', 'teacher', 'driver']
+        && isShortText(request.resource.data.kuetId, 30)
         && request.resource.data.isApproved == (request.resource.data.role == 'student');
 
-      // You can change your stop, but not your role, approval, KUET ID or email.
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
-        && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['role', 'isApproved', 'kuetId', 'email']));
+      // The admin can change anything, including role and approval.
+      // You can only change your favourite stop, your push token and your name.
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['name', 'favoriteStopName', 'favoriteStopLat', 'favoriteStopLng', 'fcmToken'])
+            && isShortText(request.resource.data.name, 100));
 
       // Profile > Delete account removes your own profile. The admin can remove anyone's.
       allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
     }
+
+    // ---------- Timetable, routes and news: everyone reads, only the admin writes ----------
 
     match /schedules/{id} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // Routes and their stops: everyone signed in reads them, only the admin edits them.
     match /routes/{id} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
 
-    // News from the transport office: everyone signed in reads, only the admin posts or deletes.
     match /announcements/{id} {
       allow read: if signedIn();
       allow create: if isAdmin()
-        && request.resource.data.title is string && request.resource.data.title.size() > 0
-        && request.resource.data.body is string && request.resource.data.body.size() > 0;
+        && isShortText(request.resource.data.title, 200)
+        && isShortText(request.resource.data.body, 5000);
       allow update, delete: if isAdmin();
     }
 
+    // ---------- Running buses ----------
+
     match /buses/{id} {
+      function busFields() {
+        return ['number', 'routeId', 'routeName', 'driverId', 'lat', 'lng', 'updatedAt',
+                'crowd', 'audience', 'scheduleId', 'heading', 'speed'];
+      }
+
+      function isValidBus(bus) {
+        return bus.keys().hasOnly(busFields())
+          && bus.driverId == request.auth.uid
+          && bus.lat is number && bus.lng is number
+          && isCrowdLevel(bus.crowd);
+      }
+
       allow read: if signedIn();
 
-      allow create: if isApprovedDriver() && request.resource.data.driverId == request.auth.uid;
+      // An approved driver starts a trip, as themselves.
+      allow create: if isApprovedDriver() && isValidBus(request.resource.data);
 
-      // The driver moves the bus. Riders who may board it can change only the crowd level.
+      // The admin can fix anything. An approved driver moves only their own bus.
+      // Riders allowed on the bus can change only its crowd level.
       allow update: if isAdmin()
-        || (signedIn() && resource.data.driverId == request.auth.uid)
-        || (signedIn() && canBoard(resource.data)
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['crowd']));
+        || (isApprovedDriver() && resource.data.driverId == request.auth.uid
+            && isValidBus(request.resource.data))
+        || (isApprovedRider() && canBoard(resource.data)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['crowd'])
+            && isCrowdLevel(request.resource.data.crowd));
 
+      // Ending a trip (or deleting the account) removes the driver's own bus.
       allow delete: if isAdmin() || (signedIn() && resource.data.driverId == request.auth.uid);
+    }
+
+    // ---------- Everything else ----------
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

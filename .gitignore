@@ -19,3 +19,6 @@ firestore-debug.log
 
 # Firebase app config holds project keys, add your own from the Firebase console
 GoogleService-Info.plist
+
+# Firestore rules tests
+firestore-tests/node_modules/
