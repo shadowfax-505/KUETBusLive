@@ -24,6 +24,17 @@ struct KUETVerifier {
     static let demoEmailDomain: String? = nil
     #endif
 
+    // The two accounts Apple's App Review team signs in with (see docs/app-review-notes.md).
+    // They are created by hand in the Firebase console, have no KUET mailbox, and so skip
+    // the KUET email checks. Only these exact addresses do; nothing else on that domain.
+    static let appReviewStudentEmail = "appreview.student@kuetbuslive.app"
+    static let appReviewDriverEmail = "appreview.driver@kuetbuslive.app"
+    static let appReviewEmails: Set<String> = [appReviewStudentEmail, appReviewDriverEmail]
+
+    static func isAppReviewEmail(_ email: String) -> Bool {
+        appReviewEmails.contains(email.lowercased().trimmingCharacters(in: .whitespaces))
+    }
+
     // "Name@CSE.kuet.ac.bd" -> "cse.kuet.ac.bd"
     static func domain(of email: String) -> String {
         let parts = email.lowercased().trimmingCharacters(in: .whitespaces).split(separator: "@")
@@ -59,7 +70,7 @@ struct KUETVerifier {
     static func validate(role: UserRole, email: String, kuetId: String) -> String? {
         let email = email.lowercased().trimmingCharacters(in: .whitespaces)
         let id = kuetId.trimmingCharacters(in: .whitespaces)
-        let demo = isDemoEmail(email)
+        let demo = isDemoEmail(email) || isAppReviewEmail(email)
 
         switch role {
         case .student:
@@ -94,6 +105,6 @@ struct KUETVerifier {
     }
 
     static func needsEmailVerification(role: UserRole, email: String) -> Bool {
-        (role == .student || role == .teacher) && !isDemoEmail(email)
+        (role == .student || role == .teacher) && !isDemoEmail(email) && !isAppReviewEmail(email)
     }
 }

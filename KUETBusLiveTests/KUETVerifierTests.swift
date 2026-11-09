@@ -119,4 +119,25 @@ final class KUETVerifierTests: XCTestCase {
         XCTAssertFalse(KUETVerifier.isDemoEmail("student2@test.com"))
         #endif
     }
+
+    // MARK: - App Review accounts (every build)
+
+    func testAppReviewAccountsSkipKUETEmailChecks() {
+        XCTAssertTrue(KUETVerifier.isAppReviewEmail("appreview.student@kuetbuslive.app"))
+        XCTAssertTrue(KUETVerifier.isAppReviewEmail(" AppReview.Driver@kuetbuslive.app "))
+        XCTAssertNil(KUETVerifier.validate(role: .student, email: "appreview.student@kuetbuslive.app", kuetId: "2207001"))
+        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .student, email: "appreview.student@kuetbuslive.app"))
+    }
+
+    func testOnlyTheTwoReviewAddressesAreAllowed() {
+        XCTAssertEqual(KUETVerifier.appReviewEmails.count, 2)
+        XCTAssertFalse(KUETVerifier.isAppReviewEmail("someone@kuetbuslive.app"))
+        XCTAssertFalse(KUETVerifier.isAppReviewEmail("appreview.student@kuetbuslive.app.evil.com"))
+        XCTAssertNotNil(KUETVerifier.validate(role: .student, email: "someone@kuetbuslive.app", kuetId: "2207001"))
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "someone@kuetbuslive.app"))
+    }
+
+    func testReviewStudentStillNeedsAValidRoll() {
+        XCTAssertNotNil(KUETVerifier.validate(role: .student, email: "appreview.student@kuetbuslive.app", kuetId: "12"))
+    }
 }
