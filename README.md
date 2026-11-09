@@ -33,15 +33,23 @@
 13. [The arrival alert](#the-arrival-alert)
 14. [The bus timetable](#the-bus-timetable)
 15. [Crowd reports](#crowd-reports)
-16. [Screens and navigation](#screens-and-navigation)
-17. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
-18. [Firestore data model](#firestore-data-model)
-19. [Security rules](#security-rules)
-20. [Course topics used](#course-topics-used)
-21. [Continuous integration](#continuous-integration)
-22. [Setup](#setup)
-23. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
-24. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+16. [Background location for drivers](#background-location-for-drivers)
+17. [Home screen widget](#home-screen-widget)
+18. [Live Activity and Dynamic Island](#live-activity-and-dynamic-island)
+19. [Trip progress, like a parcel tracker](#trip-progress-like-a-parcel-tracker)
+20. [Route editor (admin)](#route-editor-admin)
+21. [Announcements](#announcements)
+22. [Bangla, dark mode and accessibility](#bangla-dark-mode-and-accessibility)
+23. [Server push (FCM)](#server-push-fcm)
+24. [Screens and navigation](#screens-and-navigation)
+25. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
+26. [Firestore data model](#firestore-data-model)
+27. [Security rules](#security-rules)
+28. [Course topics used](#course-topics-used)
+29. [Continuous integration](#continuous-integration)
+30. [Setup](#setup)
+31. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
+32. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -70,6 +78,15 @@ KUET Bus Live answers those three questions:
 | 👥 Crowd reports | One tap to say "Seats available" or "Full", and everyone sees it instantly. |
 | 🔒 App lock | Face ID, a 4-digit app passcode, both, or neither. |
 | 🛠️ Transport admin | Edits the timetable when KUET changes it, and approves teachers and drivers. |
+| 🧭 Route editor | The admin taps the map to add stops, drags them into order and renames them. |
+| 📣 Announcements | News from the transport office, with an unread badge and a banner on the map. |
+| 📱 Home screen widget | Small, medium and large: the next bus, a progress ring or track, and a route map. |
+| 🏝️ Live Activity | Follow a bus on the Lock Screen and in the Dynamic Island, with a trip track. |
+| 📍 Background location | The bus keeps moving on the map even when the driver locks the phone. |
+| 🇧🇩 Bangla | The whole app in Bangla when the phone (or just this app) is set to Bangla. |
+| ♿ Accessibility | VoiceOver labels, dark mode and large text that doesn't break the trip card. |
+| 🧪 Unit tests | 28 XCTest tests run on every push in CI. |
+| 📨 Server push (ready) | Cloud Function + FCM code for "Normal-2 just left campus", written but not deployed. |
 
 ---
 
@@ -95,7 +112,11 @@ flowchart LR
 
     A --> EDIT["Edit timetable"]
     A --> APP["Approve teachers and drivers"]
-    A --> ROUTES["Manage routes"]
+    A --> ROUTES["Draw routes on a map"]
+    A --> NEWS["Post announcements"]
+    S --> NEWSR["Read announcements"]
+    T --> NEWSR
+    D --> NEWSR
 ```
 
 | Role | How they get in | What they do |
@@ -103,7 +124,7 @@ flowchart LR
 | **Student** | Roll number + `@stud.kuet.ac.bd` email + email link | Track student buses, set a stop, get ETAs and alerts, report crowd |
 | **Teacher** | Employee ID + KUET staff email + email link + admin approval | Same as students, but for every bus |
 | **Driver** | Driver ID + admin approval | Pick today's trip and share the bus location |
-| **Transport admin** | Set up by the transport office in Firebase | Keep the timetable up to date, approve accounts, add routes |
+| **Transport admin** | Set up by the transport office in Firebase | Keep the timetable up to date, approve accounts, draw routes, post announcements |
 
 ---
 
@@ -211,10 +232,23 @@ KUETBusLive/
 │   ├── ETAService.swift        Calls the OSRM REST API
 │   ├── NotificationManager.swift  Local arrival alerts
 │   └── KUETVerifier.swift      Roll number and KUET email rules
-├── ViewModels/                 Auth, Bus, Driver, Route, Schedule, Admin
-├── Views/                      All SwiftUI screens
-└── Resources/
-    └── kuet_schedule.json      Official KUET timetable
+│   ├── LiveActivityManager.swift  Starts, updates and ends the Live Activity
+│   ├── WidgetSync.swift        Writes widget data to the App Group
+│   └── PushManager.swift       FCM token, route topics, AppDelegate
+├── ViewModels/                 Auth, Bus, Driver, Route, Schedule, Admin, Announcement
+└── Views/                      All SwiftUI screens (incl. RouteEditorView, AnnouncementsView)
+
+Shared/                         Compiled into both the app and the widget (no Firebase here)
+├── SharedTrip.swift            Widget data + the App Group store
+├── TripProgress.swift          Where the bus is between KUET and my stop (0...1)
+├── TripProgressView.swift      The track and the ring
+├── BusTripAttributes.swift     Live Activity data
+├── Localizable.xcstrings       English + Bangla text
+└── kuet_schedule.json          Official KUET timetable
+
+KUETBusWidget/                  WidgetKit extension: widget, Live Activity, map snapshot
+KUETBusLiveTests/               XCTest unit tests
+functions/                      Cloud Function for push (not deployed)
 ```
 
 ---
@@ -603,6 +637,257 @@ sequenceDiagram
 
 ---
 
+## Background location for drivers
+
+Drivers don't keep staring at their phone while driving. They start the trip, put the phone in the holder, and maybe lock it. Before, the bus froze on everyone's map the moment the driver's screen turned off. Now GPS keeps going for the whole trip.
+
+```mermaid
+sequenceDiagram
+    participant D as Driver
+    participant LM as LocationManager
+    participant iOS
+    participant FS as Firestore
+    D->>LM: Start trip
+    LM->>iOS: requestAlwaysAuthorization()
+    LM->>iOS: allowsBackgroundLocationUpdates = true<br/>showsBackgroundLocationIndicator = true
+    LM->>iOS: CLBackgroundActivitySession (iOS 17)
+    D->>iOS: Locks the phone
+    loop every few seconds
+        iOS-->>LM: new GPS position
+        LM-->>FS: lat, lng, heading, speed
+    end
+    D->>LM: End trip
+    LM->>iOS: stop updates, background off
+```
+
+- `UIBackgroundModes` → `location` is set in `KUETBusLive-Info.plist`, and the "Always" permission text explains why.
+- Background updates are only switched on **while a trip runs**. Ending the trip turns them off again.
+- iOS shows the blue location pill at the top of the screen the whole time, so the driver always knows their location is being shared.
+- `pausesLocationUpdatesAutomatically = false`, because a bus waiting at Daulatpur signal is still on its trip.
+- If the driver only allows "While Using", tracking still keeps going: it was started while the app was open, and the blue pill stays on.
+
+I tested it with two simulators: the driver started a trip on a simulated route and went to the home screen, and the bus kept moving on the student's map.
+
+---
+
+## Home screen widget
+
+A **WidgetKit** extension (`KUETBusWidget`) shows the next bus without opening the app. It comes in three sizes.
+
+| Size | What it shows |
+| --- | --- |
+| Small | A progress ring with the minutes left in the middle, plus the bus name |
+| Medium | The bus, its ETA and crowd, and a track from KUET to my stop |
+| Large | A map of my route with the bus on it, then the same track, ETA and crowd |
+
+<p align="center">
+  <img src="docs/widget-home-screen.png" alt="Small and medium widgets" width="30%">
+  <img src="docs/widget-large-light.png" alt="Large widget, light" width="30%">
+  <img src="docs/widget-large-dark.png" alt="Large widget, dark" width="30%">
+</p>
+
+The widget is a separate small program, so it can't read the app's memory or Firestore. The app and the widget share data through an **App Group**: a `UserDefaults` that both can open (`group.KUETBusLive`).
+
+```mermaid
+flowchart LR
+    subgraph App["KUET Bus Live app"]
+        SVM["ScheduleViewModel<br/>timetable"]
+        BVM["BusViewModel<br/>new ETA"]
+        WS["WidgetSync"]
+    end
+    AG[("App Group UserDefaults<br/>trips, my stop, my route,<br/>live bus + progress")]
+    subgraph Widget["KUETBusWidget extension"]
+        P["NextBusProvider<br/>(TimelineProvider)"]
+        V["Small / Medium / Large views"]
+    end
+    JSON["kuet_schedule.json<br/>(bundled)"]
+
+    SVM --> WS
+    BVM --> WS
+    WS -->|write| AG
+    WS -->|"WidgetCenter.reloadAllTimelines()<br/>at most once a minute"| P
+    AG -->|read| P
+    JSON -.->|"fallback if the app<br/>saved nothing yet"| P
+    P --> V
+```
+
+- **Timeline:** the provider gives WidgetKit one entry for now and one for the moment each of the next few buses leaves, so the widget moves on to the next bus by itself. The countdown (`Text(date, style: .relative)`) counts down on its own.
+- **Live data first:** while a bus is running, the app saves its ETA, distance, crowd and position. If that is older than 10 minutes, the widget goes back to the timetable.
+- **Large widget map:** a widget can't show a live MapKit map, so `RouteMapRenderer` uses `MKMapSnapshotter` to take a still picture of the map, then draws the route line, the stops, my stop (orange) and the bus on top. It makes a light and a dark picture, and the widget picks the one that matches the phone. If the snapshot fails or no route is saved, the large widget shows the ring instead.
+- **Battery:** widgets have a daily refresh budget, so the app asks for a redraw at most once a minute.
+
+> **Signing note:** the App Group works in the simulator without any team. On a real iPhone, choose your team in **Signing & Capabilities** for both the app and the `KUETBusWidget` target, and let Xcode register `group.KUETBusLive` (or change it to `group.<your bundle id>` in both entitlements files and in `SharedStore.appGroup`).
+
+---
+
+## Live Activity and Dynamic Island
+
+On the trip card there is a **Follow on Lock Screen** button. It starts a **Live Activity**: the bus, the ETA and the trip track sit on the Lock Screen and in the Dynamic Island, so a student waiting at Fulbarigate doesn't need to keep the app open.
+
+<p align="center">
+  <img src="docs/live-activity-lock-screen.png" alt="Live Activity on the Lock Screen" width="30%">
+  <img src="docs/dynamic-island-compact.png" alt="Compact Dynamic Island" width="30%">
+  <img src="docs/dynamic-island-expanded.png" alt="Expanded Dynamic Island" width="30%">
+</p>
+
+```mermaid
+stateDiagram-v2
+    [*] --> Following: tap "Follow on Lock Screen"
+    Following --> Following: new ETA from BusViewModel<br/>(update content state)
+    Following --> Arrived: bus within 150 m of my stop
+    Arrived --> [*]: shows "Here", removed after 2 min
+    Following --> [*]: tap "Stop following"
+    Following --> [*]: driver ends the trip
+```
+
+| Part | Where | Shows |
+| --- | --- | --- |
+| `BusTripAttributes` | `Shared/` | Fixed for the whole activity: bus number and my stop |
+| `ContentState` | `Shared/` | Changes on every update: ETA minutes, distance, crowd, no-signal flag, trip progress |
+| `LiveActivityManager` | app | Starts (`Activity.request`), updates and ends the activity |
+| `BusLiveActivity` | widget extension | Lock Screen view, and the compact, minimal and expanded Dynamic Island views |
+
+The app sends the updates itself (`pushType: nil`), so the ETA changes while the app can run. With the app fully closed, updates would need push notifications from a server (see [Server push](#server-push-fcm)).
+
+---
+
+## Trip progress, like a parcel tracker
+
+Text like "7 min, 3.2 km" is useful, but a picture is quicker to read. `TripProgressView` draws a track from **KUET** to **my stop**, with a dot for every stop on the way, a filled part for the distance already covered, and a small bus where the bus is now. `TripProgressRing` shows the same number as a ring.
+
+The same views are used in four places, because `Shared/` is compiled into both the app and the widget extension: the trip card, the medium and large widgets, the Lock Screen, and the expanded Dynamic Island (a thin version).
+
+```mermaid
+flowchart LR
+    BUS["Bus position"] --> PROJ["Project onto the nearest<br/>line between two stops"]
+    STOPS["Route stops,<br/>KUET → my stop"] --> PROJ
+    PROJ --> ALONG["distance travelled<br/>along the route"]
+    STOPS --> TOTAL["total distance<br/>KUET → my stop"]
+    ALONG --> F["progress = travelled ÷ total<br/>(kept between 0 and 1)"]
+    TOTAL --> F
+    F --> CARD["Trip card"]
+    F --> WID["Widgets"]
+    F --> LA["Live Activity"]
+```
+
+When there is no live bus, the widget uses the timetable instead: the time since the bus left campus divided by a typical trip length.
+
+---
+
+## Route editor (admin)
+
+The transport admin can now build routes in the app instead of in the Firebase console. In **Routes**, the **+** button creates a route and tapping a route opens it for editing.
+
+- **Tap the map to add a stop.** `MapReader` gives a `MapProxy`, and `proxy.convert(point, from: .local)` turns the spot the finger touched into a latitude and longitude.
+- **Rename** stops in the list, **drag** them into order (tap **Edit**), and **swipe** to delete.
+- **Save** writes the whole route to the `routes` collection. Riders see the change straight away because their screens use live listeners.
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant M as Map (MapReader)
+    participant E as RouteEditorView
+    participant RVM as RouteViewModel
+    participant FS as Firestore routes
+    A->>M: taps near Daulatpur
+    M->>E: screen point → coordinate
+    E->>E: add "Stop 4" to the list
+    A->>E: renames, reorders, deletes
+    A->>E: Save
+    E->>RVM: save(route)
+    RVM->>FS: setData / addDocument
+    FS-->>A: dismiss on success
+```
+
+---
+
+## Announcements
+
+The transport office can post news like "Normal-2 is 15 minutes late today". Everyone signed in sees it, newest first, through a live listener.
+
+| Who | Where |
+| --- | --- |
+| Admin | **News** tab, **compose** button to post, swipe to delete |
+| Students and teachers | **News** tab with a red **unread badge**, and a banner for the newest one on the map |
+| Drivers | Megaphone button on the driver screen, with a red dot for unread news |
+
+```mermaid
+flowchart LR
+    ADM["Admin posts"] --> FS[("announcements<br/>title, body, createdAt,<br/>postedBy, routeName?")]
+    FS -->|"live listener,<br/>newest first"| AVM["AnnouncementViewModel"]
+    AVM --> NEWS["News list"]
+    AVM --> BADGE["Unread badge<br/>createdAt > lastSeen"]
+    AVM --> BANNER["Banner on the map"]
+    NEWS -->|"opening it"| SEEN["lastSeen = now<br/>(saved on the phone)"]
+    SEEN --> BADGE
+```
+
+"Unread" is worked out on each phone: it remembers when the list was last opened, and counts the announcements posted after that.
+
+---
+
+## Bangla, dark mode and accessibility
+
+**Bangla.** All text in the app, the widget and the Live Activity lives in one **String Catalog** (`Shared/Localizable.xcstrings`) with English and Bangla (`bn`). Bus names like Normal-1 and place names like Rupsha stay as they are. The app follows the phone's language; **Profile > Language** explains how to switch, including picking Bangla for this app only in Settings.
+
+<p align="center">
+  <img src="docs/bangla-dark-trip-card.png" alt="Trip card in Bangla, dark mode" width="30%">
+  <img src="docs/bangla-dark-schedule.png" alt="Timetable in Bangla" width="30%">
+  <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla with the language note" width="30%">
+</p>
+
+**Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widget and Live Activity keep the KUET blue in both modes, and the large widget's map picture has a dark version.
+
+**VoiceOver.** Bus markers read as "Normal-1 · Rupsha, Student bus, Seats available", the passcode dots read "2 of 4 digits entered", the delete key and every icon-only button have names, and the progress track reads "45 percent of the way from KUET to Shibbari More".
+
+**Large text.** With the biggest accessibility text sizes, the trip card stacks its rows instead of squeezing them, and scrolls instead of covering the whole map.
+
+```mermaid
+flowchart LR
+    TS["dynamicTypeSize"] --> Q{"Accessibility size?"}
+    Q -->|no| ROW["HStack rows<br/>(normal card)"]
+    Q -->|yes| COL["VStack columns<br/>in a ScrollView,<br/>max 420 pt tall"]
+```
+
+---
+
+## Server push (FCM)
+
+Local notifications only fire while the app is running. To tell riders "**Normal-2 just left campus**" even when the app is closed, a server has to send a push notification. This part is **written but not deployed**, because Cloud Functions need Firebase's paid Blaze plan.
+
+```mermaid
+sequenceDiagram
+    participant R as Rider's app
+    participant FCM as Firebase Cloud Messaging
+    participant D as Driver's app
+    participant FS as Firestore
+    participant CF as Cloud Function
+    R->>FCM: APNs token → FCM token
+    R->>FS: users/{uid}.fcmToken
+    R->>FCM: subscribe to topic "route-{routeId}"
+    D->>FS: create buses/{id} (Start trip)
+    FS->>CF: onDocumentCreated("buses/{busId}")
+    CF->>FCM: send to "route-{routeId}"
+    FCM-->>R: "Normal-2 · Rupsha just left campus"
+```
+
+- **App:** `PushManager` registers for remote notifications, saves the FCM token on the profile, and subscribes the rider to the topic of the route that has their stop. `AppDelegate` passes the APNs token to Firebase.
+- **Server:** `functions/index.js` has one function, `notifyTripStarted`.
+
+**To turn it on:**
+
+1. Upgrade the Firebase project to the **Blaze** plan (Cloud Functions need it; light use stays inside the free quota).
+2. In Xcode, add the **Push Notifications** capability to the app target (needs a paid Apple Developer team). It isn't added in the repository because a free personal team can't sign it.
+3. In the Apple Developer site, create an **APNs Authentication Key** (.p8). In the Firebase console, open **Project settings > Cloud Messaging > Apple app configuration** and upload the key with its Key ID and Team ID.
+4. Deploy the function:
+   ```
+   cd functions && npm install && cd ..
+   firebase deploy --only functions
+   ```
+5. Run the app on a real iPhone (the simulator can't get a real APNs token), set a stop, and start a trip from a driver account. The rider gets the notification.
+
+---
+
 ## Screens and navigation
 
 ```mermaid
@@ -675,6 +960,15 @@ erDiagram
         string favoriteStopName
         double favoriteStopLat
         double favoriteStopLng
+        string fcmToken "for push, optional"
+    }
+    ANNOUNCEMENTS {
+        string id "auto"
+        string title
+        string body
+        timestamp createdAt
+        string postedBy "admin's name"
+        string routeName "optional"
     }
     SCHEDULES {
         string id "auto"
@@ -731,7 +1025,7 @@ flowchart TB
     U -->|"create"| UC["role must be student / teacher / driver,<br/>only students start approved"]
     U -->|"update"| UU["can't change role, isApproved,<br/>kuetId or email (admin can)"]
 
-    WHAT -->|"schedules / routes"| SR["everyone reads,<br/>only admin writes"]
+    WHAT -->|"schedules / routes / announcements"| SR["everyone reads,<br/>only admin writes"]
 
     WHAT -->|buses| B{"What kind of write?"}
     B -->|create| BC["only an approved driver,<br/>as themselves"]
@@ -740,7 +1034,9 @@ flowchart TB
     B -->|delete| BD["the bus's driver or admin"]
 ```
 
-In plain words: nobody can make themselves an admin, nobody can approve themselves, only approved drivers can put a bus on the map, and a student can't touch a teacher bus.
+In plain words: nobody can make themselves an admin, nobody can approve themselves, only approved drivers can put a bus on the map, a student can't touch a teacher bus, and only the admin can change routes or post announcements.
+
+After changing `firestore.rules`, deploy them again with `firebase deploy --only firestore:rules` (or paste them into **Firestore > Rules** in the console). Until then, the News tab shows nothing.
 
 ---
 
@@ -763,6 +1059,14 @@ In plain words: nobody can make themselves an admin, nobody can approve themselv
 | LocalAuthentication, Keychain, CryptoKit | `BiometricAuth`, `AppPasscode`, `AppLockView` |
 | SwiftUI animation | `withAnimation`, transitions, `symbolEffect`, `contentTransition`, `sensoryFeedback` |
 | MapKit, CoreLocation, local notifications | `LiveMapView` (`MapPolyline`, `Annotation`, `MapCamera`, `UserAnnotation`), `LocationManager`, `NotificationManager` |
+| `MapReader` / `MapProxy`, `MKMapSnapshotter` | `RouteEditorView` (tap to add a stop), `RouteMapRenderer` (map picture for the large widget) |
+| Background location | `LocationManager` (`allowsBackgroundLocationUpdates`, `CLBackgroundActivitySession`), `KUETBusLive-Info.plist` |
+| XCTest unit testing | `KUETBusLiveTests` (verifier, timetable, passcode), run in CI |
+| WidgetKit, App Groups | `KUETBusWidget`, `NextBusProvider` (`TimelineProvider`), `SharedStore`, `WidgetSync` |
+| ActivityKit (Live Activities, Dynamic Island) | `BusTripAttributes`, `LiveActivityManager`, `BusLiveActivity` |
+| Localization (String Catalog) | `Shared/Localizable.xcstrings`, `String(localized:)` |
+| Accessibility, Dynamic Type | `accessibilityLabel` / `Value` / `Hint`, `dynamicTypeSize`, `AnyLayout` in `TripCard` |
+| Push notifications (FCM, Cloud Functions) | `PushManager`, `functions/index.js` |
 
 ---
 
@@ -805,13 +1109,13 @@ xcodebuild test -project KUETBusLive.xcodeproj -scheme KUETBusLive \
 
 ## Setup
 
-1. **Clone and open.** Clone the repository and open `KUETBusLive.xcodeproj` in Xcode 26 or later. Xcode fetches the Firebase packages (**FirebaseAuth**, **FirebaseFirestore**) from `Package.resolved` the first time.
+1. **Clone and open.** Clone the repository and open `KUETBusLive.xcodeproj` in Xcode 26 or later. Xcode fetches the Firebase packages (**FirebaseAuth**, **FirebaseFirestore**, **FirebaseMessaging**) from `Package.resolved` the first time.
 2. **Add your Firebase config.** `GoogleService-Info.plist` isn't in the repository because it holds project keys. In the [Firebase console](https://console.firebase.google.com/), create a project, add an iOS app with the bundle ID `KUETBusLive` (or change the bundle ID to match yours), download `GoogleService-Info.plist`, and put it in the `KUETBusLive/` folder next to `KUETBusLiveApp.swift`.
 3. **Turn on Firebase features.** Enable **Authentication > Email/Password**, create a **Firestore** database, put your project ID in `.firebaserc`, then deploy the rules:
    ```
    firebase deploy --only firestore:rules
    ```
-4. **Signing.** In the target's **Signing & Capabilities**, choose your team. Keychain Sharing and the location permission text are already set.
+4. **Signing.** In **Signing & Capabilities**, choose your team for both the **KUETBusLive** and **KUETBusWidget** targets. Keychain Sharing, the App Group, background location and the Live Activities setting are already in the project. Push Notifications is not; see [Server push](#server-push-fcm).
 5. **Make an admin.** Run the app and sign up. In the Firebase console, open **Firestore > users > (your uid)** and change `role` to `admin`.
 6. **Load the data.** As the admin, tap **Load official KUET timetable** in Schedule and **Add sample KUET routes** in Routes.
 7. **Add a driver.** Sign up a driver on another simulator and approve them in **Approvals**.
@@ -851,10 +1155,11 @@ Things worth showing in a demo: start a **Special** trip and notice the student 
 
 ## Limitations and ideas for later
 
-- The routes and stop coordinates are approximate. A future version could let the admin draw routes on the map.
+- The sample routes and stop coordinates are approximate. The admin can now fix them in the route editor.
 - The public OSRM server is meant for light use. A real deployment would host its own OSRM instance.
-- Location sharing only runs while the driver's app is open. Background location would need extra permission and battery care.
-- Students who belong to a specific route could get a personal "my bus" view and push notifications from a server.
+- The Live Activity and widget only get new ETAs while the rider's app can run. With the server push deployed, the Cloud Function could also update the Live Activity with an ActivityKit push token.
+- Server push is written but needs the Blaze plan, an APNs key and a paid Apple Developer team to go live.
+- The progress track treats the route as straight lines between stops, so it is a close guide, not an exact road distance.
 
 ---
 
