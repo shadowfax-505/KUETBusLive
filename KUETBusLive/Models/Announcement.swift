@@ -19,10 +19,16 @@ struct Announcement: Identifiable, Codable {
     var postedBy: String       // the admin's name
     var routeName: String?     // optional: the route this is about
 
-    // "5 min ago", "yesterday" and so on.
+    // "Just now", "5 minutes ago", "yesterday" and so on.
+    // A post from the last minute reads "Just now". Without this a fresh post,
+    // or one stamped a moment ahead by another phone's clock, read "in 0 seconds".
     var timeText: String {
+        let now = Date()
+        if now.timeIntervalSince(createdAt) < 60 {
+            return String(localized: "Just now")
+        }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
-        return formatter.localizedString(for: createdAt, relativeTo: Date())
+        return formatter.localizedString(for: createdAt, relativeTo: now)
     }
 }

@@ -762,6 +762,16 @@
         }
       }
     },
+    "Just now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এইমাত্র"
+          }
+        }
+      }
+    },
     "KUET Bus": {
       "localizations": {
         "bn": {
