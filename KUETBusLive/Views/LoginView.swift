@@ -11,15 +11,22 @@ struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var email = ""
     @State private var password = ""
+    @State private var logoScale = 0.7
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Image(systemName: "bus.fill")
+                Image("AppLogo")
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .foregroundColor(.blue)
+                    .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                    .shadow(radius: 8)
+                    .scaleEffect(logoScale)
+                    .onAppear {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) {
+                            logoScale = 1
+                        }
+                    }
 
                 Text("KUET Bus Live")
                     .font(.largeTitle)

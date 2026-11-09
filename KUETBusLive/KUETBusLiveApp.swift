@@ -12,6 +12,7 @@ import FirebaseCore
 struct KUETBusLiveApp: App {
     // StateObject is created lazily, so FirebaseApp.configure() in init runs first.
     @StateObject private var authViewModel = AuthViewModel()
+    @State private var showSplash = true
 
     init() {
         FirebaseApp.configure()
@@ -21,8 +22,20 @@ struct KUETBusLiveApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(authViewModel)
+            ZStack {
+                ContentView()
+                    .environmentObject(authViewModel)
+
+                if showSplash {
+                    SplashView {
+                        withAnimation(.easeOut(duration: 0.4)) {
+                            showSplash = false
+                        }
+                    }
+                    .transition(.opacity)
+                    .zIndex(1)
+                }
+            }
         }
     }
 }
