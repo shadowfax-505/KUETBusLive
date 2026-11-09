@@ -13,7 +13,15 @@ import UserNotifications
 
 class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
-    static let alertMinutes = 5
+    // Each rider picks how early they want the alert (Profile > Notifications).
+    static let alertMinutesKey = "arrivalAlertMinutes"
+    static let defaultAlertMinutes = 5
+    static let alertMinutesRange = 1...30
+
+    static var alertMinutes: Int {
+        let saved = UserDefaults.standard.integer(forKey: alertMinutesKey)
+        return alertMinutesRange.contains(saved) ? saved : defaultAlertMinutes
+    }
 
     private override init() {
         super.init()

@@ -63,7 +63,7 @@ KUET Bus Live answers those three questions:
 | --- | --- |
 | 🗺️ Live map | Every running bus moves on the map as the driver drives. |
 | ⏱️ ETA to your stop | "6 min, 5.3 km" to the stop you picked, refreshed as the bus moves. |
-| 🔔 Arrival alert | A notification when your bus is about 5 minutes away. |
+| 🔔 Arrival alert | A notification when your bus is close. Each rider chooses how early, from 1 to 30 minutes (5 by default). |
 | 📅 Official timetable | All KUET trips (Sunday to Thursday and Saturday), with the next bus you can take today. |
 | 🎓 Bus allocation | Students see only *Normal* (student) buses. Teachers can ride any bus. |
 | 🪪 KUET ID verification | Roll number or employee ID, KUET email, email link and admin approval. |
@@ -524,13 +524,13 @@ Small touches that make the app feel alive without getting in the way:
 
 ## The arrival alert
 
-If you turn on **"Alert me 5 min before my bus arrives"** in your profile, every new ETA is checked against that limit. The alert fires once per bus, so it won't keep buzzing.
+If you turn on **"Alert me before my bus arrives"** in your profile, a **"How early"** stepper appears where you pick anything from 1 to 30 minutes (5 by default). The choice is saved on the phone with `@AppStorage`, and every new ETA is checked against it. The alert fires once per bus, so it won't keep buzzing.
 
 ```mermaid
 flowchart LR
     NEW["New ETA arrives"] --> ON{"Alerts turned on?"}
     ON -->|no| SKIP["Do nothing"]
-    ON -->|yes| CLOSE{"≤ 5 minutes away?"}
+    ON -->|yes| CLOSE{"ETA ≤ your chosen<br/>minutes?"}
     CLOSE -->|no| SKIP
     CLOSE -->|yes| SENT{"Already alerted<br/>for this bus?"}
     SENT -->|yes| SKIP

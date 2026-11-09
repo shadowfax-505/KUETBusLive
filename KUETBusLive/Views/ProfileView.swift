@@ -106,8 +106,21 @@ struct ProfileView: View {
 // @Binding: the toggle writes straight into the parent's stored setting.
 struct ArrivalAlertToggle: View {
     @Binding var isOn: Bool
+    @AppStorage(NotificationManager.alertMinutesKey) private var minutes = NotificationManager.defaultAlertMinutes
 
     var body: some View {
-        Toggle("Alert me \(NotificationManager.alertMinutes) min before my bus arrives", isOn: $isOn)
+        Toggle("Alert me before my bus arrives", isOn: $isOn.animation())
+        if isOn {
+            Stepper(value: $minutes, in: NotificationManager.alertMinutesRange) {
+                HStack {
+                    Text("How early")
+                    Spacer()
+                    Text("\(minutes) min")
+                        .foregroundColor(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: minutes)
+                }
+            }
+        }
     }
 }
