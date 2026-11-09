@@ -16,6 +16,16 @@ struct ProfileView: View {
     @AppStorage("passcodeOn") private var passcodeOn = false
     @State private var showSetPasscode = false
 
+    static let privacyPolicyURL = URL(string: "https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md")!
+
+    // "1.0 (1)": the version and build number set in Xcode.
+    static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
+    }
+
     // Turning the switch on opens the set-up screen. Turning it off deletes the passcode.
     var passcodeBinding: Binding<Bool> {
         Binding(
@@ -88,6 +98,13 @@ struct ProfileView: View {
                 Text("Language")
             } footer: {
                 Text("The app follows your phone's language. To use it in Bangla, set Bangla in Settings > General > Language & Region, or choose it for this app only in Settings > KUET Bus Live > Language.")
+            }
+
+            Section(header: Text("About")) {
+                Link(destination: Self.privacyPolicyURL) {
+                    Label("Privacy policy", systemImage: "hand.raised")
+                }
+                LabeledContent("Version", value: Self.appVersion)
             }
 
             Section {

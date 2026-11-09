@@ -49,7 +49,8 @@
 29. [Continuous integration](#continuous-integration)
 30. [Setup](#setup)
 31. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
-32. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+32. [Privacy](#privacy)
+33. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -1160,6 +1161,16 @@ flowchart LR
    Stop it with `xcrun simctl location <driver-simulator-id> clear`. The coordinates are approximate.
 
 Things worth showing in a demo: start a **Special** trip and notice the student can't see it while a teacher can; tap **Full** on one phone and watch the icon turn red on the other; change a trip time as admin and watch the timetable update on the student's phone.
+
+---
+
+## Privacy
+
+The app keeps only what it needs: your name, email, KUET ID, role, approval and favourite stop, the push token if notifications are on, and a driver's position only while a trip is running. There are no ads, analytics or tracking. The full policy, written for riders, is here:
+
+**[KUET Bus Live privacy policy](https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md)**
+
+The same link is in the app under **Profile > About**.
 
 ---
 

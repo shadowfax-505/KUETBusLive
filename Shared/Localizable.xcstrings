@@ -152,6 +152,16 @@
         }
       }
     },
+    "About": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সম্পর্কে"
+          }
+        }
+      }
+    },
     "Account": {
       "localizations": {
         "bn": {
@@ -1362,6 +1372,16 @@
         }
       }
     },
+    "Privacy policy": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গোপনীয়তা নীতি"
+          }
+        }
+      }
+    },
     "Profile": {
       "localizations": {
         "bn": {
@@ -2128,6 +2148,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার KUET ইমেইল যাচাই করুন"
+          }
+        }
+      }
+    },
+    "Version": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংস্করণ"
           }
         }
       }
