@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Firebase
+firebase-debug.log
+firestore-debug.log
+.firebase/
+
+# Firebase app config holds project keys, add your own from the Firebase console
+GoogleService-Info.plist
