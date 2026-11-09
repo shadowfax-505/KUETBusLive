@@ -5,7 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  Rider side: listens to running buses, works out ETAs, loads route paths
-//  for the map and sends crowd reports.
+//  for the map and sends crowd reports and "I'm waiting here" waves.
 //  Students only see student buses. Teachers see every bus.
 //
 
@@ -24,6 +24,21 @@ class BusViewModel: ObservableObject {
     // Set by the map screen from the rider's profile.
     var favoriteStop: Stop?
     var viewerRole: UserRole = .student
+    // A place from "My places" the rider boards at instead of their official stop.
+    var boardingPlace: MyPlace?
+
+    // The bus this rider is waving at, if any. One wave at a time.
+    @Published var wavingAtBusId: String?
+    static let wavingAtKey = "wavingAtBusId"
+    static let wavingUntilKey = "wavingUntil"
+
+    init() {
+        // A wave sent before the app was closed, if it hasn't run out yet.
+        let until = UserDefaults.standard.double(forKey: Self.wavingUntilKey)
+        if until > Date().timeIntervalSince1970 {
+            wavingAtBusId = UserDefaults.standard.string(forKey: Self.wavingAtKey)
+        }
+    }
 
     static let etaRefreshSeconds: TimeInterval = 30
 
@@ -56,6 +71,11 @@ class BusViewModel: ObservableObject {
                 self.refreshETA(for: bus)
                 // Crowd or signal changes reach the Lock Screen straight away.
                 LiveActivityManager.shared.refresh(bus: bus)
+            }
+
+            // The bus I waved at finished its trip, so the wave is gone too.
+            if let waved = self.wavingAtBusId, !allBuses.contains(where: { $0.id == waved }) {
+                self.wavingAtBusId = nil
             }
 
             // The followed bus is gone: the driver ended the trip.
@@ -122,9 +142,30 @@ class BusViewModel: ObservableObject {
         return (nearest.element, nearest.offset, stops.count)
     }
 
+    // Where this rider gets on this bus, and what to call it.
+    // A place from "My places" is moved onto the bus's road path (where the bus really passes).
+    // Otherwise it is the rider's official stop.
+    func boardingPoint(for bus: Bus) -> (name: String, coordinate: CLLocationCoordinate2D)? {
+        if let place = boardingPlace {
+            let path = routePaths[bus.routeId] ?? routeStops[bus.routeId]?.map { $0.coordinate } ?? []
+            let point = PathMath.snap(place.coordinate, to: path)?.point ?? place.coordinate
+            return (place.label, point)
+        }
+        if let stop = favoriteStop {
+            return (stop.name, stop.coordinate)
+        }
+        return nil
+    }
+
     // How far the bus is from KUET to my stop, for the progress track.
     // nil when my stop isn't on this bus's route (or the route hasn't loaded yet).
     func tripProgress(for bus: Bus) -> TripProgress? {
+        if boardingPlace != nil {
+            guard let stops = routeStops[bus.routeId], let point = boardingPoint(for: bus) else { return nil }
+            let progress = TripProgress.make(bus: bus.coordinate, stops: stops.map { $0.coordinate },
+                                             target: point.coordinate)
+            return progress == .empty ? nil : progress
+        }
         guard let stop = favoriteStop, let stops = routeStops[bus.routeId],
               let index = stops.firstIndex(where: { $0.name == stop.name }), index > 0 else {
             return nil
@@ -134,9 +175,9 @@ class BusViewModel: ObservableObject {
 
     // Shows this bus's ETA on the Lock Screen and in the Dynamic Island.
     func follow(_ bus: Bus) {
-        guard let stop = favoriteStop else { return }
+        guard let point = boardingPoint(for: bus) else { return }
         let info = bus.id.flatMap { etaInfo[$0] }
-        LiveActivityManager.shared.start(bus: bus, stopName: stop.name,
+        LiveActivityManager.shared.start(bus: bus, stopName: point.name,
                                          etaMinutes: info?.minutes, distanceKm: info?.kilometres,
                                          progress: tripProgress(for: bus) ?? .empty)
         refreshETA(for: bus, force: true)
@@ -149,7 +190,7 @@ class BusViewModel: ObservableObject {
     }
 
     func refreshETA(for bus: Bus, force: Bool = false) {
-        guard let busId = bus.id, let stop = favoriteStop else { return }
+        guard let busId = bus.id, let point = boardingPoint(for: bus) else { return }
 
         // The public routing server has fair-use limits, so ask at most every 30 seconds.
         if !force, let last = lastEtaFetch[busId],
@@ -158,7 +199,7 @@ class BusViewModel: ObservableObject {
         }
         lastEtaFetch[busId] = Date()
 
-        etaService.fetchETA(from: bus.coordinate, to: stop.coordinate) { info in
+        etaService.fetchETA(from: bus.coordinate, to: point.coordinate) { info in
             guard let info = info else {
                 self.etaText[busId] = String(localized: "ETA unavailable")
                 return
@@ -170,7 +211,7 @@ class BusViewModel: ObservableObject {
             LiveActivityManager.shared.update(bus: bus, etaMinutes: info.minutes,
                                               distanceKm: info.kilometres, progress: progress)
             // Share it with the home screen widget too.
-            WidgetSync.saveLive(LiveTripSnapshot(busNumber: bus.number, stopName: stop.name,
+            WidgetSync.saveLive(LiveTripSnapshot(busNumber: bus.number, stopName: point.name,
                                                  etaMinutes: info.minutes, distanceKm: info.kilometres,
                                                  crowd: bus.crowd.rawValue, progress: progress,
                                                  busLat: bus.lat, busLng: bus.lng, updatedAt: Date()))
@@ -187,7 +228,38 @@ class BusViewModel: ObservableObject {
 
         alertedBusIds.insert(busId)
         NotificationManager.shared.sendArrivalAlert(busNumber: bus.number,
-                                                    stopName: favoriteStop?.name ?? "your stop",
+                                                    stopName: boardingPoint(for: bus)?.name ?? String(localized: "your stop"),
                                                     minutes: minutes)
+    }
+
+    // MARK: - "I'm waiting here"
+
+    // Add: tells this bus's driver where the rider is waiting, for 15 minutes.
+    // Any earlier wave (on another bus) is removed first: one wave per rider.
+    func wave(at bus: Bus, uid: String) {
+        guard let busId = bus.id, let point = boardingPoint(for: bus) else { return }
+        if let old = wavingAtBusId, old != busId {
+            db.collection("buses").document(old).collection("waves").document(uid).delete()
+        }
+        let now = Date()
+        let wave = Wave(uid: uid, label: point.name, lat: point.coordinate.latitude,
+                        lng: point.coordinate.longitude, createdAt: now,
+                        expiresAt: now.addingTimeInterval(Wave.lifetime))
+        do {
+            try db.collection("buses").document(busId).collection("waves").document(uid).setData(from: wave)
+            wavingAtBusId = busId
+            UserDefaults.standard.set(busId, forKey: Self.wavingAtKey)
+            UserDefaults.standard.set(wave.expiresAt.timeIntervalSince1970, forKey: Self.wavingUntilKey)
+        } catch {
+            print("Could not send wave: \(error)")
+        }
+    }
+
+    // Delete: the rider changed their mind.
+    func cancelWave(uid: String) {
+        guard let busId = wavingAtBusId else { return }
+        db.collection("buses").document(busId).collection("waves").document(uid).delete()
+        wavingAtBusId = nil
+        UserDefaults.standard.removeObject(forKey: Self.wavingAtKey)
     }
 }

@@ -66,8 +66,8 @@ struct TripCard: View {
                     .accessibilityLabel("Close trip card")
                 }
 
-                // ETA, the big number riders care about
-                if let stop = authViewModel.profile?.favoriteStop {
+                // ETA, the big number riders care about: to my stop, or to the place I board at.
+                if let point = busViewModel.boardingPoint(for: bus) {
                     rowOrColumn {
                         Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
                             .font(.title2)
@@ -75,7 +75,7 @@ struct TripCard: View {
                             // Digits roll to the new value instead of jumping.
                             .contentTransition(.numericText())
                             .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
-                        Text("to \(stop.name)")
+                        Text("to \(PlaceNames.display(point.name))")
                             .foregroundColor(.secondary)
                     }
                 } else {
@@ -85,7 +85,7 @@ struct TripCard: View {
 
                 // Where the bus is between KUET and my stop, like a parcel tracker.
                 if let track = busViewModel.tripProgress(for: bus),
-                   let stopName = authViewModel.profile?.favoriteStop?.name {
+                   let stopName = busViewModel.boardingPoint(for: bus)?.name {
                     TripProgressView(progress: track, endLabel: PlaceNames.display(stopName), tint: bus.allocation.color)
                         .animation(.easeInOut, value: track.fraction)
                 } else if let progress = busViewModel.nearestStop(for: bus) {
@@ -122,7 +122,7 @@ struct TripCard: View {
                 }
 
                 // Follow on Lock Screen: a Live Activity with the ETA, also in the Dynamic Island.
-                if authViewModel.profile?.favoriteStop != nil && liveActivity.isAvailable {
+                if busViewModel.boardingPoint(for: bus) != nil && liveActivity.isAvailable {
                     Button {
                         if liveActivity.isFollowing(bus) {
                             liveActivity.stop()
@@ -136,6 +136,30 @@ struct TripCard: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(bus.allocation.color)
+                }
+
+                // "I'm waiting here": the driver sees where you stand, without a phone call.
+                if canBoard, let uid = authViewModel.user?.uid, busViewModel.boardingPoint(for: bus) != nil {
+                    if busViewModel.wavingAtBusId == bus.id {
+                        Button {
+                            busViewModel.cancelWave(uid: uid)
+                        } label: {
+                            Label("Waiting at \(PlaceNames.display(busViewModel.boardingPoint(for: bus)?.name ?? "")) · Cancel",
+                                  systemImage: "hand.raised.slash")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.orange)
+                    } else {
+                        Button {
+                            busViewModel.wave(at: bus, uid: uid)
+                        } label: {
+                            Label("I'm waiting here", systemImage: "hand.wave.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                    }
                 }
 
                 // Actions

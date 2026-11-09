@@ -197,6 +197,15 @@ class AuthViewModel: ObservableObject {
                     try await bus.reference.delete()
                 }
 
+                // Their saved places, and a wave they may still have open.
+                let places = try await db.collection("users").document(uid).collection("places").getDocuments()
+                for place in places.documents {
+                    try await place.reference.delete()
+                }
+                if let busId = UserDefaults.standard.string(forKey: BusViewModel.wavingAtKey) {
+                    try? await db.collection("buses").document(busId).collection("waves").document(uid).delete()
+                }
+
                 // Complaints this person sent.
                 let complaints = try await db.collection("complaints").whereField("uid", isEqualTo: uid).getDocuments()
                 for complaint in complaints.documents {

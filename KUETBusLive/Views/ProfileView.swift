@@ -72,6 +72,11 @@ struct ProfileView: View {
 
             if isRider {
                 Section(header: Text("My stop")) {
+                    NavigationLink {
+                        MyPlacesView()
+                    } label: {
+                        Label("My places", systemImage: "mappin.and.ellipse")
+                    }
                     Text(authViewModel.profile?.favoriteStopName.map { PlaceNames.display($0) } ?? String(localized: "Not set. Pick one in Routes."))
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
                 }

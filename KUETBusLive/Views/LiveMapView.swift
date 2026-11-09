@@ -16,6 +16,9 @@ struct LiveMapView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var announcementViewModel: AnnouncementViewModel
     @StateObject private var busViewModel = BusViewModel()
+    // The rider's own places, and which one they board at ("" = their official stop).
+    @StateObject private var placesViewModel = PlacesViewModel()
+    @AppStorage(PlacesViewModel.boardingPlaceKey) private var boardingPlaceId = ""
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
 
@@ -80,8 +83,22 @@ struct LiveMapView: View {
                 }
 
                 if let stop = authViewModel.profile?.favoriteStop {
-                    Marker(stop.name, systemImage: "star.fill", coordinate: stop.coordinate)
+                    Marker(stop.displayName, systemImage: "star.fill", coordinate: stop.coordinate)
                         .tint(.orange)
+                }
+
+                // My places, and where the selected bus would pick me up.
+                ForEach(placesViewModel.places) { place in
+                    Marker(place.label, systemImage: place.kind.icon, coordinate: place.coordinate)
+                        .tint(place.id == boardingPlaceId ? .orange : .gray)
+                }
+                if let bus = selectedBus, let place = busViewModel.boardingPlace,
+                   let point = busViewModel.boardingPoint(for: bus)?.coordinate {
+                    MapPolyline(coordinates: [place.coordinate, point])
+                        .stroke(.orange, style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
+                    Annotation(String(localized: "Pick-up point"), coordinate: point) {
+                        Circle().fill(.orange).stroke(.white, lineWidth: 2).frame(width: 14, height: 14)
+                    }
                 }
 
                 ForEach(busViewModel.buses) { bus in
@@ -161,11 +178,18 @@ struct LiveMapView: View {
             busViewModel.favoriteStop = authViewModel.profile?.favoriteStop
             busViewModel.viewerRole = authViewModel.profile?.role ?? .student
             busViewModel.startListening()
+            if let uid = authViewModel.user?.uid {
+                placesViewModel.startListening(uid: uid)
+            }
             locationPermission.requestWhenInUseAuthorization()
         }
         .onDisappear {
             busViewModel.stopListening()
+            placesViewModel.stopListening()
         }
+        // The boarding point changed (a place was chosen, added or removed): new ETAs.
+        .onChange(of: placesViewModel.places) { updateBoardingPlace() }
+        .onChange(of: boardingPlaceId) { updateBoardingPlace() }
         // Saving a stop finishes in the background, so pick up the new stop when it arrives.
         .onChange(of: authViewModel.profile?.favoriteStop) {
             busViewModel.favoriteStop = authViewModel.profile?.favoriteStop
@@ -186,6 +210,13 @@ struct LiveMapView: View {
             if selectedBusId != nil && selectedBus == nil {
                 selectedBusId = nil
             }
+        }
+    }
+
+    func updateBoardingPlace() {
+        busViewModel.boardingPlace = placesViewModel.places.first { $0.id == boardingPlaceId && !boardingPlaceId.isEmpty }
+        for bus in busViewModel.buses {
+            busViewModel.refreshETA(for: bus, force: true)
         }
     }
 

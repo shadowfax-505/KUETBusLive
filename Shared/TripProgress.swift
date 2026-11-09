@@ -90,6 +90,19 @@ struct TripProgress: Codable, Hashable {
         return TripProgress(fraction: min(max(along / total, 0), 1), stopFractions: Array(middle))
     }
 
+    // Progress towards a point that is not a stop, such as a rider's own place
+    // snapped onto the route. The stops before that point stay on the track.
+    static func make(bus: CLLocationCoordinate2D, stops: [CLLocationCoordinate2D],
+                     target: CLLocationCoordinate2D) -> TripProgress {
+        guard stops.count >= 2 else { return .empty }
+        let totals = cumulative(stops)
+        let targetAlong = distanceAlong(target, route: stops)
+        let before = stops.indices.filter { totals[$0] < targetAlong }.map { stops[$0] }
+        guard !before.isEmpty else { return .empty }
+        let track = before + [target]
+        return make(bus: bus, stops: track, stopIndex: track.count - 1)
+    }
+
     // Timetable only (no live bus): how much of the scheduled travel time has passed.
     static func fromTimetable(departure: Date, arrival: Date, now: Date = Date()) -> Double {
         let length = arrival.timeIntervalSince(departure)

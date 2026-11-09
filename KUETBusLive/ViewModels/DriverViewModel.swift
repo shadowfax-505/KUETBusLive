@@ -6,11 +6,15 @@
 //
 //  Driver side: starts and ends a trip, and writes the bus position to Firestore.
 //  It is the delegate of LocationManager, so it gets every new GPS position.
+//  It also listens for riders waiting along the road ("I'm waiting here"), so the
+//  driver sees how many are ahead without touching the phone.
 //
 
 import Foundation
 import CoreLocation
 import FirebaseFirestore
+import UIKit
+import AudioToolbox
 
 class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     @Published var isOnTrip = false
@@ -19,6 +23,8 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     @Published var currentLat: Double?
     @Published var currentLng: Double?
     @Published var routePath: [CLLocationCoordinate2D] = []
+    // Riders waiting further along the road, nearest first.
+    @Published var waitingAhead: [(wave: Wave, metres: Double)] = []
 
     static let sendIntervalSeconds: TimeInterval = 5
 
@@ -29,6 +35,10 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     private var pendingBus: Bus?
     private var hasCreatedDocument = false
     private var lastSent = Date.distantPast
+    private var wavesListener: ListenerRegistration?
+    private var waves: [Wave] = []
+    // A wave counts as passed once the bus is this far beyond it.
+    static let passedMetres = 40.0
 
     init() {
         locationManager.delegate = self
@@ -59,6 +69,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         statusMessage = String(localized: "Waiting for GPS...")
         // Keep sending the position even if the driver locks the phone or opens another app.
         locationManager.start(inBackground: true)
+        listenToWaves()
     }
 
     var permissionText: String {
@@ -68,6 +79,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     // Delete: ending the trip removes the bus from every student's map.
     func endTrip() {
         locationManager.stop()
+        stopWaves(deleteAll: true)
         if let id = busDocId {
             db.collection("buses").document(id).delete { error in
                 if let error = error {
@@ -87,8 +99,13 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             routePath = []
             return
         }
+        // Straight lines between stops until the road path arrives (or if it can't be loaded),
+        // so riders waiting ahead can still be worked out.
+        routePath = route.stops.map { $0.coordinate }
         etaService.fetchPath(through: route.stops.map { $0.coordinate }) { path in
-            self.routePath = path
+            if path.count >= 2 {
+                self.routePath = path
+            }
         }
     }
 
@@ -137,9 +154,67 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
 
         updatesSent += 1
         statusMessage = String(localized: "Sharing live location")
+        updateWaitingAhead()
     }
 
     func didFailWithLocationError(_ message: String) {
         statusMessage = message
+    }
+
+    // MARK: - Riders waiting ahead
+
+    // Read: every wave for this bus, live.
+    private func listenToWaves() {
+        guard let id = busDocId else { return }
+        wavesListener?.remove()
+        wavesListener = db.collection("buses").document(id).collection("waves")
+            .addSnapshotListener { snapshot, _ in
+                self.waves = snapshot?.documents.compactMap { try? $0.data(as: Wave.self) } ?? []
+                self.updateWaitingAhead()
+            }
+    }
+
+    // Stops listening. At the end of a trip it also removes the waves, so none are left behind.
+    private func stopWaves(deleteAll: Bool) {
+        wavesListener?.remove()
+        wavesListener = nil
+        if deleteAll, let id = busDocId {
+            for wave in waves {
+                if let waveId = wave.id {
+                    db.collection("buses").document(id).collection("waves").document(waveId).delete()
+                }
+            }
+        }
+        waves = []
+        waitingAhead = []
+    }
+
+    // Works out who is still ahead of the bus. Riders the bus has passed, and waves
+    // older than 15 minutes, are removed. A new rider ahead plays a sound and a tap,
+    // so the driver doesn't need to look at the phone.
+    func updateWaitingAhead() {
+        guard let lat = currentLat, let lng = currentLng, routePath.count >= 2 else {
+            waitingAhead = []
+            return
+        }
+        let bus = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+        var ahead: [(wave: Wave, metres: Double)] = []
+        for wave in waves {
+            let metres = PathMath.metresAhead(of: bus, rider: wave.coordinate, path: routePath) ?? 0
+            if !wave.isActive() || metres < -Self.passedMetres {
+                if let id = busDocId, let waveId = wave.id {
+                    db.collection("buses").document(id).collection("waves").document(waveId).delete()
+                }
+            } else {
+                ahead.append((wave, max(metres, 0)))
+            }
+        }
+        ahead.sort { $0.metres < $1.metres }
+
+        if ahead.count > waitingAhead.count {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            AudioServicesPlaySystemSound(1315)   // a short chime
+        }
+        waitingAhead = ahead
     }
 }

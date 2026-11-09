@@ -38,8 +38,8 @@ struct BusDetailView: View {
                     }
 
                     Section(header: Text("Arrival")) {
-                        if let stop = authViewModel.profile?.favoriteStop {
-                            Text("To \(stop.name)")
+                        if let point = busViewModel.boardingPoint(for: bus) {
+                            Text("To \(PlaceNames.display(point.name))")
                                 .foregroundColor(.secondary)
                             Text(busViewModel.etaText[busId] ?? String(localized: "Calculating..."))
                                 .font(.title2)

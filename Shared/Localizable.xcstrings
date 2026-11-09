@@ -82,6 +82,26 @@
         }
       }
     },
+    "%lld m from %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ থেকে %1$lld মিটার"
+          }
+        }
+      }
+    },
+    "%lld m from %@. The bus may not pass close enough.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ থেকে %1$lld মিটার দূরে। বাস হয়তো যথেষ্ট কাছ দিয়ে যায় না।"
+          }
+        }
+      }
+    },
     "%lld min": {
       "localizations": {
         "bn": {
@@ -162,6 +182,16 @@
         }
       }
     },
+    "%lld waiting ahead": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সামনে %lld জন অপেক্ষায়"
+          }
+        }
+      }
+    },
     "About": {
       "localizations": {
         "bn": {
@@ -198,6 +228,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অ্যাকাউন্ট মোছা হয়নি"
+          }
+        }
+      }
+    },
+    "Add a place": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জায়গা যোগ করুন"
           }
         }
       }
@@ -418,6 +458,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "বাংলা নাম (ঐচ্ছিক)"
+          }
+        }
+      }
+    },
+    "Boarding point": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ওঠার জায়গা"
           }
         }
       }
@@ -952,6 +1002,16 @@
         }
       }
     },
+    "Home": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাসা"
+          }
+        }
+      }
+    },
     "How crowded is it?": {
       "localizations": {
         "bn": {
@@ -978,6 +1038,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আমি একজন"
+          }
+        }
+      }
+    },
+    "I get on the bus at": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি বাসে উঠি"
+          }
+        }
+      }
+    },
+    "I'm waiting here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি এখানে অপেক্ষা করছি"
           }
         }
       }
@@ -1172,6 +1252,16 @@
         }
       }
     },
+    "Loading routes...": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুট লোড হচ্ছে..."
+          }
+        }
+      }
+    },
     "Location: Always (keeps sharing when the app is closed)": {
       "localizations": {
         "bn": {
@@ -1262,6 +1352,26 @@
         }
       }
     },
+    "My places": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার জায়গা"
+          }
+        }
+      }
+    },
+    "My places (%lld of %lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার জায়গা (%2$lld-এর মধ্যে %1$lld)"
+          }
+        }
+      }
+    },
     "My stop": {
       "localizations": {
         "bn": {
@@ -1272,12 +1382,42 @@
         }
       }
     },
+    "My stop (not set yet)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার স্টপ (এখনো ঠিক করা হয়নি)"
+          }
+        }
+      }
+    },
+    "My stop: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার স্টপ: %@"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "নাম"
+          }
+        }
+      }
+    },
+    "Name, e.g. Home": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নাম, যেমন বাসা"
           }
         }
       }
@@ -1702,6 +1842,16 @@
         }
       }
     },
+    "Pick-up point": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ওঠার জায়গা"
+          }
+        }
+      }
+    },
     "Post": {
       "localizations": {
         "bn": {
@@ -1828,6 +1978,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সমাধান হয়েছে"
+          }
+        }
+      }
+    },
+    "Riders often get on between stops by asking the driver or waving. Pick where you usually wait.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনেকে চালককে বলে বা হাত নেড়ে দুই স্টপের মাঝে বাসে ওঠেন। আপনি সাধারণত যেখানে দাঁড়ান সেটি বেছে নিন।"
           }
         }
       }
@@ -2442,12 +2602,12 @@
         }
       }
     },
-    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
+    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your places, your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), আপনার অভিযোগ, পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
+            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), আপনার জায়গাগুলো, অভিযোগ, পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
           }
         }
       }
@@ -2582,12 +2742,32 @@
         }
       }
     },
+    "Tuition": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "টিউশন"
+          }
+        }
+      }
+    },
     "Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "বন্ধ থাকলে কোনো ব্যাজ বা ম্যাপে ব্যানার দেখাবে না। আপনি নিজে খবর খুলতে পারবেন, আর সোয়াইপ করে একটি একটি ঘোষণা লুকাতে পারবেন।"
+          }
+        }
+      }
+    },
+    "Type": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ধরন"
           }
         }
       }
@@ -2692,6 +2872,16 @@
         }
       }
     },
+    "Waiting at %@ · Cancel": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ অপেক্ষা করছি · বাতিল"
+          }
+        }
+      }
+    },
     "Waiting for GPS...": {
       "localizations": {
         "bn": {
@@ -2792,6 +2982,16 @@
         }
       }
     },
+    "You can save up to %lld places.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি সর্বোচ্চ %lldটি জায়গা রাখতে পারবেন।"
+          }
+        }
+      }
+    },
     "Your details": {
       "localizations": {
         "bn": {
@@ -2832,6 +3032,36 @@
         }
       }
     },
+    "next in %@ km": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরেরজন %@ কিমি পরে"
+          }
+        }
+      }
+    },
+    "next in %lld m": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরেরজন %lld মিটার পরে"
+          }
+        }
+      }
+    },
+    "next is here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরেরজন এখানেই"
+          }
+        }
+      }
+    },
     "to %@": {
       "localizations": {
         "bn": {
@@ -2848,6 +3078,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার ইমেইল"
+          }
+        }
+      }
+    },
+    "your stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার স্টপ"
           }
         }
       }

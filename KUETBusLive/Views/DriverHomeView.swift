@@ -46,12 +46,23 @@ struct DriverHomeView: View {
                         }
                         if let route = selectedRoute {
                             ForEach(route.stops, id: \.self) { stop in
-                                Marker(stop.name, systemImage: "mappin", coordinate: stop.coordinate)
+                                Marker(stop.displayName, systemImage: "mappin", coordinate: stop.coordinate)
                             }
+                        }
+                        // Riders waiting along the road ahead.
+                        ForEach(driverViewModel.waitingAhead, id: \.wave.uid) { item in
+                            Marker(item.wave.label, systemImage: "hand.wave.fill", coordinate: item.wave.coordinate)
+                                .tint(.orange)
                         }
                     }
                     .frame(height: 220)
                     .listRowInsets(EdgeInsets())
+                }
+
+                // Big and simple, so it can be read at a glance while driving.
+                if driverViewModel.isOnTrip && !driverViewModel.waitingAhead.isEmpty {
+                    WaitingAheadBanner(waiting: driverViewModel.waitingAhead)
+                        .listRowInsets(EdgeInsets())
                 }
 
                 Section(header: Text("Trip")) {
@@ -198,3 +209,40 @@ struct SchedulePicker: View {
         }
     }
 }
+
+// "3 waiting ahead · next in 400 m", large enough to read from the driver's seat.
+struct WaitingAheadBanner: View {
+    let waiting: [(wave: Wave, metres: Double)]
+
+    var nextText: String {
+        guard let next = waiting.first else { return "" }
+        let metres = Int((next.metres / 50).rounded() * 50)   // to the nearest 50 m
+        if metres < 50 {
+            return String(localized: "next is here")
+        }
+        if metres >= 1000 {
+            let km = (next.metres / 100).rounded() / 10        // to one decimal, e.g. 8.2
+            return String(localized: "next in \(km.formatted()) km")
+        }
+        return String(localized: "next in \(metres) m")
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "hand.wave.fill")
+                .font(.system(size: 44))
+            VStack(alignment: .leading) {
+                Text("\(waiting.count) waiting ahead")
+                    .font(.largeTitle.bold())
+                Text(nextText)
+                    .font(.title2)
+            }
+            Spacer()
+        }
+        .padding()
+        .foregroundColor(.white)
+        .background(Color.orange)
+        .accessibilityElement(children: .combine)
+    }
+}
+
