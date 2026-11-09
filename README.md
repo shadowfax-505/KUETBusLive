@@ -23,18 +23,19 @@
 7. [Which bus can I take?](#which-bus-can-i-take)
 8. [Live tracking, step by step](#live-tracking-step-by-step)
 9. [How the ETA is calculated](#how-the-eta-is-calculated)
-10. [The arrival alert](#the-arrival-alert)
-11. [The bus timetable](#the-bus-timetable)
-12. [Crowd reports](#crowd-reports)
-13. [Screens and navigation](#screens-and-navigation)
-14. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
-15. [Firestore data model](#firestore-data-model)
-16. [Security rules](#security-rules)
-17. [Course topics used](#course-topics-used)
-18. [Continuous integration](#continuous-integration)
-19. [Setup](#setup)
-20. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
-21. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+10. [Route paths and the live trip card](#route-paths-and-the-live-trip-card)
+11. [The arrival alert](#the-arrival-alert)
+12. [The bus timetable](#the-bus-timetable)
+13. [Crowd reports](#crowd-reports)
+14. [Screens and navigation](#screens-and-navigation)
+15. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
+16. [Firestore data model](#firestore-data-model)
+17. [Security rules](#security-rules)
+18. [Course topics used](#course-topics-used)
+19. [Continuous integration](#continuous-integration)
+20. [Setup](#setup)
+21. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
+22. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -368,7 +369,7 @@ sequenceDiagram
 
     BVM->>BVM: has 30 s passed since the last ETA for this bus?
     BVM->>ETA: fetchETA(from: bus, to: my stop)
-    ETA->>OSRM: GET /route/v1/driving/{bus lng,lat}#59;{stop lng,lat}
+    ETA->>OSRM: GET /route/v1/driving/{bus lng,lat}#59;{stop lng,lat}?overview=full&geometries=geojson
     OSRM-->>ETA: {"routes":[{"duration": 362.4, "distance": 5310.7}]}
     ETA->>ETA: JSONDecoder → RouteResponse
     ETA-->>BVM: completion(RouteInfo) on the main thread
@@ -384,12 +385,76 @@ struct RouteResponse: Codable {
 }
 
 struct RouteInfo: Codable {
-    let duration: Double   // seconds
-    let distance: Double   // metres
+    let duration: Double            // seconds
+    let distance: Double            // metres
+    let geometry: RouteGeometry?    // the road path, for the map
 }
 ```
 
 OSRM's public server has fair-use limits, so the app asks **at most once every 30 seconds per bus**, unless you open the bus screen or change your stop.
+
+---
+
+## Route paths and the live trip card
+
+Tapping a bus works the way it does in Uber or Pathao: the map focuses on that one trip and tells you everything about it at a glance.
+
+| What you see | Where it comes from |
+| --- | --- |
+| The bus's whole route, drawn faintly along the real roads | OSRM, asked once for a path through every stop of the route |
+| The road from the bus to **your** stop, drawn strongly | The same OSRM call that gives the ETA, now with `geometries=geojson` |
+| Every stop on the route as a small circle | The route document in Firestore |
+| The bus gliding smoothly instead of jumping | `withAnimation` around each Firestore update |
+| A small arrow showing which way the bus is heading | `CLLocation.course`, sent by the driver's phone |
+| Speed in km/h | `CLLocation.speed`, sent by the driver's phone |
+| "Near Daulatpur · stop 3 of 5" and a progress bar | The stop closest to the bus right now |
+| "Updated 4 s ago" counting up every second | `TimelineView(.periodic(by: 1))` |
+| A warning when the bus has been silent for over a minute | `Bus.isStale` |
+| Follow mode, where the camera stays on the bus | `MapCamera`, moved on every new position |
+| Your own blue dot and a "locate me" button | `UserAnnotation` and `MapUserLocationButton` |
+
+```mermaid
+sequenceDiagram
+    actor Rider
+    participant Map as LiveMapView
+    participant BVM as BusViewModel
+    participant FS as Firestore
+    participant OSRM as OSRM API
+
+    Rider->>Map: taps a bus
+    Map->>BVM: loadRoute(for: bus)
+    BVM->>FS: get routes/{routeId}
+    FS-->>BVM: stops
+    BVM->>OSRM: path through all stops
+    OSRM-->>BVM: GeoJSON line
+    BVM-->>Map: routePaths[routeId]
+    Map->>Map: draw faint route + stop circles
+    Map->>BVM: refreshETA(for: bus)
+    BVM->>OSRM: bus → my stop
+    OSRM-->>BVM: duration, distance, GeoJSON line
+    BVM-->>Map: etaText + etaPaths[busId]
+    Map->>Map: draw bold path, show trip card
+    loop every new driver position
+        FS-->>BVM: bus moved (lat, lng, heading, speed)
+        BVM-->>Map: bus glides, arrow turns, camera follows
+    end
+```
+
+GeoJSON lists each point as `[longitude, latitude]`, the opposite of CoreLocation, so `RouteGeometry` swaps them before drawing:
+
+```swift
+rawCoordinates.compactMap { pair in
+    CLLocationCoordinate2D(latitude: pair[1], longitude: pair[0])
+}
+```
+
+The driver gets a small map too: the chosen route is drawn above the trip controls, with their own position on it, so they can check they picked the right route before starting.
+
+### Why this helps
+
+- **Less guessing.** A dot on a map tells you where the bus is. The highlighted road and the "stop 3 of 5" bar tell you how far it still has to go, which is what you actually need when deciding whether to run.
+- **Trust in the data.** The live "updated 4 s ago" counter and the stale warning show when the information is fresh, so nobody waits for a bus whose driver lost signal ten minutes ago.
+- **One glance, no taps.** Everything sits on one card over the map, like a ride-hailing app, instead of being spread across screens.
 
 ---
 
@@ -575,6 +640,8 @@ erDiagram
         string crowd "unknown, seats, full"
         string audience
         string scheduleId
+        double heading "degrees from north"
+        double speed "metres per second"
     }
 
     USERS ||--o{ BUSES : "a driver runs"
@@ -629,7 +696,7 @@ In plain words: nobody can make themselves an admin, nobody can approve themselv
 | Firestore add / read / update / delete | Profiles, trips, routes, buses, approvals, and one batch write |
 | JSON parsing | `ETAService` + `RouteResponse` (OSRM REST API) and `Timetable` (`kuet_schedule.json`) |
 | `onAppear` / `onDisappear` | Every listener screen in the table above |
-| MapKit, CoreLocation, local notifications | `LiveMapView`, `LocationManager`, `NotificationManager` |
+| MapKit, CoreLocation, local notifications | `LiveMapView` (`MapPolyline`, `Annotation`, `MapCamera`, `UserAnnotation`), `LocationManager`, `NotificationManager` |
 
 ---
 
