@@ -71,6 +71,7 @@ struct LiveMapView: View {
                                     .fill(.white)
                                     .stroke(bus.allocation.color, lineWidth: 3)
                                     .frame(width: 12, height: 12)
+                                    .accessibilityLabel("Stop: \(stop.name)")
                             }
                         }
                     }
@@ -85,6 +86,14 @@ struct LiveMapView: View {
                     Annotation(bus.number, coordinate: bus.coordinate) {
                         BusMarker(bus: bus, isSelected: bus.id == selectedBusId)
                             .onTapGesture {
+                                select(bus)
+                            }
+                            // VoiceOver: "Normal-1 · Rupsha, Student bus, Seats available"
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("\(bus.number), \(bus.allocation.title), \(bus.crowd.label)")
+                            .accessibilityHint("Shows the trip card with the ETA")
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction {
                                 select(bus)
                             }
                     }

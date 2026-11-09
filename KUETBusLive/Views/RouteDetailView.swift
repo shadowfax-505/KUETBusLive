@@ -21,6 +21,7 @@ struct RouteDetailView: View {
                 HStack {
                     Image(systemName: isMyStop(stop) ? "star.fill" : "mappin.circle")
                         .foregroundColor(isMyStop(stop) ? .yellow : .blue)
+                        .accessibilityLabel(isMyStop(stop) ? "My stop" : "Stop")
                     Text(stop.name)
                     Spacer()
                     if !isMyStop(stop) {

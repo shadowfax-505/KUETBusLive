@@ -88,6 +88,7 @@ struct SchedulesView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add or reload trips")
                 }
             }
             .confirmationDialog("Replace every trip with the timetable shipped in the app?",

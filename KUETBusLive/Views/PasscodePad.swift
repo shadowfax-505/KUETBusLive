@@ -36,6 +36,10 @@ struct PasscodePad: View {
                         .animation(.spring(response: 0.25, dampingFraction: 0.5), value: code.count)
                 }
             }
+            // VoiceOver reads "2 of 4 digits entered" instead of four unnamed circles.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Passcode")
+            .accessibilityValue("\(code.count) of \(AppPasscode.length) digits entered")
             .modifier(Shake(amount: CGFloat(shakes)))
             .animation(.linear(duration: 0.4), value: shakes)
 
@@ -48,6 +52,7 @@ struct PasscodePad: View {
                 ForEach(keys, id: \.self) { key in
                     if key.isEmpty {
                         Color.clear.frame(width: 72, height: 72)
+                            .accessibilityHidden(true)
                     } else {
                         Button {
                             press(key)
@@ -59,6 +64,7 @@ struct PasscodePad: View {
                                 .clipShape(Circle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(key == "⌫" ? String(localized: "Delete last digit") : key)
                     }
                 }
             }

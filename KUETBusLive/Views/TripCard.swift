@@ -20,35 +20,56 @@ struct TripCard: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @ObservedObject private var liveActivity = LiveActivityManager.shared
 
+    // With very large text (Settings > Accessibility > Larger Text), rows that sit
+    // side by side are stacked instead, so nothing gets cut off.
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var bigText: Bool {
+        typeSize.isAccessibilitySize
+    }
+
+    // A row normally, a column with large text.
+    var rowOrColumn: AnyLayout {
+        bigText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout())
+    }
+
     var canBoard: Bool {
         bus.allocation.canBoard(authViewModel.profile?.role ?? .student)
     }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
+            // With large text the card can get tall, so it scrolls instead of covering the map.
+            ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 // Title row
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(bus.number)
-                            .font(.headline)
-                        Text(bus.routeName)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                HStack(alignment: .top) {
+                    rowOrColumn {
+                        VStack(alignment: .leading) {
+                            Text(bus.number)
+                                .font(.headline)
+                            Text(bus.routeName)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        if !bigText {
+                            Spacer()
+                        }
+                        AudienceBadge(audience: bus.allocation)
                     }
                     Spacer()
-                    AudienceBadge(audience: bus.allocation)
                     Button(action: onClose) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
                             .foregroundColor(.secondary)
                     }
+                    .accessibilityLabel("Close trip card")
                 }
 
                 // ETA, the big number riders care about
                 if let stop = authViewModel.profile?.favoriteStop {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(busViewModel.etaText[bus.id ?? ""] ?? "Calculating...")
+                    rowOrColumn {
+                        Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
                             .font(.title2)
                             .fontWeight(.bold)
                             // Digits roll to the new value instead of jumping.
@@ -80,7 +101,7 @@ struct TripCard: View {
                 }
 
                 // Live facts
-                HStack {
+                rowOrColumn {
                     Label(bus.speedText, systemImage: "speedometer")
                     Spacer()
                     Label(bus.crowd.label, systemImage: "person.3.fill")
@@ -88,6 +109,7 @@ struct TripCard: View {
                         .symbolEffect(.bounce, value: bus.crowd)
                     Spacer()
                     Label(bus.lastUpdateText, systemImage: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right")
+                        .accessibilityLabel("Last update \(bus.lastUpdateText)")
                         .foregroundColor(bus.isStale ? .orange : .green)
                         .symbolEffect(.pulse, isActive: !bus.isStale)
                 }
@@ -117,7 +139,7 @@ struct TripCard: View {
                 }
 
                 // Actions
-                HStack {
+                rowOrColumn {
                     if canBoard {
                         Button("Seats") {
                             busViewModel.report(.seats, for: bus)
@@ -132,20 +154,29 @@ struct TripCard: View {
                         .tint(.red)
                     }
 
-                    Spacer()
+                    if !bigText {
+                        Spacer()
+                    }
 
                     Toggle(isOn: $followBus) {
                         Image(systemName: "location.north.line.fill")
                     }
                     .toggleStyle(.button)
+                    .accessibilityLabel("Keep the map on this bus")
 
                     Button("Details", action: onDetails)
                         .buttonStyle(.borderedProminent)
                 }
             }
             .padding()
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxHeight: bigText ? 420 : nil)
+            .fixedSize(horizontal: false, vertical: !bigText)
             .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 20))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Trip card for \(bus.number)")
             .padding(.horizontal)
             .padding(.bottom, 8)
             // A small tap on the phone when a crowd report lands.
