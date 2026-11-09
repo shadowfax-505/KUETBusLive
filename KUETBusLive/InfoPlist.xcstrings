@@ -1,0 +1,42 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "comment": "Shown when a driver starts a trip and iOS asks for Always location.",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি KUET-এর বাস চালালে, ট্রিপ চলাকালীন ফোন লক করলেও KUET Bus Live শিক্ষার্থীদের সাথে বাসের অবস্থান শেয়ার করতে থাকে। কোনো ট্রিপ না চললে অবস্থান কখনো ব্যবহার করা হয় না।"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "If you drive a KUET bus, KUET Bus Live keeps sharing the bus's position with students while your trip is running, even if you lock your phone. Location is never used when no trip is running."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Shown the first time the app asks for location.",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET Bus Live আপনার অবস্থান ব্যবহার করে আপনাকে ম্যাপে দেখাতে এবং, আপনি KUET-এর বাস চালালে, ট্রিপ চলাকালীন শিক্ষার্থীদের সাথে বাসের অবস্থান শেয়ার করতে।"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "KUET Bus Live uses your location to show you on the map and, if you drive a KUET bus, to share the bus's position with students while your trip is running."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
