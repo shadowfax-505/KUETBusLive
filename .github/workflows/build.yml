@@ -78,3 +78,22 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             SYMROOT=$PWD/build/Products \
             test
+
+  # Checks firestore.rules in the Firestore emulator (see firestore-tests/).
+  firestore-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install the test tools
+        run: |
+          npm install -g firebase-tools
+          npm ci --prefix firestore-tests
+
+      # The Firestore emulator needs Java 21 or newer.
+      - name: Run the rules tests
+        run: |
+          export JAVA_HOME="${JAVA_HOME_21_X64:-$JAVA_HOME}"
+          java -version
+          firebase emulators:exec --only firestore --project demo-kuetbuslive-rules \
+            "node --test firestore-tests/rules.test.js"
