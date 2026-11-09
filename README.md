@@ -777,10 +777,29 @@ flowchart LR
     X --> PL["Write a placeholder<br/>GoogleService-Info.plist"]
     PL --> SPM["Resolve Firebase packages<br/>(cached)"]
     SPM --> BUILD["xcodebuild for the<br/>iOS Simulator, no signing"]
-    BUILD --> BADGE["✅ / ❌ build badge<br/>at the top of this page"]
+    BUILD --> SIM["Pick the first iPhone<br/>simulator on the runner"]
+    SIM --> TEST["xcodebuild test<br/>(KUETBusLiveTests)"]
+    TEST --> BADGE["✅ / ❌ build badge<br/>at the top of this page"]
 ```
 
 The real `GoogleService-Info.plist` is never committed. CI only needs a placeholder to compile.
+
+### Unit tests
+
+The `KUETBusLiveTests` target (XCTest) checks the parts of the app that are pure logic, so they can run on any simulator without a network or a Firebase account:
+
+| Test file | What it checks |
+| --- | --- |
+| `KUETVerifierTests` | Roll numbers (7 digits, no future batch), student email must contain the roll, staff email domains, teacher and driver rules, nobody can sign up as admin, the `@test.com` demo rule in debug builds |
+| `BusScheduleTests` | `minutes(from:)` with good and bad input, 12-hour formatting, which buses a student or teacher may ride, Friday has no buses, the next-trip logic at fixed times, and that every time in `kuet_schedule.json` parses |
+| `AppPasscodeTests` | The passcode hash is a fixed SHA-256 hex string, a wrong code fails, and save / check / remove work in the Keychain (skipped if the simulator has no Keychain access) |
+
+Run them in Xcode with **⌘U**, or from the terminal:
+
+```
+xcodebuild test -project KUETBusLive.xcodeproj -scheme KUETBusLive \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+```
 
 ---
 
