@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="KUET Bus Live" width="100%">
+</p>
+
 # KUET Bus Live
 
 [![Build](https://github.com/shadowfax-505/KUETBusLive/actions/workflows/build.yml/badge.svg)](https://github.com/shadowfax-505/KUETBusLive/actions/workflows/build.yml)
@@ -24,18 +28,20 @@
 8. [Live tracking, step by step](#live-tracking-step-by-step)
 9. [How the ETA is calculated](#how-the-eta-is-calculated)
 10. [Route paths and the live trip card](#route-paths-and-the-live-trip-card)
-11. [The arrival alert](#the-arrival-alert)
-12. [The bus timetable](#the-bus-timetable)
-13. [Crowd reports](#crowd-reports)
-14. [Screens and navigation](#screens-and-navigation)
-15. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
-16. [Firestore data model](#firestore-data-model)
-17. [Security rules](#security-rules)
-18. [Course topics used](#course-topics-used)
-19. [Continuous integration](#continuous-integration)
-20. [Setup](#setup)
-21. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
-22. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+11. [App lock: Face ID and passcode](#app-lock-face-id-and-passcode)
+12. [Animations and feel](#animations-and-feel)
+13. [The arrival alert](#the-arrival-alert)
+14. [The bus timetable](#the-bus-timetable)
+15. [Crowd reports](#crowd-reports)
+16. [Screens and navigation](#screens-and-navigation)
+17. [Listeners, onAppear and onDisappear](#listeners-onappear-and-ondisappear)
+18. [Firestore data model](#firestore-data-model)
+19. [Security rules](#security-rules)
+20. [Course topics used](#course-topics-used)
+21. [Continuous integration](#continuous-integration)
+22. [Setup](#setup)
+23. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
+24. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -62,6 +68,7 @@ KUET Bus Live answers those three questions:
 | 🎓 Bus allocation | Students see only *Normal* (student) buses. Teachers can ride any bus. |
 | 🪪 KUET ID verification | Roll number or employee ID, KUET email, email link and admin approval. |
 | 👥 Crowd reports | One tap to say "Seats available" or "Full", and everyone sees it instantly. |
+| 🔒 App lock | Face ID, a 4-digit app passcode, both, or neither. |
 | 🛠️ Transport admin | Edits the timetable when KUET changes it, and approves teachers and drivers. |
 
 ---
@@ -458,6 +465,63 @@ The driver gets a small map too: the chosen route is drawn above the trip contro
 
 ---
 
+## App lock: Face ID and passcode
+
+Your account shows your KUET ID and email, so the app can lock itself like a banking app. In **Profile > App lock** there are two separate switches, and you can turn on **both, either one, or neither**:
+
+| Your choice | What happens when you open the app |
+| --- | --- |
+| Neither | Straight into the app |
+| Face ID only | Face ID prompt; if it fails, iOS asks for the phone's own passcode |
+| App passcode only | A 4-digit number pad, like the iPhone lock screen |
+| Both | Face ID first; if it fails or you cancel, the app's passcode pad is the backup |
+
+```mermaid
+flowchart TD
+    OPEN["App opens or<br/>comes back"] --> ANY{"Any lock on?"}
+    ANY -->|neither| APP["Straight into the app"]
+    ANY -->|yes| LOCK["AppLockView covers the app"]
+    LOCK --> F{"Face ID on?"}
+    F -->|yes| FACE["Face ID prompt<br/>(LocalAuthentication)"]
+    FACE -->|success| APP
+    FACE -->|"fail / cancel"| P{"App passcode on?"}
+    F -->|no| PAD
+    P -->|yes| PAD["4-digit pad"]
+    P -->|no| PHONE["Phone's passcode"]
+    PHONE -->|success| APP
+    PAD -->|"hash matches Keychain"| APP
+    PAD -->|wrong| SHAKE["Dots shake, try again"] --> PAD
+    APP -->|"scenePhase → background"| LOCK
+```
+
+| Piece | What it does |
+| --- | --- |
+| `BiometricAuth` | Wraps `LAContext`: finds out whether the phone has Face ID or Touch ID, and shows the prompt |
+| `AppPasscode` | Saves only a **SHA-256 hash** of the passcode (CryptoKit), in the **iOS Keychain**, readable only on this phone |
+| `PasscodePad` | The number pad and dots, with a shake animation and a vibration for a wrong code |
+| `SetPasscodeView` | Type a new passcode, then type it again to confirm |
+| `AppLockView` | The lock screen, which uses whichever locks you turned on |
+| `ContentView` | Watches `scenePhase` and locks again when the app goes to the background |
+| `ProfileView` | The two switches, saved with `@AppStorage`. Face ID is checked once before it turns on, so you can't lock yourself out |
+
+Forgot your passcode? **Forgot? Sign out** on the lock screen removes the locks and signs you out, and your KUET account password gets you back in. The app never sees your face, and the passcode itself is never stored, only its hash.
+
+---
+
+## Animations and feel
+
+Small touches that make the app feel alive without getting in the way:
+
+| Where | What moves |
+| --- | --- |
+| Opening the app | The logo springs in while a dotted route draws itself, then the app fades in (`SplashView`) |
+| Between screens | Login, waiting, verify and the main tabs cross-fade instead of snapping |
+| Map | Every running bus has a ring that keeps spreading out; buses glide between GPS updates; the selected bus springs up in size |
+| Trip card | The ETA digits roll to the new value (`.numericText()`), the live signal icon pulses, the crowd icon bounces on a new report, and the phone gives a light tap (`sensoryFeedback`) |
+| Waiting for approval | The hourglass pulses |
+
+---
+
 ## The arrival alert
 
 If you turn on **"Alert me 5 min before my bus arrives"** in your profile, every new ETA is checked against that limit. The alert fires once per bus, so it won't keep buzzing.
@@ -696,6 +760,8 @@ In plain words: nobody can make themselves an admin, nobody can approve themselv
 | Firestore add / read / update / delete | Profiles, trips, routes, buses, approvals, and one batch write |
 | JSON parsing | `ETAService` + `RouteResponse` (OSRM REST API) and `Timetable` (`kuet_schedule.json`) |
 | `onAppear` / `onDisappear` | Every listener screen in the table above |
+| LocalAuthentication, Keychain, CryptoKit | `BiometricAuth`, `AppPasscode`, `AppLockView` |
+| SwiftUI animation | `withAnimation`, transitions, `symbolEffect`, `contentTransition`, `sensoryFeedback` |
 | MapKit, CoreLocation, local notifications | `LiveMapView` (`MapPolyline`, `Annotation`, `MapCamera`, `UserAnnotation`), `LocationManager`, `NotificationManager` |
 
 ---
