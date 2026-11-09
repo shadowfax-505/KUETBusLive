@@ -50,7 +50,8 @@
 30. [Setup](#setup)
 31. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
 32. [Privacy](#privacy)
-33. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+33. [App Store readiness](#app-store-readiness)
+34. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -1033,19 +1034,22 @@ flowchart TB
     SIGNED -->|yes| WHAT{"Which collection?"}
 
     WHAT -->|users| U{"Own profile?"}
-    U -->|"create"| UC["role must be student / teacher / driver,<br/>only students start approved"]
-    U -->|"update"| UU["can't change role, isApproved,<br/>kuetId or email (admin can)"]
+    U -->|"create"| UC["your own email, role must be<br/>student / teacher / driver,<br/>only students start approved"]
+    U -->|"update"| UU["only your stop, name and push token<br/>(admin can change anything)"]
+    U -->|"delete"| UD["your own profile, or admin"]
 
     WHAT -->|"schedules / routes / announcements"| SR["everyone reads,<br/>only admin writes"]
 
     WHAT -->|buses| B{"What kind of write?"}
-    B -->|create| BC["only an approved driver,<br/>as themselves"]
-    B -->|"update position"| BU["only the bus's own driver"]
-    B -->|"update crowd"| BCR["only the crowd field,<br/>and only riders allowed on that bus"]
+    B -->|create| BC["only an approved driver,<br/>as themselves, known fields only"]
+    B -->|"update position"| BU["only the bus's own approved driver"]
+    B -->|"update crowd"| BCR["only the crowd field, a known level,<br/>approved riders allowed on that bus"]
+
+    WHAT -->|"anything else"| DENY
     B -->|delete| BD["the bus's driver or admin"]
 ```
 
-In plain words: nobody can make themselves an admin, nobody can approve themselves, only approved drivers can put a bus on the map, a student can't touch a teacher bus, and only the admin can change routes or post announcements.
+In plain words: nobody can make themselves an admin, nobody can approve themselves, only approved drivers can put a bus on the map, a student can't touch a teacher bus, only the admin can change routes or post announcements, and any collection the app doesn't use is closed. Every one of these is checked by `firestore-tests/rules.test.js` in the Firestore emulator (see [Continuous integration](#continuous-integration)).
 
 After changing `firestore.rules`, deploy them again with `firebase deploy --only firestore:rules` (or paste them into **Firestore > Rules** in the console). Until then, the News tab shows nothing.
 
@@ -1099,14 +1103,17 @@ flowchart LR
 
 The real `GoogleService-Info.plist` is never committed. CI only needs a placeholder to compile.
 
+A second, much faster job on Ubuntu starts the Firestore emulator and runs `firestore-tests/rules.test.js`: 21 checks that `firestore.rules` lets each person do exactly what they should (for example, a student can't approve themselves, a driver can't move someone else's bus, and a student can't report the crowd on a teacher bus).
+
 ### Unit tests
 
 The `KUETBusLiveTests` target (XCTest) checks the parts of the app that are pure logic, so they can run on any simulator without a network or a Firebase account:
 
 | Test file | What it checks |
 | --- | --- |
-| `KUETVerifierTests` | Roll numbers (7 digits, no future batch), student email must contain the roll, staff email domains, teacher and driver rules, nobody can sign up as admin, the `@test.com` demo rule in debug builds |
+| `KUETVerifierTests` | Roll numbers (7 digits, no future batch), student email must contain the roll, staff email domains, teacher and driver rules, nobody can sign up as admin, the `@test.com` demo rule in debug builds, and that only the two App Review addresses skip the KUET email checks |
 | `BusScheduleTests` | `minutes(from:)` with good and bad input, 12-hour formatting, which buses a student or teacher may ride, Friday has no buses, the next-trip logic at fixed times, and that every time in `kuet_schedule.json` parses |
+| `AccountDeletionTests` | The last transport admin can't delete their account, the confirmation mentions a driver's running trip, and clearing the phone's settings removes only this app's keys |
 | `AppPasscodeTests` | The passcode hash is a fixed SHA-256 hex string, a wrong code fails, and save / check / remove work in the Keychain (skipped if the simulator has no Keychain access) |
 
 Run them in Xcode with **⌘U**, or from the terminal:
@@ -1130,6 +1137,14 @@ xcodebuild test -project KUETBusLive.xcodeproj -scheme KUETBusLive \
 5. **Make an admin.** Run the app and sign up. In the Firebase console, open **Firestore > users > (your uid)** and change `role` to `admin`.
 6. **Load the data.** As the admin, tap **Load official KUET timetable** in Schedule and **Add sample KUET routes** in Routes.
 7. **Add a driver.** Sign up a driver on another simulator and approve them in **Approvals**.
+
+**Trying things without the real project.** Debug builds can talk to the local Firebase emulators instead, which is handy for testing sign-up or account deletion without touching real data:
+
+```
+firebase emulators:start --only auth,firestore
+```
+
+Then run the app with the environment variable `USE_FIREBASE_EMULATORS=1` (Xcode: **Product > Scheme > Edit Scheme > Run > Arguments**). The emulators start empty and use the rules in `firestore.rules`.
 
 The deployment target is iOS 17.0, because the new `Map` API needs it. If Xcode reports concurrency errors, set **Build Settings > Swift Language Version** to **Swift 5**.
 
@@ -1171,6 +1186,20 @@ The app keeps only what it needs: your name, email, KUET ID, role, approval and 
 **[KUET Bus Live privacy policy](https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md)**
 
 The same link is in the app under **Profile > About**.
+
+---
+
+## App Store readiness
+
+The app is being prepared for the App Store. The full list, with what is done and what is left, is in **[docs/app-store-checklist.md](docs/app-store-checklist.md)**. In short:
+
+- **Privacy:** a [privacy policy](docs/privacy-policy.md), privacy manifests for the app and the widget, and the [answers for App Store Connect's privacy labels](docs/app-store-privacy-labels.md).
+- **Delete account:** Profile > Delete account removes the profile, the login and the phone's saved settings after asking for the password. A driver's running trip is ended first, and the last admin can't delete themselves.
+- **App Review login:** two fixed demo accounts skip the KUET email check. How to set them up, and what to tell the reviewer, is in [docs/app-review-notes.md](docs/app-review-notes.md). No passwords are kept in this repository.
+- **Location text:** the permission pop-ups say exactly when location is used, in English and Bangla. Only drivers starting a trip are asked for "Always".
+- **Production rules:** `firestore.rules` is tightened and tested in the emulator, but not deployed yet. The test accounts are still needed for the lab viva; [scripts/cleanup-test-data.md](scripts/cleanup-test-data.md) lists what to remove afterwards.
+
+Still to do by hand: a paid Apple Developer account, TestFlight on a real iPhone, store screenshots and description, and permission from the KUET transport office.
 
 ---
 
