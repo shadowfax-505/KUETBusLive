@@ -1,0 +1,62 @@
+//
+//  RouteViewModel.swift
+//  KUETBusLive
+//
+//  Created by Muttakin Rahman Shoscho.
+//
+
+import Foundation
+import FirebaseFirestore
+
+class RouteViewModel: ObservableObject {
+    @Published var routes = [BusRoute]()
+
+    private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
+
+    // Read: live list of routes, sorted by name.
+    func startListening() {
+        guard listener == nil else { return }
+        listener = db.collection("routes").order(by: "name").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("Error getting routes: \(error)")
+                return
+            }
+            self.routes = snapshot?.documents.compactMap { document in
+                try? document.data(as: BusRoute.self)
+            } ?? []
+        }
+    }
+
+    func stopListening() {
+        listener?.remove()
+        listener = nil
+    }
+
+    // Add: two sample routes so a fresh Firebase project has data to show.
+    // Coordinates are approximate.
+    func addSampleRoutes() {
+        let sonadanga = BusRoute(name: "KUET to Sonadanga", stops: [
+            Stop(name: "KUET Main Gate", lat: 22.8999, lng: 89.5024),
+            Stop(name: "Fulbarigate", lat: 22.8890, lng: 89.5095),
+            Stop(name: "Daulatpur", lat: 22.8660, lng: 89.5170),
+            Stop(name: "Notun Rasta", lat: 22.8460, lng: 89.5330),
+            Stop(name: "Sonadanga Bus Terminal", lat: 22.8170, lng: 89.5440)
+        ])
+        let royalMore = BusRoute(name: "KUET to Royal More", stops: [
+            Stop(name: "KUET Main Gate", lat: 22.8999, lng: 89.5024),
+            Stop(name: "Fulbarigate", lat: 22.8890, lng: 89.5095),
+            Stop(name: "Daulatpur", lat: 22.8660, lng: 89.5170),
+            Stop(name: "Shibbari More", lat: 22.8150, lng: 89.5590),
+            Stop(name: "Royal More", lat: 22.8105, lng: 89.5630)
+        ])
+
+        for route in [sonadanga, royalMore] {
+            do {
+                _ = try db.collection("routes").addDocument(from: route)
+            } catch {
+                print("Error adding route: \(error)")
+            }
+        }
+    }
+}
