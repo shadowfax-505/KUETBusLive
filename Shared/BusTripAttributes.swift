@@ -22,6 +22,7 @@ struct BusTripAttributes: ActivityAttributes {
         var crowd: String          // "unknown", "seats" or "full", same as CrowdLevel
         var isStale: Bool          // no GPS from the bus for over a minute
         var hasArrived: Bool = false
+        var progress: TripProgress = .empty   // for the track on the Lock Screen
 
         var etaText: String {
             hasArrived ? "Here" : "\(etaMinutes) min"

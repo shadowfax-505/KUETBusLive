@@ -13,6 +13,7 @@ struct StudentTabView: View {
     @EnvironmentObject var announcementViewModel: AnnouncementViewModel
     // Only used to keep the home screen widget's timetable up to date.
     @StateObject private var widgetSchedules = ScheduleViewModel()
+    @StateObject private var widgetRoutes = RouteViewModel()
 
     var body: some View {
         TabView {
@@ -49,9 +50,15 @@ struct StudentTabView: View {
         }
         .onAppear {
             widgetSchedules.startListening()
+            widgetRoutes.startListening()
         }
         .onDisappear {
             widgetSchedules.stopListening()
+            widgetRoutes.stopListening()
+        }
+        // The route with my stop on it, drawn on the large widget's map.
+        .onReceive(widgetRoutes.$routes) { routes in
+            WidgetSync.saveRoute(from: routes, favoriteStop: authViewModel.profile?.favoriteStopName)
         }
         // New timetable from Firestore, or a new favourite stop: tell the widget.
         .onReceive(widgetSchedules.$schedules) { schedules in
@@ -59,6 +66,7 @@ struct StudentTabView: View {
         }
         .onChange(of: authViewModel.profile?.favoriteStopName) {
             updateWidget(widgetSchedules.schedules)
+            WidgetSync.saveRoute(from: widgetRoutes.routes, favoriteStop: authViewModel.profile?.favoriteStopName)
         }
     }
 

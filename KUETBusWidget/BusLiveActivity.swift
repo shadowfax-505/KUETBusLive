@@ -42,6 +42,13 @@ struct BusLiveActivity: Widget {
                             .font(.headline)
                         Text("To \(context.attributes.stopName) · \(context.state.distanceText)")
                             .font(.subheadline)
+                        // A thin version of the trip track.
+                        TripProgressView(progress: context.state.progress,
+                                         endLabel: context.attributes.stopName,
+                                         tint: KUETWidgetStyle.yellow,
+                                         trackColor: .white.opacity(0.25),
+                                         showLabels: false,
+                                         thin: true)
                         HStack {
                             Label(context.state.crowdText, systemImage: "person.3.fill")
                             Spacer()
@@ -75,6 +82,7 @@ struct LockScreenTripView: View {
     let state: BusTripAttributes.ContentState
 
     var body: some View {
+        VStack(spacing: 10) {
         HStack(spacing: 14) {
             Image(systemName: "bus.fill")
                 .font(.title)
@@ -86,6 +94,8 @@ struct LockScreenTripView: View {
                     .font(.headline)
                 Text("To \(attributes.stopName) · \(state.distanceText)")
                     .font(.subheadline)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundStyle(.white.opacity(0.8))
                 HStack(spacing: 10) {
                     Label(state.crowdText, systemImage: "person.3.fill")
@@ -105,6 +115,14 @@ struct LockScreenTripView: View {
                 .foregroundStyle(KUETWidgetStyle.yellow)
                 .contentTransition(.numericText())
         }
+
+        // KUET to my stop, like a parcel tracker.
+        TripProgressView(progress: state.progress,
+                         endLabel: attributes.stopName,
+                         tint: KUETWidgetStyle.yellow,
+                         trackColor: .white.opacity(0.3))
+            .environment(\.colorScheme, .dark)
+        }
         .foregroundStyle(.white)
         .padding()
         .accessibilityElement(children: .combine)
@@ -114,6 +132,8 @@ struct LockScreenTripView: View {
 #Preview("Lock Screen", as: .content, using: BusTripAttributes(busNumber: "Normal-2 · Rupsha", stopName: "Fulbarigate")) {
     BusLiveActivity()
 } contentStates: {
-    BusTripAttributes.ContentState(etaMinutes: 7, distanceKm: 3.2, crowd: "seats", isStale: false)
-    BusTripAttributes.ContentState(etaMinutes: 2, distanceKm: 0.6, crowd: "full", isStale: true)
+    BusTripAttributes.ContentState(etaMinutes: 7, distanceKm: 3.2, crowd: "seats", isStale: false,
+                                   progress: TripProgress(fraction: 0.45, stopFractions: [0.3, 0.6]))
+    BusTripAttributes.ContentState(etaMinutes: 2, distanceKm: 0.6, crowd: "full", isStale: true,
+                                   progress: TripProgress(fraction: 0.9, stopFractions: [0.3, 0.6]))
 }

@@ -37,7 +37,7 @@ class LiveActivityManager: ObservableObject {
         bus.id != nil && bus.id == followedBusId
     }
 
-    func start(bus: Bus, stopName: String, etaMinutes: Int?, distanceKm: Double?) {
+    func start(bus: Bus, stopName: String, etaMinutes: Int?, distanceKm: Double?, progress: TripProgress) {
         guard isAvailable, let busId = bus.id else { return }
         stop()   // only one followed bus at a time
 
@@ -45,7 +45,8 @@ class LiveActivityManager: ObservableObject {
         let state = BusTripAttributes.ContentState(etaMinutes: etaMinutes ?? 0,
                                                    distanceKm: distanceKm ?? 0,
                                                    crowd: bus.crowd.rawValue,
-                                                   isStale: bus.isStale)
+                                                   isStale: bus.isStale,
+                                                   progress: progress)
         do {
             // pushType nil: the app updates the activity itself while it is running.
             activity = try Activity.request(attributes: attributes,
@@ -59,13 +60,15 @@ class LiveActivityManager: ObservableObject {
     }
 
     // A new ETA arrived for this bus. Called by BusViewModel.
-    func update(bus: Bus, etaMinutes: Int, distanceKm: Double) {
+    func update(bus: Bus, etaMinutes: Int, distanceKm: Double, progress: TripProgress) {
         guard isFollowing(bus), activity != nil else { return }
         var state = BusTripAttributes.ContentState(etaMinutes: etaMinutes,
                                                    distanceKm: distanceKm,
                                                    crowd: bus.crowd.rawValue,
-                                                   isStale: bus.isStale)
+                                                   isStale: bus.isStale,
+                                                   progress: progress)
         if distanceKm <= Self.arrivalDistanceKm {
+            state.progress.fraction = 1
             // The bus reached the stop: show "Here" for a short while, then remove it.
             state.hasArrived = true
             end(with: state, after: 120)

@@ -62,8 +62,13 @@ struct TripCard: View {
                         .foregroundColor(.secondary)
                 }
 
-                // Where the bus is along its route
-                if let progress = busViewModel.nearestStop(for: bus) {
+                // Where the bus is between KUET and my stop, like a parcel tracker.
+                if let track = busViewModel.tripProgress(for: bus),
+                   let stopName = authViewModel.profile?.favoriteStop?.name {
+                    TripProgressView(progress: track, endLabel: stopName, tint: bus.allocation.color)
+                        .animation(.easeInOut, value: track.fraction)
+                } else if let progress = busViewModel.nearestStop(for: bus) {
+                    // My stop isn't on this route: show the nearest stop instead.
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Near \(progress.stop.name) · stop \(progress.index + 1) of \(progress.count)")
                             .font(.footnote)

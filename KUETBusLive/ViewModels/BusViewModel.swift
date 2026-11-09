@@ -51,6 +51,8 @@ class BusViewModel: ObservableObject {
             }
 
             for bus in self.buses {
+                // Stops are needed for the progress track, so load each route once.
+                self.loadRoute(for: bus)
                 self.refreshETA(for: bus)
                 // Crowd or signal changes reach the Lock Screen straight away.
                 LiveActivityManager.shared.refresh(bus: bus)
@@ -120,12 +122,23 @@ class BusViewModel: ObservableObject {
         return (nearest.element, nearest.offset, stops.count)
     }
 
+    // How far the bus is from KUET to my stop, for the progress track.
+    // nil when my stop isn't on this bus's route (or the route hasn't loaded yet).
+    func tripProgress(for bus: Bus) -> TripProgress? {
+        guard let stop = favoriteStop, let stops = routeStops[bus.routeId],
+              let index = stops.firstIndex(where: { $0.name == stop.name }), index > 0 else {
+            return nil
+        }
+        return TripProgress.make(bus: bus.coordinate, stops: stops.map { $0.coordinate }, stopIndex: index)
+    }
+
     // Shows this bus's ETA on the Lock Screen and in the Dynamic Island.
     func follow(_ bus: Bus) {
         guard let stop = favoriteStop else { return }
         let info = bus.id.flatMap { etaInfo[$0] }
         LiveActivityManager.shared.start(bus: bus, stopName: stop.name,
-                                         etaMinutes: info?.minutes, distanceKm: info?.kilometres)
+                                         etaMinutes: info?.minutes, distanceKm: info?.kilometres,
+                                         progress: tripProgress(for: bus) ?? .empty)
         refreshETA(for: bus, force: true)
     }
 
@@ -153,7 +166,14 @@ class BusViewModel: ObservableObject {
             self.etaText[busId] = info.summary
             self.etaPaths[busId] = info.path
             self.etaInfo[busId] = info
-            LiveActivityManager.shared.update(bus: bus, etaMinutes: info.minutes, distanceKm: info.kilometres)
+            let progress = self.tripProgress(for: bus) ?? .empty
+            LiveActivityManager.shared.update(bus: bus, etaMinutes: info.minutes,
+                                              distanceKm: info.kilometres, progress: progress)
+            // Share it with the home screen widget too.
+            WidgetSync.saveLive(LiveTripSnapshot(busNumber: bus.number, stopName: stop.name,
+                                                 etaMinutes: info.minutes, distanceKm: info.kilometres,
+                                                 crowd: bus.crowd.rawValue, progress: progress,
+                                                 busLat: bus.lat, busLng: bus.lng, updatedAt: Date()))
             self.checkArrivalAlert(bus: bus, minutes: info.minutes)
         }
     }

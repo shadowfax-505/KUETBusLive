@@ -52,6 +52,40 @@ struct UpcomingTrip: Hashable {
     let leavesAt: Date
 }
 
+// The bus the rider is waiting for, saved by the app whenever a new ETA arrives.
+struct LiveTripSnapshot: Codable {
+    var busNumber: String       // "Normal-2 · Rupsha"
+    var stopName: String        // the rider's stop
+    var etaMinutes: Int
+    var distanceKm: Double
+    var crowd: String           // "unknown", "seats" or "full"
+    var progress: TripProgress
+    var busLat: Double
+    var busLng: Double
+    var updatedAt: Date
+
+    // Older than 10 minutes: the bus probably finished or lost signal, so the
+    // widget goes back to the timetable.
+    var isFresh: Bool {
+        Date().timeIntervalSince(updatedAt) < 10 * 60
+    }
+
+    var crowdText: String {
+        switch crowd {
+        case "seats": return "Seats available"
+        case "full": return "Full"
+        default: return "No crowd report"
+        }
+    }
+}
+
+// The rider's route, for the map in the large widget.
+struct SharedRoute: Codable {
+    var name: String
+    var stops: [SharedStop]
+    var riderStopIndex: Int     // which stop is the rider's
+}
+
 enum SharedStore {
     // Must match the App Groups entitlement of both the app and the widget.
     static let appGroup = "group.KUETBusLive"
@@ -68,6 +102,32 @@ enum SharedStore {
     static var favoriteStop: String? {
         get { defaults.string(forKey: stopKey) }
         set { defaults.set(newValue, forKey: stopKey) }
+    }
+
+    private static let liveKey = "widget.liveTrip"
+    private static let routeKey = "widget.route"
+
+    static var liveTrip: LiveTripSnapshot? {
+        get { decode(LiveTripSnapshot.self, key: liveKey) }
+        set { encode(newValue, key: liveKey) }
+    }
+
+    static var route: SharedRoute? {
+        get { decode(SharedRoute.self, key: routeKey) }
+        set { encode(newValue, key: routeKey) }
+    }
+
+    private static func decode<T: Decodable>(_ type: T.Type, key: String) -> T? {
+        guard let data = defaults.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
+    }
+
+    private static func encode<T: Encodable>(_ value: T?, key: String) {
+        if let value = value {
+            defaults.set(try? JSONEncoder().encode(value), forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     // The trips this rider may take, saved by the app.
