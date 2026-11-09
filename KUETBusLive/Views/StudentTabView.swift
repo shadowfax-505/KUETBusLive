@@ -9,6 +9,10 @@ import SwiftUI
 
 // Used by students and teachers. Each screen filters buses by the signed-in role.
 struct StudentTabView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+    // Only used to keep the home screen widget's timetable up to date.
+    @StateObject private var widgetSchedules = ScheduleViewModel()
+
     var body: some View {
         TabView {
             LiveMapView()
@@ -33,5 +37,25 @@ struct StudentTabView: View {
                 Label("Profile", systemImage: "person.circle")
             }
         }
+        .onAppear {
+            widgetSchedules.startListening()
+        }
+        .onDisappear {
+            widgetSchedules.stopListening()
+        }
+        // New timetable from Firestore, or a new favourite stop: tell the widget.
+        .onReceive(widgetSchedules.$schedules) { schedules in
+            updateWidget(schedules)
+        }
+        .onChange(of: authViewModel.profile?.favoriteStopName) {
+            updateWidget(widgetSchedules.schedules)
+        }
+    }
+
+    func updateWidget(_ schedules: [BusSchedule]) {
+        // An empty list means Firestore hasn't answered yet; keep what the widget already has.
+        guard !schedules.isEmpty, let profile = authViewModel.profile else { return }
+        WidgetSync.save(schedules: schedules, role: profile.role,
+                        favoriteStop: profile.favoriteStopName)
     }
 }
