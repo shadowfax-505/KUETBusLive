@@ -50,6 +50,9 @@ struct TripCard: View {
                         Text(busViewModel.etaText[bus.id ?? ""] ?? "Calculating...")
                             .font(.title2)
                             .fontWeight(.bold)
+                            // Digits roll to the new value instead of jumping.
+                            .contentTransition(.numericText())
+                            .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
                         Text("to \(stop.name)")
                             .foregroundColor(.secondary)
                     }
@@ -66,6 +69,7 @@ struct TripCard: View {
                         ProgressView(value: Double(progress.index),
                                      total: Double(max(progress.count - 1, 1)))
                             .tint(bus.allocation.color)
+                            .animation(.easeInOut, value: progress.index)
                     }
                 }
 
@@ -75,9 +79,11 @@ struct TripCard: View {
                     Spacer()
                     Label(bus.crowd.label, systemImage: "person.3.fill")
                         .foregroundColor(bus.crowd.color)
+                        .symbolEffect(.bounce, value: bus.crowd)
                     Spacer()
                     Label(bus.lastUpdateText, systemImage: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right")
                         .foregroundColor(bus.isStale ? .orange : .green)
+                        .symbolEffect(.pulse, isActive: !bus.isStale)
                 }
                 .font(.caption)
 
@@ -119,6 +125,8 @@ struct TripCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .padding(.horizontal)
             .padding(.bottom, 8)
+            // A small tap on the phone when a crowd report lands.
+            .sensoryFeedback(.success, trigger: bus.crowd)
         }
     }
 }

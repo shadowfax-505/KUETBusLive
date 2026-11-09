@@ -18,6 +18,7 @@ struct PendingApprovalView: View {
             Image(systemName: "hourglass")
                 .font(.system(size: 60))
                 .foregroundColor(.orange)
+                .symbolEffect(.pulse)
 
             Text("Waiting for approval")
                 .font(.title2)

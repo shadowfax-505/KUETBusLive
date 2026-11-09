@@ -164,9 +164,23 @@ struct LiveMapView: View {
 struct BusMarker: View {
     let bus: Bus
     let isSelected: Bool
+    @State private var pulse = false
 
     var body: some View {
         ZStack {
+            // A ring that keeps spreading out, so live buses look "alive".
+            if !bus.isStale {
+                Circle()
+                    .stroke(bus.allocation.color, lineWidth: 2)
+                    .frame(width: 36, height: 36)
+                    .scaleEffect(pulse ? 2 : 1)
+                    .opacity(pulse ? 0 : 0.7)
+                    .onAppear {
+                        withAnimation(.easeOut(duration: 1.6).repeatForever(autoreverses: false)) {
+                            pulse = true
+                        }
+                    }
+            }
             Image(systemName: "bus.fill")
                 .padding(8)
                 .foregroundColor(.white)
@@ -185,5 +199,6 @@ struct BusMarker: View {
         }
         .scaleEffect(isSelected ? 1.3 : 1)
         .shadow(radius: isSelected ? 4 : 1)
+        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: isSelected)
     }
 }
