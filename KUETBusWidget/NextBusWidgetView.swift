@@ -4,9 +4,10 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  The look of the home screen widget in its small and medium sizes.
+//  The look of the home screen widget in its small, medium and large sizes.
 //  - small: a ring showing how far along the trip is, with minutes left inside
 //  - medium: the next bus plus the trip track from KUET to my stop
+//  - large: a route map, the track, and the bus name, ETA and crowd
 //
 
 import WidgetKit
@@ -26,6 +27,7 @@ enum KUETWidgetStyle {
 struct NextBusWidgetView: View {
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
 
     var stopName: String {
         entry.live?.stopName ?? entry.favoriteStop ?? "My stop"
@@ -34,6 +36,8 @@ struct NextBusWidgetView: View {
     var body: some View {
         Group {
             switch family {
+            case .systemLarge:
+                large
             case .systemMedium:
                 medium
             default:
@@ -174,6 +178,60 @@ struct NextBusWidgetView: View {
             } else {
                 Text(trip.leavesAt, format: .dateTime.weekday(.wide))
             }
+        }
+    }
+
+    // MARK: - Large
+
+    private var large: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                header
+                Spacer()
+                if let route = entry.route {
+                    Text(route.name)
+                        .font(.caption2)
+                        .opacity(0.8)
+                        .lineLimit(1)
+                }
+            }
+
+            // The route map, matching light or dark mode. Without one, just the ring.
+            if let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
+                Image(uiImage: map)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: 170)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .accessibilityLabel("Map of the route to \(stopName)")
+            } else {
+                HStack {
+                    Spacer()
+                    TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
+                                     tint: KUETWidgetStyle.yellow, lineWidth: 10)
+                        .frame(width: 110, height: 110)
+                    Spacer()
+                }
+                .frame(maxHeight: 170)
+            }
+
+            busSummary
+            track
+
+            // The next two buses from the timetable.
+            if entry.live == nil {
+                ForEach(entry.trips.dropFirst().prefix(2), id: \.self) { later in
+                    HStack {
+                        Text(later.trip.title)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(later.leavesAt, style: .time)
+                    }
+                    .font(.caption)
+                    .opacity(0.85)
+                }
+            }
+            Spacer(minLength: 0)
         }
     }
 }

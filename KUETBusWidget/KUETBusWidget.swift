@@ -5,7 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  Home screen widget: the next KUET bus the rider can take, when it leaves,
-//  and how far along the trip is. Comes in a small and a medium size.
+//  and how far along the trip is. Comes in small, medium and large sizes.
 //
 //  WidgetKit asks the provider for a "timeline": a list of entries, each with
 //  the date it should appear. One entry per departure is enough, because the
@@ -18,6 +18,7 @@
 
 import WidgetKit
 import SwiftUI
+import UIKit
 
 // One moment on the widget's timeline.
 struct NextBusEntry: TimelineEntry {
@@ -27,6 +28,8 @@ struct NextBusEntry: TimelineEntry {
     var live: LiveTripSnapshot? = nil
     var route: SharedRoute? = nil
     var runningTrip: UpcomingTrip? = nil   // a timetable trip that has left but not arrived yet
+    var mapLight: UIImage? = nil           // route map for the large widget
+    var mapDark: UIImage? = nil
 
     // Progress for the track and ring: live data first, then the timetable.
     var progress: TripProgress {
@@ -116,7 +119,21 @@ struct NextBusProvider: TimelineProvider {
             ? .after(now.addingTimeInterval(15 * 60))
             : .atEnd
 
-        completion(Timeline(entries: entries, policy: policy))
+        // Only the large widget shows a map, and drawing it takes a moment.
+        guard context.family == .systemLarge, let route = SharedStore.route else {
+            completion(Timeline(entries: entries, policy: policy))
+            return
+        }
+        let live = entries[0].live
+        RouteMapRenderer.render(route: route, live: live, size: CGSize(width: 330, height: 170)) { light, dark in
+            let withMaps = entries.map { entry -> NextBusEntry in
+                var copy = entry
+                copy.mapLight = light
+                copy.mapDark = dark
+                return copy
+            }
+            completion(Timeline(entries: withMaps, policy: policy))
+        }
     }
 }
 
@@ -132,6 +149,6 @@ struct KUETBusWidget: Widget {
         }
         .configurationDisplayName("Next KUET bus")
         .description("The next bus you can take, how long until it leaves, and how far along it is.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
