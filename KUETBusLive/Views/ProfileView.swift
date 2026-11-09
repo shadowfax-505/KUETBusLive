@@ -12,6 +12,24 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @AppStorage("arrivalAlertOn") private var arrivalAlertOn = false
+    @AppStorage("faceIDOn") private var faceIDOn = false
+    @AppStorage("passcodeOn") private var passcodeOn = false
+    @State private var showSetPasscode = false
+
+    // Turning the switch on opens the set-up screen. Turning it off deletes the passcode.
+    var passcodeBinding: Binding<Bool> {
+        Binding(
+            get: { passcodeOn },
+            set: { newValue in
+                if newValue {
+                    showSetPasscode = true
+                } else {
+                    AppPasscode.remove()
+                    passcodeOn = false
+                }
+            }
+        )
+    }
 
     // Students and teachers ride buses, so they get a stop and arrival alerts.
     var isRider: Bool {
@@ -40,6 +58,20 @@ struct ProfileView: View {
                 }
             }
 
+            // Both, either or neither: each lock is its own switch.
+            Section(header: Text("App lock"),
+                    footer: Text("The app locks when you leave it. With both on, Face ID is tried first and the passcode is the backup.")) {
+                if let biometry = BiometricAuth.biometryName {
+                    Toggle("Unlock with \(biometry)", isOn: $faceIDOn)
+                }
+                Toggle("App passcode", isOn: passcodeBinding)
+                if passcodeOn {
+                    Button("Change passcode") {
+                        showSetPasscode = true
+                    }
+                }
+            }
+
             Section {
                 Button("Sign Out", role: .destructive) {
                     authViewModel.signOut()
@@ -47,6 +79,22 @@ struct ProfileView: View {
             }
         }
         .navigationTitle("Profile")
+        .sheet(isPresented: $showSetPasscode) {
+            SetPasscodeView { saved in
+                if saved {
+                    passcodeOn = true
+                }
+            }
+        }
+        .onChange(of: faceIDOn) { _, newValue in
+            // Make sure the person can actually unlock before turning the lock on.
+            guard newValue else { return }
+            BiometricAuth.authenticate(reason: "Turn on Face ID unlock") { success, _ in
+                if !success {
+                    faceIDOn = false
+                }
+            }
+        }
         .onChange(of: arrivalAlertOn) { _, newValue in
             if newValue {
                 NotificationManager.shared.requestPermission()
