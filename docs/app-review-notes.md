@@ -44,9 +44,11 @@ Do this in the [Firebase console](https://console.firebase.google.com/) for the 
 
    (Or create it with `isApproved` set to `false` and approve it from the admin's **Approvals** tab.)
 
-4. **Check it works.** Sign in as each account on a TestFlight build. The student should land on the map; the driver on the Driver screen with trips to pick from. If the driver sees "The transport admin hasn't added trips or routes yet", load the official timetable and routes as admin first.
+4. **Give the driver a bus.** Drivers can only start trips on the bus assigned to them. Sign in as the admin, open **Drivers & buses** (under More), tap **Create buses from the timetable** if the list is empty, open a bus (for example Normal-1) and choose **App Review Driver** as its regular driver. Pick a bus that has trips on most days so the reviewer can always start one.
 
-5. **Give Apple the logins.** App Store Connect > your version > App Review Information > Sign-In Information: tick "Sign-in required", enter the **student** email and password, and paste the driver login and the walkthrough below into **Notes**.
+5. **Check it works.** Sign in as each account on a TestFlight build. The student should land on the map; the driver on the Driver screen showing "Your bus today" with that bus's trips. If the driver sees "The transport admin hasn't added trips or routes yet", load the official timetable and routes as admin first.
+
+6. **Give Apple the logins.** App Store Connect > your version > App Review Information > Sign-In Information: tick "Sign-in required", enter the **student** email and password, and paste the driver login and the walkthrough below into **Notes**.
 
 ## Part 2: notes to paste for the reviewer
 
@@ -56,7 +58,7 @@ Do this in the [Firebase console](https://console.firebase.google.com/) for the 
 > Driver: appreview.driver@kuetbuslive.app / (password)
 >
 > **To see a bus move live (two devices):**
-> 1. On device A, sign in as the driver. Pick a trip and route, tap **Start trip**, and allow location. The app shares the bus position only while the trip runs; iOS shows the blue location indicator.
+> 1. On device A, sign in as the driver. The screen shows the bus assigned for today. Pick one of its trips and a route, tap **Start trip**, and allow location. The app shares the bus position only while the trip runs; iOS shows the blue location indicator.
 > 2. On device B, sign in as the student. The bus appears on the **Map** tab. Tap it to see the arrival time at the student's stop and to report how crowded it is.
 > 3. On device A, tap **End trip**. The bus disappears from device B's map.
 >
@@ -68,4 +70,4 @@ Do this in the [Firebase console](https://console.firebase.google.com/) for the 
 
 ## Part 3: after approval
 
-Keep both accounts for future updates. Before each new submission, check they still sign in and that the driver profile is still approved.
+Keep both accounts for future updates. Before each new submission, check they still sign in, that the driver profile is still approved and active, and that the review driver is still the regular driver of a bus.
