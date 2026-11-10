@@ -49,9 +49,16 @@
 29. [Continuous integration](#continuous-integration)
 30. [Setup](#setup)
 31. [Running a demo with two simulators](#running-a-demo-with-two-simulators)
-32. [Privacy](#privacy)
-33. [App Store readiness](#app-store-readiness)
-34. [Limitations and ideas for later](#limitations-and-ideas-for-later)
+32. [News controls](#news-controls)
+33. [Complaints](#complaints)
+34. [Bangla stop and place names](#bangla-stop-and-place-names)
+35. [My places and waving down a bus](#my-places-and-waving-down-a-bus)
+36. [Smart suggestions](#smart-suggestions)
+37. [Drivers and bus assignment](#drivers-and-bus-assignment)
+38. [Smart assistant (on this iPhone)](#smart-assistant-on-this-iphone)
+39. [Privacy](#privacy)
+40. [App Store readiness](#app-store-readiness)
+41. [Limitations and ideas for later](#limitations-and-ideas-for-later)
 
 ---
 
@@ -960,6 +967,8 @@ sequenceDiagram
 
 ## Firestore data model
 
+Every collection, field and rule is listed in a platform-neutral way in **[docs/data-model.md](docs/data-model.md)** (also the starting point for an Android version, see [docs/android-plan.md](docs/android-plan.md)). The diagram below shows the original core collections; the newer ones are `fleet`, `driverAbsences`, `trips`, `complaints`, `users/{uid}/places`, `users/{uid}/rideHistory` and `buses/{busId}/waves`.
+
 ```mermaid
 erDiagram
     USERS {
@@ -1103,7 +1112,7 @@ flowchart LR
 
 The real `GoogleService-Info.plist` is never committed. CI only needs a placeholder to compile.
 
-A second, much faster job on Ubuntu starts the Firestore emulator and runs `firestore-tests/rules.test.js`: 21 checks that `firestore.rules` lets each person do exactly what they should (for example, a student can't approve themselves, a driver can't move someone else's bus, and a student can't report the crowd on a teacher bus).
+A second, much faster job on Ubuntu starts the Firestore emulator and runs `firestore-tests/rules.test.js`: 43 checks that `firestore.rules` lets each person do exactly what they should (for example, a student can't approve themselves, a driver can't move someone else's bus, a student can't report the crowd on a teacher bus, a driver can't start a bus that isn't theirs today, and nobody reads someone else's complaints, places or waves).
 
 ### Unit tests
 
@@ -1114,6 +1123,11 @@ The `KUETBusLiveTests` target (XCTest) checks the parts of the app that are pure
 | `KUETVerifierTests` | Roll numbers (7 digits, no future batch), student email must contain the roll, staff email domains, teacher and driver rules, nobody can sign up as admin, the `@test.com` demo rule in debug builds, and that only the two App Review addresses skip the KUET email checks |
 | `BusScheduleTests` | `minutes(from:)` with good and bad input, 12-hour formatting, which buses a student or teacher may ride, Friday has no buses, the next-trip logic at fixed times, and that every time in `kuet_schedule.json` parses |
 | `AccountDeletionTests` | The last transport admin can't delete their account, the confirmation mentions a driver's running trip, and clearing the phone's settings removes only this app's keys |
+| `PlaceNamesTests` | English and Bangla names, the admin's Bangla name winning over the built-in list, bus labels, and that every timetable spot has a Bangla name |
+| `PathMathTests` | Snapping a place onto a route, the 300 m warning, riders ahead of or behind the bus, progress towards a place between stops |
+| `SmartSuggestionsTests` | Cold start, weekday vs Saturday, the 45-minute window, recency decay, boarding and nearby bonuses, ties, the running-average delay |
+| `BusAssignmentTests` | Regular vs cover driver, expired and future covers, no driver, midnight in Dhaka, free drivers for a cover |
+| `AssistantTests` | When the assistant is offered and used, unsupported language, rate limit, strict checks on what the model writes, the timetable diff, no personal details in prompts (with a fake model) |
 | `AppPasscodeTests` | The passcode hash is a fixed SHA-256 hex string, a wrong code fails, and save / check / remove work in the Keychain (skipped if the simulator has no Keychain access) |
 
 Run them in Xcode with **⌘U**, or from the terminal:
@@ -1137,6 +1151,7 @@ xcodebuild test -project KUETBusLive.xcodeproj -scheme KUETBusLive \
 5. **Make an admin.** Run the app and sign up. In the Firebase console, open **Firestore > users > (your uid)** and change `role` to `admin`.
 6. **Load the data.** As the admin, tap **Load official KUET timetable** in Schedule and **Add sample KUET routes** in Routes.
 7. **Add a driver.** Sign up a driver on another simulator and approve them in **Approvals**.
+8. **Give the driver a bus.** In **Drivers & buses**, tap **Create buses from the timetable**, open a bus and choose the driver as its regular driver. Drivers can only start trips on their assigned bus.
 
 **Trying things without the real project.** Debug builds can talk to the local Firebase emulators instead, which is handy for testing sign-up or account deletion without touching real data:
 
@@ -1164,7 +1179,7 @@ flowchart LR
     D -->|"Firestore"| R
 ```
 
-1. Run the app on one simulator and sign in as an approved **driver**. Pick a trip and tap **Start trip**.
+1. Run the app on one simulator and sign in as an approved **driver** who has a bus assigned (see Setup step 8). Pick one of that bus's trips and tap **Start trip**.
 2. Pick a second simulator in Xcode and run again. Sign in as a **student**, set a stop in **Routes**, and open the **Map**.
 3. Make the driver's simulator "drive" from KUET towards Sonadanga:
 
@@ -1176,6 +1191,182 @@ flowchart LR
    Stop it with `xcrun simctl location <driver-simulator-id> clear`. The coordinates are approximate.
 
 Things worth showing in a demo: start a **Special** trip and notice the student can't see it while a teacher can; tap **Full** on one phone and watch the icon turn red on the other; change a trip time as admin and watch the timetable update on the student's phone.
+
+---
+
+## News controls
+
+Riders decide how much news they see:
+
+- **Profile > Show news and announcements.** Turned off, the News tab keeps working but there is no red badge and no banner on the map.
+- **Swipe to hide** a single announcement from your own list. **Show hidden** in the toolbar brings hidden ones back (faded) so you can swipe **Show** on them. The hidden list is kept on the phone, separately for each account.
+- The **×** on the map banner closes it until the next announcement.
+
+The admin still deletes announcements for everyone with a swipe.
+
+---
+
+## Complaints
+
+Riders and drivers can report a problem from **Profile > Report a problem**, and the transport admin answers from the **Complaints** tab.
+
+```mermaid
+sequenceDiagram
+    actor Rider as Rider or driver
+    participant App
+    participant FS as Firestore complaints
+    actor Admin as Transport admin
+    Rider->>App: Report a problem (category, optional bus / route / time, text)
+    App->>FS: new complaint, status "open", unread
+    FS-->>Admin: Complaints tab badge +1
+    Admin->>FS: opens it (read), sets "In review", writes a reply
+    FS-->>Rider: My complaints shows the status and the reply
+    Admin->>FS: "Resolved"
+```
+
+- Categories: bus late or didn't come, driver behaviour, overcrowding, bus condition, app problem, other.
+- The inbox filters by status (All, Open, In review, Resolved); a blue dot and the tab badge show unread ones.
+- The rules let you create and read only your own complaints, never edit them after sending, and let only the admin change the status and reply. Deleting your account deletes your complaints.
+
+---
+
+## Bangla stop and place names
+
+Stops, routes and timetable spots have an optional Bangla name (`nameBn`, `spotBn`). When the app runs in Bangla it shows that name, otherwise the English one.
+
+```mermaid
+flowchart LR
+    N["English name<br/>e.g. Fulbarigate"] --> Q{"App in Bangla?"}
+    Q -->|no| EN["Fulbarigate"]
+    Q -->|yes| A{"Admin typed a<br/>Bangla name?"}
+    A -->|yes| BN1["that name"]
+    A -->|no| L{"In the built-in list<br/>(PlaceNames.swift)?"}
+    L -->|yes| BN2["ফুলবাড়ীগেট"]
+    L -->|no| EN
+```
+
+- The English name stays the stop's identity (favourite stop, route matching), so nothing breaks when a Bangla name is added or changed.
+- `PlaceNames.swift` has every KUET place in the timetable and sample routes (KUET Main Gate কুয়েট মেইন গেট, Fulbarigate ফুলবাড়ীগেট, Daulatpur দৌলতপুর, Notun Rasta নতুন রাস্তা, Sonadanga সোনাডাঙ্গা, Shibbari শিববাড়ী, Royal Mor রয়্যাল মোড়, Boyra বয়রা, Khalishpur খালিশপুর, Rupsha রূপসা, Gollamari গল্লামারী, Moylapota ময়লাপোতা, Dakbangla ডাকবাংলা, Fultala Bazar ফুলতলা বাজার ...). A unit test checks that every spot in `kuet_schedule.json` has one.
+- Bus labels keep the trip name: `Normal-2 · রূপসা`.
+- The admin can type Bangla names in the route editor and the trip editor.
+- The widget, Live Activity and arrival notifications use the same names.
+
+---
+
+## My places and waving down a bus
+
+KUET buses don't only stop at official stops: riders often get on near home or a tuition centre by asking the driver or waving. The app supports that.
+
+**My places** (Profile > My stop > My places): drop a pin on the map to save up to five places (Home, Tuition, Other). Each place is snapped to the nearest point on each route's road; if the nearest route is more than 300 m away, the app warns that the bus may not pass close enough. Then pick where you get on: your official stop or one of your places. The ETA, progress track, arrival alert, widget and Live Activity all use that boarding point.
+
+**I'm waiting here:** on a running bus's trip card, one tap tells that bus's driver where you are waiting.
+
+```mermaid
+sequenceDiagram
+    actor Rider
+    participant App as Rider's app
+    participant FS as Firestore
+    participant Driver as Driver's app
+    Rider->>App: I'm waiting here (Normal-2)
+    App->>FS: buses/bus-normal-2/waves/{uid}<br/>point on the route, label, expires in 15 min
+    FS-->>Driver: new wave
+    Driver->>Driver: distance ahead along the road
+    Driver-->>Driver: big banner "1 waiting ahead · next in 400 m",<br/>a chime and a vibration
+    Note over Driver: no need to touch the phone
+    Driver->>FS: bus passed the rider by 40 m: delete the wave
+    Rider->>App: or: Cancel
+```
+
+- One wave per rider: waving at another bus removes the first one.
+- A wave disappears when the bus passes it, after 15 minutes, when the rider cancels, or when the trip ends.
+- Only the bus's driver (and the admin) can see waves; other riders can't see who is waiting where.
+- `PathMath.swift` does the maths (closest point on a polyline, distance along the route) and is unit tested.
+
+---
+
+## Smart suggestions
+
+The app learns which bus each rider usually takes, **on the phone**, with a small frequency-and-recency model. There is no cloud and no machine-learning library, so the result can always be explained.
+
+```mermaid
+flowchart TB
+    E["Ride events on the phone<br/>(follow, arrival alert, wave, boarded)<br/>trip, boarding point, day type, time"] --> S
+    T["Today's trips the rider may take<br/>that haven't left yet"] --> S
+    S["score(trip) = Σ 0.5^(age in days / 21)<br/>over events for that trip,<br/>same kind of day, within 45 min<br/>× 1.5 at the same boarding point<br/>+ 1 if you are near it now"] --> B{"best score ≥ 0.5?"}
+    B -->|yes| C["Your usual bus card:<br/>Normal-2 at 8:10 from Home,<br/>leaves in 12 min, usually 3 min late,<br/>one-tap Follow"]
+    B -->|no| N["no card (not enough history yet)"]
+```
+
+- **Delays:** the first time a bus is seen near its first stop, the app compares the time with the timetable and keeps a running average per trip and kind of day. After two observations it shows "usually N min late" on the card and in the timetable.
+- **Kept for 90 days** on the phone. **Keep my ride history in my account** (off by default) copies the events to `users/{uid}/rideHistory`, so a new phone or an Android version can use them.
+- **Profile > Reset what the app has learned** deletes everything, on the phone and in the account. Suggestions can be turned off.
+- `SuggestionScorer` and `DelayModel` are pure Swift with unit tests (cold start, weekday vs Saturday, time window, decay, boarding and nearby bonuses, ties).
+- Later, a Core ML model could replace `SuggestionScorer` with the same inputs and output, once there is enough real history to train one.
+
+---
+
+## Drivers and bus assignment
+
+Each of the office's buses (Normal-1, Normal-2, Special-1 ...) is a document in `fleet`, separate from the live trips in `buses`, so ending a trip never touches the assignment.
+
+```mermaid
+flowchart TB
+    START["Who drives Normal-2 today?"] --> C{"Cover set and today<br/>between its first and last day?<br/>(days in Dhaka time)"}
+    C -->|yes| CD["the cover driver"]
+    C -->|no| D{"Regular driver set?"}
+    D -->|yes| RD["the regular driver"]
+    D -->|no| NO["nobody:<br/>'No driver today'<br/>+ a drafted notice for the admin"]
+```
+
+The sick-day flow:
+
+```mermaid
+sequenceDiagram
+    actor Driver as Regular driver
+    participant FS as Firestore
+    actor Admin as Transport admin
+    actor Reserve as Reserve driver
+    Driver->>FS: I can't drive, 10–11 Nov, fever
+    FS-->>Admin: Drivers & buses: request with "Assign cover for Normal-2"
+    Admin->>FS: cover = Reserve, 10–11 Nov (only free drivers are offered)
+    FS-->>Reserve: "Covering Normal-2 until Nov 11", Start trip enabled
+    FS-->>Driver: request shows "Cover arranged"
+    Note over FS: on 12 Nov the cover has ended,<br/>so the regular driver drives again
+```
+
+- **Admin > Drivers & buses:** each bus with today's driver, a "Covered by X until ..." badge or a red "No driver today" (with **Draft notice**, which opens a ready-made announcement to edit, never posted on its own); change a bus's regular driver (with a confirmation, and a swap if that driver already has a bus); add, change or end a cover; answer "can't drive" requests; **Deactivate** a driver who left (blocked at once, running trip ended, removed from every bus) and **Reactivate**.
+- **Driver:** the home screen shows "Your bus today: Normal-2", "Covering Normal-3 until 12 Nov" or "No bus assigned today", and only that bus's trips. **I can't drive** sends a request and shows its status.
+- **Rules:** a driver can start a trip only on the bus they drive today (`drivesToday()` in `firestore.rules` checks the cover's start and end timestamps against the request time), the live trip's ID is `bus-<fleet bus>` so one bus can't run twice, and a trip that's running when a cover ends can finish. Every trip is recorded in `trips` (driver, bus, start and end).
+- `BusAssignment.driver(for:on:)` holds the decision in one pure function, unit tested (no cover, active cover, expired cover, cover starting tomorrow, no regular driver, midnight in Dhaka).
+
+---
+
+## Smart assistant (on this iPhone)
+
+An optional helper that uses only **Apple's model on the iPhone** (the Foundation Models framework, iOS 26 with Apple Intelligence). There is no server: nothing anyone asks leaves the phone.
+
+```mermaid
+flowchart TB
+    P{"Can this iPhone run Apple's model?<br/>(SystemLanguageModel availability)"} -->|"no: not supported,<br/>Apple Intelligence off,<br/>or still downloading"| X["Profile shows why;<br/>no assistant buttons anywhere"]
+    P -->|yes| O{"Turned on in Profile?<br/>(off by default)"}
+    O -->|no| H["no assistant buttons"]
+    O -->|yes| L{"Does the model speak<br/>the app's language?"}
+    L -->|"no (Bangla today)"| H2["hidden, with a note in Profile"]
+    L -->|yes| R["Ask, Suggest, Draft and<br/>Import buttons appear"]
+```
+
+What it does, and the checks around it:
+
+| Where | What | Safety |
+|---|---|---|
+| Map > **Ask** (riders) | "When is the next bus to Boyra?" | Answered only from data the app passes in: today's trips for that rider, their boarding point, buses running now with ETAs, the latest news. One question every 10 seconds. A note says answers may be wrong. |
+| Complaint > **Suggest** (admin) | category, urgency, one-line summary, draft reply | Guided generation (`@Generable`) fills an exact shape; values are checked. Only the complaint's category, bus and text go in, never the sender's name, email or ID. The admin edits before sending. |
+| New announcement > **Draft with assistant** (admin) | English and Bangla versions from a short note | Both versions must be present; the admin edits before posting. |
+| Schedule > **Import from text** (admin) | trips from pasted timetable text | Every trip must pass strict checks (known days, period and audience, valid `HH:mm` times). The admin sees what is new, changed and removed, and approves or discards. Text too long for the model gets "too long, paste a smaller part". |
+
+- Requests can be cancelled, and a bad or malformed answer shows a message instead of crashing.
+- The app keeps its iOS 17 deployment target: the framework is used only behind `#if canImport(FoundationModels)` and `#available(iOS 26, *)`.
+- Tested in the iOS 26.5 simulator on a Mac with Apple Intelligence: availability was `available`, English supported, Bangla not. Real runs answered a rider question from the timetable data, filled the triage shape, and turned two lines of timetable text into JSON that passed the checks.
 
 ---
 
@@ -1197,7 +1388,7 @@ The app is being prepared for the App Store. The full list, with what is done an
 - **Delete account:** Profile > Delete account removes the profile, the login and the phone's saved settings after asking for the password. A driver's running trip is ended first, and the last admin can't delete themselves.
 - **App Review login:** two fixed demo accounts skip the KUET email check. How to set them up, and what to tell the reviewer, is in [docs/app-review-notes.md](docs/app-review-notes.md). No passwords are kept in this repository.
 - **Location text:** the permission pop-ups say exactly when location is used, in English and Bangla. Only drivers starting a trip are asked for "Always".
-- **Production rules:** `firestore.rules` is tightened and tested in the emulator, but not deployed yet. The test accounts are still needed for the lab viva; [scripts/cleanup-test-data.md](scripts/cleanup-test-data.md) lists what to remove afterwards.
+- **Production rules:** `firestore.rules` is tightened and tested in the emulator (43 checks), but not deployed yet. The newer features (Delete account, complaints, My places, waves, bus assignment) need these rules deployed to work on the live project. The test accounts are still needed for the lab viva; [scripts/cleanup-test-data.md](scripts/cleanup-test-data.md) lists what to remove afterwards.
 
 Still to do by hand: a paid Apple Developer account, TestFlight on a real iPhone, store screenshots and description, and permission from the KUET transport office.
 
