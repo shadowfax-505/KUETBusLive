@@ -38,11 +38,19 @@ Firestore > `buses`. A bus document only exists while a trip runs, so outside bu
 
 Firestore > `announcements`. Delete the ones posted while testing (titles like "Test", "Hello", demo text). Keep real notices from the transport office, if any.
 
-## 5. Timetable and routes
+## 5. Data from the newer features
+
+- `complaints`: delete the ones sent while testing (any from the `@test.com` accounts).
+- `fleet`: keep the buses, but clear any test drivers set as `defaultDriverId` or `cover` and assign the real drivers.
+- `driverAbsences` and `trips`: delete the ones belonging to test drivers.
+- For each deleted user, their `users/{uid}/places` and `users/{uid}/rideHistory` subcollections (the console doesn't delete subcollections with the parent document, so open each one).
+- `buses/{busId}/waves`: should be empty outside bus hours; delete any left over.
+
+## 6. Timetable and routes
 
 Firestore > `schedules` and `routes`. These hold the official KUET timetable and the sample routes loaded with **Load official KUET timetable** and **Add sample KUET routes**. **Keep them**, but ask the transport office to check the stop names and coordinates; the sample routes are approximate. Delete any extra trips or routes made while testing the editor.
 
-## 6. Turn the new rules on
+## 7. Turn the new rules on
 
 The repository's `firestore.rules` is the tightened production version, tested in `firestore-tests/`. Deploy it once the cleanup is done:
 
@@ -50,9 +58,9 @@ The repository's `firestore.rules` is the tightened production version, tested i
 firebase deploy --only firestore:rules
 ```
 
-**Until this is deployed, Profile > Delete account fails** on the live project: the rules running now only let the admin delete profiles.
+**Until this is deployed, Profile > Delete account fails** on the live project (the rules running now only let the admin delete profiles), and so do complaints, My places, waves, the ride-history backup and bus assignment. Set up the fleet and give each real driver a bus in **Drivers & buses** first: with the new rules a driver can start a trip only on the bus assigned to them today.
 
-## 7. Check
+## 8. Check
 
 - Sign in as the admin: Approvals shows no `@test.com` people.
 - Sign in as each App Review account: both still work.

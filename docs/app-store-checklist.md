@@ -26,10 +26,11 @@ Then, in Xcode, pick the new team for both targets and change the bundle IDs fro
   `https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md`
 - Privacy manifests: `KUETBusLive/PrivacyInfo.xcprivacy` and `KUETBusWidget/PrivacyInfo.xcprivacy` (no tracking; name, email, user ID, precise location and other user content for app functionality; UserDefaults reasons CA92.1 and 1C8F.1).
 - Answers for App Store Connect's questionnaire: [docs/app-store-privacy-labels.md](app-store-privacy-labels.md).
+- Updated for complaints, My places, waves, bus assignment, smart suggestions (on-device, optional account backup) and the on-device assistant (sends nothing).
 
 ## 3. Account deletion 🟡
 
-Done in the app: **Profile > Delete account** asks for the password, ends a driver's running trip and removes their bus, deletes the profile (with the push token) and the login, then clears the passcode, Face ID setting, alerts, widget data and Live Activity on the phone. The last transport admin cannot delete themselves. Unit tests in `AccountDeletionTests`; tried end to end against the local Firebase emulators.
+Done in the app: **Profile > Delete account** asks for the password, ends a driver's running trip and removes their bus, deletes the profile (with the push token), saved places, an open wave, complaints, ride history and the login, then clears the passcode, Face ID setting, alerts, widget data and Live Activity on the phone. The last transport admin cannot delete themselves. Unit tests in `AccountDeletionTests`; tried end to end against the local Firebase emulators.
 
 **Still to do:** deploy `firestore.rules` (step 6). The rules on the live project still only let the admin delete profiles, so deletion fails there until then.
 
@@ -37,7 +38,7 @@ Done in the app: **Profile > Delete account** asks for the password, ends a driv
 
 Done in the app: exactly `appreview.student@kuetbuslive.app` and `appreview.driver@kuetbuslive.app` skip the KUET email checks (`KUETVerifier.appReviewEmails`). Release builds reject `@test.com`.
 
-**Still to do:** create both accounts and their profiles in the Firebase console, and put the passwords in App Store Connect only. Step by step, with notes to paste for the reviewer: [docs/app-review-notes.md](app-review-notes.md).
+**Still to do:** create both accounts and their profiles in the Firebase console, **assign the review driver a bus** in Drivers & buses, and put the passwords in App Store Connect only. Step by step, with notes to paste for the reviewer: [docs/app-review-notes.md](app-review-notes.md).
 
 ## 5. Location permission text ✅
 
@@ -45,9 +46,11 @@ Both location messages say exactly when location is used, in English and Bangla 
 
 ## 6. Clean up test data and deploy production rules 🟡
 
-The tightened `firestore.rules` is written and covered by 21 emulator tests (`firestore-tests/`, also run in CI). It is **not deployed yet**, and no accounts or data have been deleted, because the `@test.com` accounts are needed for the lab viva.
+The tightened `firestore.rules` is written and covered by 43 emulator tests (`firestore-tests/`, also run in CI). It is **not deployed yet**, and no accounts or data have been deleted, because the `@test.com` accounts are needed for the lab viva.
 
 **Still to do, after the viva:** follow [scripts/cleanup-test-data.md](../scripts/cleanup-test-data.md), then `firebase deploy --only firestore:rules`.
+
+These features only work on the live project after the rules are deployed: Delete account, complaints, My places, "I'm waiting here", ride-history backup, bus assignment (fleet, driver absences, trip history), and the assigned-bus check when a driver starts a trip. Before deploying, an admin must also create the fleet and give each driver a bus in **Drivers & buses**, or no driver can start a trip.
 
 ## 7. TestFlight on a real iPhone ⬜
 
@@ -58,6 +61,7 @@ The tightened `firestore.rules` is written and covered by 21 emulator tests (`fi
 
 ## 8. Store listing ⬜
 
+- **Smart assistant:** if you mention it, say it is optional and works only on iPhones with Apple Intelligence (iOS 26).
 - **Screenshots:** 3 to 10 per size. The 6.7"/6.9" set (1290 × 2796 from an iPhone 15/16 Plus or Pro Max simulator, or 1320 × 2868 from an iPhone 17 Pro Max) and the 6.5" set (1284 × 2778 or 1242 × 2688). App Store Connect scales them for smaller phones. Good screens: the live map with a bus, the trip card with ETA, the timetable, the widget, the Live Activity, Bangla dark mode.
 - **Description:** what it does for KUET students and drivers, that it needs a KUET account, and that it is a student project not run by KUET (unless item 9 says otherwise).
 - **Category:** Navigation (or Travel). **Price:** free.
