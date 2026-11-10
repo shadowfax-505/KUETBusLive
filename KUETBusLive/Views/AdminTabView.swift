@@ -46,6 +46,13 @@ struct AdminTabView: View {
                 }
 
             NavigationStack {
+                DriversAndBusesView()
+            }
+            .tabItem {
+                Label("Drivers & buses", systemImage: "bus.doubledecker")
+            }
+
+            NavigationStack {
                 AnnouncementsView()
             }
             .tabItem {

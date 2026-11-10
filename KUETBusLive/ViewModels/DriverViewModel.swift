@@ -35,6 +35,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     private var pendingBus: Bus?
     private var hasCreatedDocument = false
     private var lastSent = Date.distantPast
+    private var tripRecordId: String?
     private var wavesListener: ListenerRegistration?
     private var waves: [Wave] = []
     // A wave counts as passed once the bus is this far beyond it.
@@ -45,12 +46,14 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     }
 
     // The driver picks the trip from the timetable, so the bus knows who may ride it.
-    func startTrip(schedule: BusSchedule, route: BusRoute, driverId: String) {
-        guard let routeId = route.id, let scheduleId = schedule.id else {
+    // `fleetBus` is the bus assigned to this driver today; the rules check it again.
+    func startTrip(schedule: BusSchedule, route: BusRoute, fleetBus: FleetBus, driverId: String) {
+        guard let routeId = route.id, let scheduleId = schedule.id, let fleetBusId = fleetBus.id else {
             statusMessage = String(localized: "Pick a trip and a route first")
             return
         }
-        busDocId = "bus-\(scheduleId)"
+        // One live document per fleet bus, so the same bus can't be on the map twice.
+        busDocId = "bus-\(fleetBusId)"
         var bus = Bus(number: schedule.title,
                       routeId: routeId,
                       routeName: route.name,
@@ -61,7 +64,9 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
                       crowd: .unknown)
         bus.audience = schedule.audience
         bus.scheduleId = scheduleId
+        bus.fleetBusId = fleetBusId
         pendingBus = bus
+        recordTripStart(driverId: driverId, fleetBusId: fleetBusId, scheduleId: scheduleId, routeId: routeId)
         hasCreatedDocument = false
         lastSent = .distantPast
         updatesSent = 0
@@ -79,6 +84,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     // Delete: ending the trip removes the bus from every student's map.
     func endTrip() {
         locationManager.stop()
+        recordTripEnd()
         stopWaves(deleteAll: true)
         if let id = busDocId {
             db.collection("buses").document(id).delete { error in
@@ -129,7 +135,14 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             bus.heading = location.course >= 0 ? location.course : nil
             bus.speed = location.speed >= 0 ? location.speed : nil
             do {
-                try busRef.setData(from: bus)
+                try busRef.setData(from: bus) { error in
+                    // The server refused, for example because this bus isn't assigned
+                    // to this driver today. Stop instead of pretending to share.
+                    if let error = error {
+                        self.endTrip()
+                        self.statusMessage = String(localized: "Could not start trip: \(error.localizedDescription)")
+                    }
+                }
                 hasCreatedDocument = true
             } catch {
                 statusMessage = String(localized: "Could not start trip: \(error.localizedDescription)")
@@ -161,6 +174,24 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         statusMessage = message
     }
 
+    // MARK: - Trip history
+
+    // Add: who drove which bus, and when (the "trips" collection).
+    private func recordTripStart(driverId: String, fleetBusId: String, scheduleId: String, routeId: String) {
+        let record = TripRecord(driverId: driverId, fleetBusId: fleetBusId, scheduleId: scheduleId,
+                                routeId: routeId, startedAt: Date(), endedAt: nil)
+        let ref = db.collection("trips").document()
+        tripRecordId = ref.documentID
+        try? ref.setData(from: record)
+    }
+
+    // Update: the end time.
+    private func recordTripEnd() {
+        guard let id = tripRecordId else { return }
+        db.collection("trips").document(id).updateData(["endedAt": Date()])
+        tripRecordId = nil
+    }
+
     // MARK: - Riders waiting ahead
 
     // Read: every wave for this bus, live.
@@ -168,7 +199,12 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         guard let id = busDocId else { return }
         wavesListener?.remove()
         wavesListener = db.collection("buses").document(id).collection("waves")
-            .addSnapshotListener { snapshot, _ in
+            .addSnapshotListener { snapshot, error in
+                // The bus was removed (for example the admin ended the trip): stop listening.
+                if error != nil {
+                    self.stopWaves(deleteAll: false)
+                    return
+                }
                 self.waves = snapshot?.documents.compactMap { try? $0.data(as: Wave.self) } ?? []
                 self.updateWaitingAhead()
             }

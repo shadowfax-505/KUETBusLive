@@ -50,6 +50,7 @@ struct Bus: Identifiable, Codable {
     var crowd: CrowdLevel
     var audience: BusAudience?
     var scheduleId: String?
+    var fleetBusId: String?   // which fleet bus is driving this trip, e.g. "normal-2"
     var heading: Double?   // degrees from north, from the driver's GPS
     var speed: Double?     // metres per second
 

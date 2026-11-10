@@ -14,15 +14,39 @@ struct DriverHomeView: View {
     @StateObject private var driverViewModel = DriverViewModel()
     @StateObject private var routeViewModel = RouteViewModel()
     @StateObject private var scheduleViewModel = ScheduleViewModel()
+    // Which bus the transport office assigned to this driver today.
+    @StateObject private var fleetViewModel = FleetViewModel()
+    @State private var showAbsence = false
     @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
 
     @State private var selectedScheduleId = ""
     @State private var selectedRouteId = ""
 
-    // Today's trips. On a day with no buses (Friday) every trip is listed.
+    // The fleet bus this driver drives today: their own, or one they are covering.
+    var myBus: FleetBus? {
+        guard let uid = authViewModel.user?.uid else { return nil }
+        return BusAssignment.bus(for: uid, in: fleetViewModel.fleet, on: Date())
+    }
+
+    // "Your bus today: Normal-2", or "Covering Normal-3 until 12 Nov".
+    var myBusText: String {
+        guard let bus = myBus else {
+            return String(localized: "No bus assigned today. Contact the transport office.")
+        }
+        if BusAssignment.isCoverActive(bus.cover, on: Date()), let cover = bus.cover,
+           cover.driverId == authViewModel.user?.uid {
+            let until = cover.end.addingTimeInterval(-1).formatted(.dateTime.day().month(.abbreviated))
+            return String(localized: "Covering \(bus.name) until \(until)")
+        }
+        return String(localized: "Your bus today: \(bus.name)")
+    }
+
+    // Today's trips of my bus only. On a day with no buses (Friday) all its trips are listed.
     var tripChoices: [BusSchedule] {
-        let today = scheduleViewModel.schedules.filter { $0.runsToday }
-        return today.isEmpty ? scheduleViewModel.schedules : today
+        guard let bus = myBus else { return [] }
+        let mine = scheduleViewModel.schedules.filter { $0.tripName == bus.name }
+        let today = mine.filter { $0.runsToday }
+        return today.isEmpty ? mine : today
     }
 
     var selectedSchedule: BusSchedule? {
@@ -65,6 +89,21 @@ struct DriverHomeView: View {
                         .listRowInsets(EdgeInsets())
                 }
 
+                Section {
+                    Label(myBusText, systemImage: myBus == nil ? "exclamationmark.triangle.fill" : "bus.fill")
+                        .font(.headline)
+                        .foregroundColor(myBus == nil ? .orange : .primary)
+                    Button {
+                        showAbsence = true
+                    } label: {
+                        Label("I can't drive", systemImage: "bed.double")
+                    }
+                    ForEach(fleetViewModel.absences.prefix(3)) { absence in
+                        LabeledContent("\(absence.fromDate) – \(absence.untilDate)", value: absence.status.title)
+                            .font(.footnote)
+                    }
+                }
+
                 Section(header: Text("Trip")) {
                     SchedulePicker(schedules: tripChoices,
                                    selectedId: $selectedScheduleId)
@@ -104,8 +143,10 @@ struct DriverHomeView: View {
                     } label: {
                         Text(driverViewModel.isOnTrip ? "End trip" : "Start trip")
                             .fontWeight(.bold)
-                            .foregroundColor(driverViewModel.isOnTrip ? .red : .green)
+                            .foregroundColor(driverViewModel.isOnTrip ? .red : (myBus == nil ? .secondary : .green))
                     }
+                    // Without a bus for today there is nothing to start. A running trip can always end.
+                    .disabled(!driverViewModel.isOnTrip && myBus == nil)
 
                     Text(driverViewModel.statusMessage)
                         .foregroundColor(.secondary)
@@ -159,6 +200,12 @@ struct DriverHomeView: View {
         .onAppear {
             routeViewModel.startListening()
             scheduleViewModel.startListening()
+            if let uid = authViewModel.user?.uid {
+                fleetViewModel.listenAsDriver(uid: uid)
+            }
+        }
+        .sheet(isPresented: $showAbsence) {
+            AbsenceRequestView(fleetViewModel: fleetViewModel)
         }
         .onChange(of: routeViewModel.routes.count) { _, _ in
             // Pick the first route once routes have loaded.
@@ -175,10 +222,17 @@ struct DriverHomeView: View {
                 selectedScheduleId = firstId
             }
         }
+        // The assignment arrived or changed: pick one of this bus's trips.
+        .onChange(of: myBus?.id) { _, _ in
+            if !tripChoices.contains(where: { $0.id == selectedScheduleId }) {
+                selectedScheduleId = tripChoices.first?.id ?? ""
+            }
+        }
         .onDisappear {
             // Leaving this screen (for example signing out) stops GPS and ends the trip.
             routeViewModel.stopListening()
             scheduleViewModel.stopListening()
+            fleetViewModel.stopListening()
             if driverViewModel.isOnTrip {
                 driverViewModel.endTrip()
             }
@@ -187,11 +241,15 @@ struct DriverHomeView: View {
 
     func startTrip() {
         guard let uid = authViewModel.user?.uid else { return }
+        guard let bus = myBus else {
+            driverViewModel.statusMessage = String(localized: "No bus assigned today. Contact the transport office.")
+            return
+        }
         guard let schedule = selectedSchedule, let route = selectedRoute else {
             driverViewModel.statusMessage = String(localized: "Pick a bus and a route first")
             return
         }
-        driverViewModel.startTrip(schedule: schedule, route: route, driverId: uid)
+        driverViewModel.startTrip(schedule: schedule, route: route, fleetBus: bus, driverId: uid)
     }
 }
 
@@ -246,3 +304,52 @@ struct WaitingAheadBanner: View {
     }
 }
 
+
+// "I can't drive": the driver picks the days and a reason. The transport office sees
+// it in Drivers & buses and arranges a cover driver.
+struct AbsenceRequestView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @ObservedObject var fleetViewModel: FleetViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var from = Date()
+    @State private var until = Date()
+    @State private var reason = ""
+    @State private var errorMessage = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(footer: Text("The transport office will arrange another driver for your bus on these days.")) {
+                    DatePicker("From", selection: $from, in: Date()..., displayedComponents: .date)
+                    DatePicker("Until", selection: $until, in: from..., displayedComponents: .date)
+                    TextField("Reason, e.g. fever", text: $reason)
+                }
+                if !errorMessage.isEmpty {
+                    Text(errorMessage).foregroundColor(.red)
+                }
+            }
+            .navigationTitle("I can't drive")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Send") {
+                        guard let uid = authViewModel.user?.uid else { return }
+                        fleetViewModel.requestAbsence(driverId: uid, driverName: authViewModel.profile?.name ?? "",
+                                                      from: from, until: until, reason: reason) { error in
+                            if let error = error {
+                                errorMessage = error
+                            } else {
+                                dismiss()
+                            }
+                        }
+                    }
+                    .disabled(reason.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+    }
+}

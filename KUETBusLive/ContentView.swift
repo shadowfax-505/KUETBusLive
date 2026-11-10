@@ -25,6 +25,7 @@ struct ContentView: View {
         guard authViewModel.isSignedIn else { return "login" }
         guard let profile = authViewModel.profile else { return "loading" }
         if authViewModel.mustVerifyEmail { return "verify" }
+        if !profile.isActive { return "inactive" }
         if profile.needsApproval && !profile.approved { return "waiting" }
         return profile.role.rawValue
     }
@@ -83,7 +84,18 @@ struct ContentView: View {
         if !authViewModel.isSignedIn {
             LoginView()
         } else if let profile = authViewModel.profile {
-            if authViewModel.mustVerifyEmail {
+            if !profile.isActive {
+                // A driver who left the job: the admin turned the account off.
+                ContentUnavailableView {
+                    Label("Your account is no longer active", systemImage: "person.crop.circle.badge.xmark")
+                } description: {
+                    Text("Contact the KUET transport office if you think this is a mistake.")
+                } actions: {
+                    Button("Sign Out") {
+                        authViewModel.signOut()
+                    }
+                }
+            } else if authViewModel.mustVerifyEmail {
                 VerifyEmailView()
             } else if profile.needsApproval && !profile.approved {
                 PendingApprovalView()

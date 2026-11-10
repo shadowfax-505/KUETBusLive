@@ -55,6 +55,8 @@ struct AppUser: Identifiable, Codable {
     var favoriteStopName: String?
     var favoriteStopLat: Double?
     var favoriteStopLng: Double?
+    // false once the admin deactivates the account (for example a driver who left the job).
+    var active: Bool?
 
     // Teachers and drivers must be approved by the transport admin before they can use the app.
     var needsApproval: Bool {
@@ -63,6 +65,11 @@ struct AppUser: Identifiable, Codable {
 
     var approved: Bool {
         isApproved ?? false
+    }
+
+    // Accounts are active unless the admin turned them off.
+    var isActive: Bool {
+        active ?? true
     }
 
     // Computed property: builds a Stop only when all three fields are saved.

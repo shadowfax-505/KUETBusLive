@@ -125,6 +125,10 @@ struct ComposeAnnouncementView: View {
     @StateObject private var routeViewModel = RouteViewModel()
     @Environment(\.dismiss) private var dismiss
 
+    // Optional text to start from, for example a notice the app drafted for the admin.
+    var draftTitle = ""
+    var draftBody = ""
+
     @State private var title = ""
     @State private var message = ""
     @State private var routeName = ""   // "" means all routes
@@ -157,6 +161,10 @@ struct ComposeAnnouncementView: View {
                     Text(errorMessage)
                         .foregroundColor(.red)
                 }
+            }
+            .onAppear {
+                if title.isEmpty { title = draftTitle }
+                if message.isEmpty { message = draftBody }
             }
             .navigationTitle("New announcement")
             .navigationBarTitleDisplayMode(.inline)

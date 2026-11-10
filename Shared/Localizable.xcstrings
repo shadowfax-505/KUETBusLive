@@ -32,6 +32,26 @@
         }
       }
     },
+    "%@ becomes the regular driver from today.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ থেকে %@ নিয়মিত চালক হবেন।"
+          }
+        }
+      }
+    },
+    "%@ drives %@ now. The two buses will swap drivers.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ এখন %2$@ চালান। দুই বাসের চালক অদলবদল হবে।"
+          }
+        }
+      }
+    },
     "%@ is almost here": {
       "localizations": {
         "bn": {
@@ -42,12 +62,42 @@
         }
       }
     },
+    "%@ may not run today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ আজ হয়তো চলবে না"
+          }
+        }
+      }
+    },
     "%@ · %@": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ – %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – %2$@"
+          }
+        }
+      }
+    },
+    "%@ – %@ · %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – %2$@ · %3$@"
           }
         }
       }
@@ -78,6 +128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%@: no driver today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: আজ কোনো চালক নেই"
           }
         }
       }
@@ -212,6 +272,16 @@
         }
       }
     },
+    "A permanent change. A driver can be the regular driver of only one bus; choosing someone who already has a bus swaps the two buses' drivers.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি স্থায়ী পরিবর্তন। একজন চালক শুধু একটি বাসের নিয়মিত চালক হতে পারেন; যার আগে থেকে বাস আছে তাকে বেছে নিলে দুই বাসের চালক অদলবদল হবে।"
+          }
+        }
+      }
+    },
     "About": {
       "localizations": {
         "bn": {
@@ -268,6 +338,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ট্রিপ যোগ করুন"
+          }
+        }
+      }
+    },
+    "Add cover": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলি চালক দিন"
           }
         }
       }
@@ -462,6 +542,16 @@
         }
       }
     },
+    "Assign cover for %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর জন্য বদলি চালক দিন"
+          }
+        }
+      }
+    },
     "At your stop": {
       "localizations": {
         "bn": {
@@ -542,6 +632,16 @@
         }
       }
     },
+    "Buses today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজকের বাস"
+          }
+        }
+      }
+    },
     "Calculating...": {
       "localizations": {
         "bn": {
@@ -562,7 +662,27 @@
         }
       }
     },
+    "Can't drive requests": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালাতে না পারার অনুরোধ"
+          }
+        }
+      }
+    },
     "Cancel": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল"
+          }
+        }
+      }
+    },
+    "Cancelled": {
       "localizations": {
         "bn": {
           "stringUnit": {
@@ -582,12 +702,52 @@
         }
       }
     },
+    "Change": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবর্তন করুন"
+          }
+        }
+      }
+    },
+    "Change cover": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলি পরিবর্তন করুন"
+          }
+        }
+      }
+    },
     "Change passcode": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "পাসকোড বদলান"
+          }
+        }
+      }
+    },
+    "Change the regular driver of %@?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর নিয়মিত চালক পরিবর্তন করবেন?"
+          }
+        }
+      }
+    },
+    "Choose": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বেছে নিন"
           }
         }
       }
@@ -628,6 +788,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অভিযোগ"
+          }
+        }
+      }
+    },
+    "Contact the KUET transport office if you think this is a mistake.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভুল মনে হলে কুয়েট পরিবহন দপ্তরে যোগাযোগ করুন।"
           }
         }
       }
@@ -702,12 +872,82 @@
         }
       }
     },
+    "Cover": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলি"
+          }
+        }
+      }
+    },
+    "Cover arranged": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলি চালক ঠিক হয়েছে"
+          }
+        }
+      }
+    },
+    "Cover driver": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বদলি চালক"
+          }
+        }
+      }
+    },
+    "Cover for %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর বদলি"
+          }
+        }
+      }
+    },
+    "Covered by %@ until %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ পর্যন্ত %1$@ চালাচ্ছেন"
+          }
+        }
+      }
+    },
+    "Covering %@ until %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ পর্যন্ত %1$@ চালাচ্ছেন"
+          }
+        }
+      }
+    },
     "Create an account": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "অ্যাকাউন্ট খুলুন"
+          }
+        }
+      }
+    },
+    "Create buses from the timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি থেকে বাস তৈরি করুন"
           }
         }
       }
@@ -728,6 +968,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "দিন"
+          }
+        }
+      }
+    },
+    "Deactivate": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিষ্ক্রিয় করুন"
+          }
+        }
+      }
+    },
+    "Deactivate %@?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-কে নিষ্ক্রিয় করবেন?"
+          }
+        }
+      }
+    },
+    "Deactivated": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিষ্ক্রিয়"
           }
         }
       }
@@ -782,12 +1052,22 @@
         }
       }
     },
+    "Draft notice": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নোটিশের খসড়া"
+          }
+        }
+      }
+    },
     "Driver": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ড্রাইভার"
+            "value": "চালক"
           }
         }
       }
@@ -808,6 +1088,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "চালকের আচরণ"
+          }
+        }
+      }
+    },
+    "Drivers": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালক"
+          }
+        }
+      }
+    },
+    "Drivers & buses": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালক ও বাস"
           }
         }
       }
@@ -878,6 +1178,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "কর্মচারী আইডি"
+          }
+        }
+      }
+    },
+    "End cover now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনই বদলি শেষ করুন"
           }
         }
       }
@@ -992,6 +1302,16 @@
         }
       }
     },
+    "From": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "থেকে"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "bn": {
@@ -1088,6 +1408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আমি একজন"
+          }
+        }
+      }
+    },
+    "I can't drive": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি চালাতে পারব না"
           }
         }
       }
@@ -1382,6 +1712,16 @@
         }
       }
     },
+    "Makes one bus for each bus name in the timetable (Normal-1, Normal-2 ...). Then choose a regular driver for each.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচির প্রতিটি বাসের নামে (Normal-1, Normal-2 ...) একটি করে বাস তৈরি করে। তারপর প্রতিটির নিয়মিত চালক বেছে নিন।"
+          }
+        }
+      }
+    },
     "Map": {
       "localizations": {
         "bn": {
@@ -1512,6 +1852,16 @@
         }
       }
     },
+    "Needs attention": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মনোযোগ দরকার"
+          }
+        }
+      }
+    },
     "New announcement": {
       "localizations": {
         "bn": {
@@ -1612,6 +1962,16 @@
         }
       }
     },
+    "No bus assigned today. Contact the transport office.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আপনার কোনো বাস নেই। পরিবহন দপ্তরে যোগাযোগ করুন।"
+          }
+        }
+      }
+    },
     "No buses are running right now": {
       "localizations": {
         "bn": {
@@ -1652,12 +2012,32 @@
         }
       }
     },
+    "No cover. The regular driver drives.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো বদলি নেই। নিয়মিত চালক চালাবেন।"
+          }
+        }
+      }
+    },
     "No crowd report": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "ভিড়ের খবর নেই"
+          }
+        }
+      }
+    },
+    "No driver today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ কোনো চালক নেই"
           }
         }
       }
@@ -1742,6 +2122,16 @@
         }
       }
     },
+    "Nobody": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কেউ না"
+          }
+        }
+      }
+    },
     "Noon": {
       "localizations": {
         "bn": {
@@ -1782,6 +2172,16 @@
         }
       }
     },
+    "Not the regular driver of any bus.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো বাসের নিয়মিত চালক নন।"
+          }
+        }
+      }
+    },
     "Not verified yet. Open the link in your KUET email first.": {
       "localizations": {
         "bn": {
@@ -1808,6 +2208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ঠিক আছে"
+          }
+        }
+      }
+    },
+    "Only drivers who aren't driving another bus and aren't off on the first day are listed.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রথম দিনে যারা অন্য বাস চালাচ্ছেন না এবং ছুটিতে নেই, শুধু তাদের দেখানো হয়েছে।"
           }
         }
       }
@@ -1972,6 +2382,66 @@
         }
       }
     },
+    "Reactivate": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আবার সক্রিয় করুন"
+          }
+        }
+      }
+    },
+    "Reason": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কারণ"
+          }
+        }
+      }
+    },
+    "Reason, e.g. fever": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কারণ, যেমন জ্বর"
+          }
+        }
+      }
+    },
+    "Reason, e.g. regular driver sick": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কারণ, যেমন নিয়মিত চালক অসুস্থ"
+          }
+        }
+      }
+    },
+    "Regular driver": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিয়মিত চালক"
+          }
+        }
+      }
+    },
+    "Regular driver of %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর নিয়মিত চালক"
+          }
+        }
+      }
+    },
     "Reject": {
       "localizations": {
         "bn": {
@@ -2048,6 +2518,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সমস্যা জানান"
+          }
+        }
+      }
+    },
+    "Reserve (no regular bus)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংরক্ষিত (নিয়মিত বাস নেই)"
           }
         }
       }
@@ -2672,6 +3152,16 @@
         }
       }
     },
+    "The bus will have no regular driver.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাসটির কোনো নিয়মিত চালক থাকবে না।"
+          }
+        }
+      }
+    },
     "The next bus you can take, how long until it leaves, and how far along it is.": {
       "localizations": {
         "bn": {
@@ -2728,6 +3218,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "ট্রিপ শুরু করার আগে পরিবহন দপ্তর আপনার ড্রাইভার আইডি যাচাই করবে।"
+          }
+        }
+      }
+    },
+    "The transport office will arrange another driver for your bus on these days.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই দিনগুলোতে পরিবহন দপ্তর আপনার বাসের জন্য অন্য চালক ঠিক করবে।"
+          }
+        }
+      }
+    },
+    "There is no driver for %@ today. The transport office is arranging one. Please check the map before you leave.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ %@-এর কোনো চালক নেই। পরিবহন দপ্তর চালক ঠিক করছে। বের হওয়ার আগে ম্যাপ দেখে নিন।"
           }
         }
       }
@@ -2922,6 +3432,16 @@
         }
       }
     },
+    "Until": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পর্যন্ত"
+          }
+        }
+      }
+    },
     "Updates sent: %lld": {
       "localizations": {
         "bn": {
@@ -2948,6 +3468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই জায়গা ব্যবহার করুন"
+          }
+        }
+      }
+    },
+    "Use this when a driver leaves the job. They are signed out of driving at once, a running trip ends, and their buses show \"No driver\" until you assign someone. You can reactivate them later.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো চালক চাকরি ছেড়ে দিলে এটি ব্যবহার করুন। তিনি সাথে সাথে আর বাস চালাতে পারবেন না, চলমান ট্রিপ শেষ হবে, এবং নতুন কাউকে না দেওয়া পর্যন্ত তার বাসে \"চালক নেই\" দেখাবে। পরে আবার সক্রিয় করা যাবে।"
           }
         }
       }
@@ -3062,6 +3592,16 @@
         }
       }
     },
+    "Waiting for the office": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দপ্তরের অপেক্ষায়"
+          }
+        }
+      }
+    },
     "We sent a link to %@. Open it, then come back and tap the button below.": {
       "localizations": {
         "bn": {
@@ -3148,6 +3688,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনি সর্বোচ্চ %lldটি জায়গা রাখতে পারবেন।"
+          }
+        }
+      }
+    },
+    "Your account is no longer active": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার অ্যাকাউন্ট আর সক্রিয় নেই"
+          }
+        }
+      }
+    },
+    "Your bus today: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আপনার বাস: %@"
           }
         }
       }
