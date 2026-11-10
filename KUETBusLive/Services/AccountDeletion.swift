@@ -43,7 +43,9 @@ enum AccountDeletion {
         PushManager.topicKey,
         PlacesViewModel.boardingPlaceKey,
         BusViewModel.wavingAtKey,
-        BusViewModel.wavingUntilKey
+        BusViewModel.wavingUntilKey,
+        RideHistory.suggestionsOnKey,
+        RideHistory.backupOnKey
     ]
 
     // Forgets everything this phone saved for the account. Works on any UserDefaults,

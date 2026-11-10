@@ -19,6 +19,11 @@ struct LiveMapView: View {
     // The rider's own places, and which one they board at ("" = their official stop).
     @StateObject private var placesViewModel = PlacesViewModel()
     @AppStorage(PlacesViewModel.boardingPlaceKey) private var boardingPlaceId = ""
+    // Smart suggestions: today's timetable and what the app has learned.
+    @StateObject private var scheduleViewModel = ScheduleViewModel()
+    @ObservedObject private var rideHistory = RideHistory.shared
+    @AppStorage(RideHistory.suggestionsOnKey) private var suggestionsOn = true
+    @State private var hideSuggestion = false
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
 
@@ -138,6 +143,14 @@ struct LiveMapView: View {
                                            })
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
+                    if let usual = usualBus, !hideSuggestion, selectedBus == nil {
+                        UsualBusCard(suggestion: usual.suggestion, schedule: usual.schedule,
+                                     liveBus: usual.liveBus,
+                                     usualDelay: rideHistory.usualDelay(trip: usual.schedule.title),
+                                     onFollow: { followUsual(usual) },
+                                     onClose: { withAnimation { hideSuggestion = true } })
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     if busViewModel.buses.isEmpty {
                         Text("No buses are running right now")
                             .padding()
@@ -178,6 +191,7 @@ struct LiveMapView: View {
             busViewModel.favoriteStop = authViewModel.profile?.favoriteStop
             busViewModel.viewerRole = authViewModel.profile?.role ?? .student
             busViewModel.startListening()
+            scheduleViewModel.startListening()
             if let uid = authViewModel.user?.uid {
                 placesViewModel.startListening(uid: uid)
             }
@@ -186,7 +200,9 @@ struct LiveMapView: View {
         .onDisappear {
             busViewModel.stopListening()
             placesViewModel.stopListening()
+            scheduleViewModel.stopListening()
         }
+        .onReceive(scheduleViewModel.$schedules) { busViewModel.schedules = $0 }
         // The boarding point changed (a place was chosen, added or removed): new ETAs.
         .onChange(of: placesViewModel.places) { updateBoardingPlace() }
         .onChange(of: boardingPlaceId) { updateBoardingPlace() }
@@ -210,6 +226,34 @@ struct LiveMapView: View {
             if selectedBusId != nil && selectedBus == nil {
                 selectedBusId = nil
             }
+        }
+    }
+
+    // The trip the scorer thinks this rider will take next, if any.
+    var usualBus: (suggestion: Suggestion, schedule: BusSchedule, liveBus: Bus?)? {
+        guard suggestionsOn, let role = authViewModel.profile?.role else { return nil }
+        let candidates = UsualBusFinder.candidates(from: scheduleViewModel.schedules, role: role)
+        let near = UsualBusFinder.nearbyKey(me: locationPermission.location,
+                                            stop: authViewModel.profile?.favoriteStop,
+                                            places: placesViewModel.places)
+        guard let suggestion = rideHistory.suggestion(trips: candidates.map(\.0),
+                                                      currentBoardingKey: busViewModel.boardingKey?.key,
+                                                      nearBoardingKey: near),
+              let schedule = candidates.first(where: { $0.0 == suggestion.trip })?.1 else { return nil }
+        let live = busViewModel.buses.first { $0.number == schedule.title }
+        return (suggestion, schedule, live)
+    }
+
+    // One tap: board where I usually do, and follow the bus if it is already running.
+    func followUsual(_ usual: (suggestion: Suggestion, schedule: BusSchedule, liveBus: Bus?)) {
+        if usual.suggestion.boardingKey.hasPrefix("place:") {
+            boardingPlaceId = String(usual.suggestion.boardingKey.dropFirst("place:".count))
+        } else if usual.suggestion.boardingKey.hasPrefix("stop:") {
+            boardingPlaceId = ""
+        }
+        if let bus = usual.liveBus {
+            select(bus)
+            busViewModel.follow(bus)
         }
     }
 

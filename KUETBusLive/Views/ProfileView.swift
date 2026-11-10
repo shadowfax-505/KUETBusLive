@@ -15,6 +15,9 @@ struct ProfileView: View {
     @AppStorage("faceIDOn") private var faceIDOn = false
     @AppStorage("passcodeOn") private var passcodeOn = false
     @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
+    @AppStorage(RideHistory.suggestionsOnKey) private var suggestionsOn = true
+    @AppStorage(RideHistory.backupOnKey) private var backupOn = false
+    @State private var confirmReset = false
     @State private var showSetPasscode = false
 
     // Set by the driver screen while a trip runs, so deleting the account can end it first.
@@ -87,6 +90,24 @@ struct ProfileView: View {
                 Section(header: Text("News"),
                         footer: Text("Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.")) {
                     Toggle("Show news and announcements", isOn: $showNews)
+                }
+            }
+
+            // Smart suggestions learn the rider's usual bus on this phone.
+            if isRider {
+                Section(header: Text("Smart suggestions"),
+                        footer: Text("The app notices which bus you follow, wave at or get on, and suggests it at the same time next week. This stays on this phone unless you keep it in your account.")) {
+                    Toggle("Suggest my usual bus", isOn: $suggestionsOn)
+                    Toggle("Keep my ride history in my account", isOn: $backupOn)
+                        .disabled(!suggestionsOn)
+                        .onChange(of: backupOn) { _, on in
+                            if on, let uid = authViewModel.user?.uid {
+                                RideHistory.shared.restoreFromAccount(uid: uid)
+                            }
+                        }
+                    Button("Reset what the app has learned", role: .destructive) {
+                        confirmReset = true
+                    }
                 }
             }
 
@@ -176,6 +197,12 @@ struct ProfileView: View {
                 if saved {
                     passcodeOn = true
                 }
+            }
+        }
+        .confirmationDialog("Forget your ride history and usual buses?", isPresented: $confirmReset,
+                            titleVisibility: .visible) {
+            Button("Reset", role: .destructive) {
+                RideHistory.shared.reset(uid: authViewModel.user?.uid)
             }
         }
         .alert("Delete account?", isPresented: $showDeleteConfirm) {

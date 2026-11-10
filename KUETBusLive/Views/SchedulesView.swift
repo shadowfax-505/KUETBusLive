@@ -139,6 +139,12 @@ struct ScheduleRow: View {
                 .font(.subheadline)
             Text("Leaves \(schedule.spotDisplayName) \(BusSchedule.display(schedule.spotTime))")
                 .font(.subheadline)
+            // Learned on this phone from buses seen leaving (smart suggestions).
+            if let delay = RideHistory.shared.usualDelay(trip: schedule.title), delay > 0 {
+                Label("Usually \(delay) min late", systemImage: "clock.arrow.circlepath")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+            }
             if !schedule.remarks.isEmpty {
                 Text(schedule.remarks)
                     .font(.footnote)

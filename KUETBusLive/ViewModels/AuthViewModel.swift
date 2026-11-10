@@ -206,6 +206,9 @@ class AuthViewModel: ObservableObject {
                     try? await db.collection("buses").document(busId).collection("waves").document(uid).delete()
                 }
 
+                // What smart suggestions learned, here and in the account.
+                RideHistory.shared.reset(uid: uid)
+
                 // Complaints this person sent.
                 let complaints = try await db.collection("complaints").whereField("uid", isEqualTo: uid).getDocuments()
                 for complaint in complaints.documents {

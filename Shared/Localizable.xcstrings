@@ -12,6 +12,26 @@
         }
       }
     },
+    "%@ at %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@-এ %1$@"
+          }
+        }
+      }
+    },
+    "%@ at %@ from %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@-এ %3$@ থেকে %1$@"
+          }
+        }
+      }
+    },
     "%@ is almost here": {
       "localizations": {
         "bn": {
@@ -932,12 +952,32 @@
         }
       }
     },
+    "Follow": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুসরণ করুন"
+          }
+        }
+      }
+    },
     "Follow on Lock Screen": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "লক স্ক্রিনে ফলো করুন"
+          }
+        }
+      }
+    },
+    "Forget your ride history and usual buses?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যাত্রার ইতিহাস ও নিয়মিত বাসের তথ্য মুছে ফেলবেন?"
           }
         }
       }
@@ -998,6 +1038,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "লুকানোগুলো আড়াল করুন"
+          }
+        }
+      }
+    },
+    "Hide suggestion": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরামর্শ লুকান"
           }
         }
       }
@@ -1122,6 +1172,16 @@
         }
       }
     },
+    "Keep my ride history in my account": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যাত্রার ইতিহাস আমার অ্যাকাউন্টে রাখুন"
+          }
+        }
+      }
+    },
     "Keep the map on this bus": {
       "localizations": {
         "bn": {
@@ -1198,6 +1258,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "KUET থেকে ছাড়ে %@"
+          }
+        }
+      }
+    },
+    "Leaves in %lld h %lld min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ঘণ্টা %lld মিনিট পরে ছাড়বে"
+          }
+        }
+      }
+    },
+    "Leaves in %lld min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট পরে ছাড়বে"
           }
         }
       }
@@ -1972,6 +2052,26 @@
         }
       }
     },
+    "Reset": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মুছে ফেলুন"
+          }
+        }
+      }
+    },
+    "Reset what the app has learned": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাপ যা শিখেছে তা মুছে ফেলুন"
+          }
+        }
+      }
+    },
     "Resolved": {
       "localizations": {
         "bn": {
@@ -2058,6 +2158,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "রুট"
+          }
+        }
+      }
+    },
+    "Running now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখন চলছে"
           }
         }
       }
@@ -2262,6 +2372,16 @@
         }
       }
     },
+    "Smart suggestions": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্মার্ট পরামর্শ"
+          }
+        }
+      }
+    },
     "Special trips are teacher buses, so they are hidden. Students can only ride Normal trips.": {
       "localizations": {
         "bn": {
@@ -2412,6 +2532,16 @@
         }
       }
     },
+    "Suggest my usual bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার নিয়মিত বাস দেখান"
+          }
+        }
+      }
+    },
     "Sunday to Thursday": {
       "localizations": {
         "bn": {
@@ -2528,6 +2658,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অ্যাপ থেকে বের হলেই এটা লক হয়ে যায়। দুটোই চালু থাকলে আগে Face ID, তারপর পাসকোড।"
+          }
+        }
+      }
+    },
+    "The app notices which bus you follow, wave at or get on, and suggests it at the same time next week. This stays on this phone unless you keep it in your account.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি কোন বাস অনুসরণ করেন, কোন বাসে হাত নাড়েন বা ওঠেন, অ্যাপ তা খেয়াল রাখে এবং পরের সপ্তাহে একই সময়ে সেটি দেখায়। আপনি অ্যাকাউন্টে না রাখলে এসব এই ফোনেই থাকে।"
           }
         }
       }
@@ -2802,6 +2942,16 @@
         }
       }
     },
+    "Use this stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই জায়গা ব্যবহার করুন"
+          }
+        }
+      }
+    },
     "Use your @%@ email. Your roll number must match the one in it. We'll email you a link to confirm.": {
       "localizations": {
         "bn": {
@@ -2838,6 +2988,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার KUET শিক্ষার্থী ইমেইল ব্যবহার করুন (শেষে @%@)।"
+          }
+        }
+      }
+    },
+    "Usually %lld min late": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাধারণত %lld মিনিট দেরি করে"
           }
         }
       }
@@ -3008,6 +3168,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আগে আপনার চলমান ট্রিপ শেষ করা হবে।"
+          }
+        }
+      }
+    },
+    "Your usual bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার নিয়মিত বাস"
           }
         }
       }

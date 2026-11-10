@@ -27,6 +27,10 @@ class BusViewModel: ObservableObject {
     // A place from "My places" the rider boards at instead of their official stop.
     var boardingPlace: MyPlace?
 
+    // Today's timetable, so the app can see how late each bus left (smart suggestions).
+    var schedules: [BusSchedule] = []
+    private var delayCheckedBusIds = Set<String>()
+
     // The bus this rider is waving at, if any. One wave at a time.
     @Published var wavingAtBusId: String?
     static let wavingAtKey = "wavingAtBusId"
@@ -69,6 +73,7 @@ class BusViewModel: ObservableObject {
                 // Stops are needed for the progress track, so load each route once.
                 self.loadRoute(for: bus)
                 self.refreshETA(for: bus)
+                self.learnDelay(for: bus)
                 // Crowd or signal changes reach the Lock Screen straight away.
                 LiveActivityManager.shared.refresh(bus: bus)
             }
@@ -157,6 +162,39 @@ class BusViewModel: ObservableObject {
         return nil
     }
 
+    // The same boarding point as a short key for smart suggestions: "place:p1" or "stop:Fulbarigate".
+    var boardingKey: (key: String, name: String)? {
+        if let place = boardingPlace, let id = place.id {
+            return ("place:\(id)", place.label)
+        }
+        if let stop = favoriteStop {
+            return ("stop:\(stop.name)", stop.name)
+        }
+        return nil
+    }
+
+    // Smart suggestions: remember this moment, on this phone only.
+    func remember(_ kind: RideEventKind, bus: Bus) {
+        guard let boarding = boardingKey else { return }
+        RideHistory.shared.record(kind, tripTitle: bus.number, routeId: bus.routeId,
+                                  boardingKey: boarding.key, boardingName: boarding.name)
+    }
+
+    // The first time a bus is seen near the start of its route, compare the time
+    // with the timetable to learn how late that trip usually leaves.
+    func learnDelay(for bus: Bus, now: Date = Date()) {
+        guard let busId = bus.id, !delayCheckedBusIds.contains(busId),
+              let scheduleId = bus.scheduleId,
+              let schedule = schedules.first(where: { $0.id == scheduleId }),
+              let departure = BusSchedule.minutes(from: schedule.campusTime),
+              let nearest = nearestStop(for: bus) else { return }
+        delayCheckedBusIds.insert(busId)
+        // Only when the bus is still at its first stop; otherwise we saw it too late to tell.
+        guard nearest.index == 0 else { return }
+        let late = Double(BusSchedule.minutesNow(now) - departure)
+        RideHistory.shared.recordDelay(trip: bus.number, minutesLate: late)
+    }
+
     // How far the bus is from KUET to my stop, for the progress track.
     // nil when my stop isn't on this bus's route (or the route hasn't loaded yet).
     func tripProgress(for bus: Bus) -> TripProgress? {
@@ -181,6 +219,7 @@ class BusViewModel: ObservableObject {
                                          etaMinutes: info?.minutes, distanceKm: info?.kilometres,
                                          progress: tripProgress(for: bus) ?? .empty)
         refreshETA(for: bus, force: true)
+        remember(.followed, bus: bus)
     }
 
     // Update: anyone allowed on the bus can report how crowded it is.
@@ -216,6 +255,7 @@ class BusViewModel: ObservableObject {
                                                  crowd: bus.crowd.rawValue, progress: progress,
                                                  busLat: bus.lat, busLng: bus.lng, updatedAt: Date()))
             self.checkArrivalAlert(bus: bus, minutes: info.minutes)
+            self.checkBoarded(bus: bus, info: info, at: point.coordinate)
         }
     }
 
@@ -227,9 +267,19 @@ class BusViewModel: ObservableObject {
               !alertedBusIds.contains(busId) else { return }
 
         alertedBusIds.insert(busId)
+        remember(.alerted, bus: bus)
         NotificationManager.shared.sendArrivalAlert(busNumber: bus.number,
                                                     stopName: boardingPoint(for: bus)?.name ?? String(localized: "your stop"),
                                                     minutes: minutes)
+    }
+
+    // The bus is at my boarding point and so am I: I probably got on. Remembered once a day.
+    private func checkBoarded(bus: Bus, info: RouteInfo, at point: CLLocationCoordinate2D) {
+        guard info.kilometres < 0.2, let me = CLLocationManager().location else { return }
+        let boardingPoint = CLLocation(latitude: point.latitude, longitude: point.longitude)
+        if me.distance(from: boardingPoint) < 300 {
+            remember(.boarded, bus: bus)
+        }
     }
 
     // MARK: - "I'm waiting here"
@@ -248,6 +298,7 @@ class BusViewModel: ObservableObject {
         do {
             try db.collection("buses").document(busId).collection("waves").document(uid).setData(from: wave)
             wavingAtBusId = busId
+            remember(.waved, bus: bus)
             UserDefaults.standard.set(busId, forKey: Self.wavingAtKey)
             UserDefaults.standard.set(wave.expiresAt.timeIntervalSince1970, forKey: Self.wavingUntilKey)
         } catch {
