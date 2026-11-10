@@ -14,26 +14,28 @@ https://github.com/shadowfax-505/KUETBusLive/blob/main/docs/privacy-policy.md
 
 ## Data types
 
-Tick these five, and nothing else:
+Tick these seven, and nothing else:
 
 | Category | Data type | What it is in this app |
 |---|---|---|
 | Contact Info | **Name** | The name on the profile |
 | Contact Info | **Email Address** | The KUET email (or a driver's email) used to sign in |
-| Location | **Precise Location** | A driver's bus position while a trip is running |
+| Location | **Precise Location** | A driver's bus position while a trip runs; a rider's saved places; the waiting point shared with one driver |
 | Identifiers | **User ID** | The Firebase user ID and the KUET roll, employee or driver ID |
-| User Content | **Other User Content** | Favourite stop and crowd reports |
+| User Content | **Other User Content** | Favourite stop, crowd reports, drivers' "I can't drive" requests |
+| User Content | **Customer Support** | Complaints sent with Report a problem, and the transport office's reply |
+| Usage Data | **Product Interaction** | Ride history for smart suggestions, **only** if the rider turns on "Keep my ride history in my account" (off by default) |
 
 Leave everything else unticked. In particular:
 
-- **Coarse Location:** no. Only the driver's precise position is collected.
+- **Coarse Location:** no. Only precise positions are collected (listed above).
 - **Device ID:** no. The only device-level value is the Firebase push token, which is used only to deliver notifications. Firebase's own SDK privacy manifests cover what the Firebase libraries do. If App Review asks about it, ticking Device ID (App Functionality, linked, not tracking) is the cautious answer, and then add `NSPrivacyCollectedDataTypeDeviceID` to the app's privacy manifest too.
-- **Usage Data, Diagnostics, Purchases, Financial Info, Health, Contacts, Browsing/Search History, Sensitive Info:** no. The app has no analytics, crash reporting, ads or payments.
+- **Other Usage Data, Diagnostics, Purchases, Financial Info, Health, Contacts, Browsing/Search History, Sensitive Info:** no. The app has no analytics, crash reporting, ads or payments.
 - The rider's own location on the map never leaves the phone, so it is not "collected".
 
 ## Questions for each data type
 
-Answer the same way for all five:
+Answer the same way for all seven:
 
 | Question | Answer |
 |---|---|
@@ -44,8 +46,11 @@ Answer the same way for all five:
 Why each one is App Functionality:
 
 - **Name, Email, User ID:** signing in, checking KUET membership, and letting the transport admin approve teachers and drivers.
-- **Precise Location:** showing the bus to students while the driver's trip runs. Deleted when the trip ends.
-- **Other User Content:** the favourite stop drives ETAs and arrival alerts; crowd reports show how full a bus is.
+- **Precise Location:** showing the bus to students while the driver's trip runs (deleted when the trip ends); a rider's saved places as boarding points; a rider's waiting point, shown to one driver for at most 15 minutes.
+- **Other User Content:** the favourite stop drives ETAs and arrival alerts; crowd reports show how full a bus is; absence requests let the office arrange a cover driver.
+- **Customer Support:** the transport office reads and answers complaints.
+- **Product Interaction:** lets "Your usual bus" work on a new phone.
+- The **smart assistant** runs on the phone and sends nothing, so it adds no data type.
 
 ## Tracking
 
