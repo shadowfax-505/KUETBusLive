@@ -16,6 +16,8 @@ struct SchedulesView: View {
     @State private var days: TripDays = TripDays.saturday.includes(Date()) ? .saturday : .sunToThu
     @State private var editingSchedule: BusSchedule?
     @State private var confirmReload = false
+    @State private var showImport = false
+    @EnvironmentObject var assistant: AssistantViewModel
 
     var role: UserRole {
         authViewModel.profile?.role ?? .student
@@ -85,6 +87,11 @@ struct SchedulesView: View {
                         Button("Reload official timetable") {
                             confirmReload = true
                         }
+                        if assistant.isReady() {
+                            Button("Import from text with assistant") {
+                                showImport = true
+                            }
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -96,6 +103,9 @@ struct SchedulesView: View {
                 Button("Replace", role: .destructive) {
                     scheduleViewModel.loadOfficialTimetable()
                 }
+            }
+            .sheet(isPresented: $showImport) {
+                TimetableImportView(scheduleViewModel: scheduleViewModel)
             }
             .sheet(item: $editingSchedule) { schedule in
                 ScheduleEditView(schedule: schedule, scheduleViewModel: scheduleViewModel)

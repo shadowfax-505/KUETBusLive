@@ -15,6 +15,8 @@ struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     // Shared by every signed-in screen: the announcements list, its unread badge and the banner.
     @StateObject private var announcementViewModel = AnnouncementViewModel()
+    // The optional smart assistant on this phone (off until the person turns it on).
+    @StateObject private var assistantViewModel = AssistantViewModel()
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("faceIDOn") private var faceIDOn = false
     @AppStorage("passcodeOn") private var passcodeOn = false
@@ -38,6 +40,7 @@ struct ContentView: View {
         ZStack {
             screen
                 .environmentObject(announcementViewModel)
+                .environmentObject(assistantViewModel)
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 .id(screenName)
 

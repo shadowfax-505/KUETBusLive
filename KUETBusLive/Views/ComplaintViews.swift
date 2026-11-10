@@ -277,6 +277,11 @@ struct ComplaintReplyView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            // Optional: a suggested category, urgency and reply, for the admin to edit.
+            ComplaintSuggestionView(complaint: complaint) { suggested, _ in
+                reply = suggested
+            }
+
             Section(header: Text("Reply"), footer: Text("The person who sent it sees this reply in My complaints.")) {
                 TextField("Write a reply", text: $reply, axis: .vertical)
                     .lineLimit(3...8)

@@ -159,6 +159,9 @@ struct ProfileView: View {
                 }
             }
 
+            // Optional, per phone: only offered where Apple's on-device model can run.
+            AssistantSettingsSection()
+
             Section(header: Text("About")) {
                 Link(destination: Self.privacyPolicyURL) {
                     Label("Privacy policy", systemImage: "hand.raised")

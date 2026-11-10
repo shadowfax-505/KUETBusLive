@@ -24,6 +24,9 @@ struct LiveMapView: View {
     @ObservedObject private var rideHistory = RideHistory.shared
     @AppStorage(RideHistory.suggestionsOnKey) private var suggestionsOn = true
     @State private var hideSuggestion = false
+    @EnvironmentObject var assistant: AssistantViewModel
+    @EnvironmentObject var announcementsForAsk: AnnouncementViewModel
+    @State private var showAsk = false
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
 
@@ -178,6 +181,19 @@ struct LiveMapView: View {
             }
             .animation(.spring, value: selectedBusId)
             .navigationTitle("Live Buses")
+            // Riders: ask a question about today's buses (only when the assistant is on).
+            .toolbar {
+                if assistant.isReady() && authViewModel.profile?.role != .admin {
+                    Button {
+                        showAsk = true
+                    } label: {
+                        Label("Ask", systemImage: "bubble.left.and.text.bubble.right")
+                    }
+                }
+            }
+            .sheet(isPresented: $showAsk) {
+                AskView(makePrompt: askPrompt)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $showDetail) {
                 if let busId = selectedBusId {
@@ -255,6 +271,17 @@ struct LiveMapView: View {
             select(bus)
             busViewModel.follow(bus)
         }
+    }
+
+    // The data an answer may use: today's trips, my boarding point, live buses, the news.
+    func askPrompt(_ question: String) -> String {
+        let live = busViewModel.buses.map { bus in
+            (name: bus.number, eta: bus.id.flatMap { busViewModel.etaText[$0] })
+        }
+        return RiderQuestion.prompt(question: question, now: Date(), schedules: scheduleViewModel.schedules,
+                                    role: authViewModel.profile?.role ?? .student,
+                                    boarding: busViewModel.boardingKey?.name, liveBuses: live,
+                                    announcements: announcementsForAsk.visibleAnnouncements)
     }
 
     func updateBoardingPlace() {

@@ -144,6 +144,8 @@ struct ComposeAnnouncementView: View {
     var body: some View {
         NavigationStack {
             Form {
+                AnnouncementDraftSection(title: $title, message: $message)
+
                 Section {
                     TextField("Title, e.g. Normal-2 is late", text: $title)
                     TextField("Message", text: $message, axis: .vertical)

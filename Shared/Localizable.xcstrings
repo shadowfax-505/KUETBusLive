@@ -442,6 +442,26 @@
         }
       }
     },
+    "Answered on this iPhone": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনেই উত্তর তৈরি"
+          }
+        }
+      }
+    },
+    "Answers come from this iPhone's own model, using only today's timetable, the buses running now and the latest news. They may be wrong, so check the timetable before you rely on them.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উত্তর আসে এই আইফোনের নিজস্ব মডেল থেকে, শুধু আজকের সময়সূচি, এখন চলা বাস ও সর্বশেষ খবর ব্যবহার করে। উত্তর ভুল হতে পারে, তাই ভরসা করার আগে সময়সূচি দেখে নিন।"
+          }
+        }
+      }
+    },
     "Any bus": {
       "localizations": {
         "bn": {
@@ -517,7 +537,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "অনুমোদন দিন"
+            "value": "অনুমোদন করুন"
           }
         }
       }
@@ -542,12 +562,32 @@
         }
       }
     },
+    "Ask": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জিজ্ঞেস করুন"
+          }
+        }
+      }
+    },
     "Assign cover for %@": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "%@-এর জন্য বদলি চালক দিন"
+          }
+        }
+      }
+    },
+    "Assistant": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী"
           }
         }
       }
@@ -692,6 +732,16 @@
         }
       }
     },
+    "Cancelled.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল করা হয়েছে।"
+          }
+        }
+      }
+    },
     "Category": {
       "localizations": {
         "bn": {
@@ -742,6 +792,16 @@
         }
       }
     },
+    "Changed (%lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবর্তিত (%lld)"
+          }
+        }
+      }
+    },
     "Choose": {
       "localizations": {
         "bn": {
@@ -758,6 +818,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "৪ অঙ্কের একটা পাসকোড বেছে নিন"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বন্ধ করুন"
           }
         }
       }
@@ -1052,12 +1122,42 @@
         }
       }
     },
+    "Discard": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাদ দিন"
+          }
+        }
+      }
+    },
+    "Draft": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খসড়া করুন"
+          }
+        }
+      }
+    },
     "Draft notice": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "নোটিশের খসড়া"
+          }
+        }
+      }
+    },
+    "Draft with assistant": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারীর সাহায্যে খসড়া"
           }
         }
       }
@@ -1448,6 +1548,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আমি ইমেইল যাচাই করেছি"
+          }
+        }
+      }
+    },
+    "Import from text with assistant": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী দিয়ে লেখা থেকে আমদানি"
+          }
+        }
+      }
+    },
+    "Import timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি আমদানি"
           }
         }
       }
@@ -1892,6 +2012,16 @@
         }
       }
     },
+    "New trips (%lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নতুন ট্রিপ (%lld)"
+          }
+        }
+      }
+    },
     "News": {
       "localizations": {
         "bn": {
@@ -1988,6 +2118,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই সপ্তাহে কোনো বাস নেই"
+          }
+        }
+      }
+    },
+    "No changes: the timetable already matches.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো পরিবর্তন নেই: সময়সূচি আগের মতোই।"
           }
         }
       }
@@ -2142,6 +2282,16 @@
         }
       }
     },
+    "Not available on this iPhone": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনে পাওয়া যাচ্ছে না"
+          }
+        }
+      }
+    },
     "Not on a trip": {
       "localizations": {
         "bn": {
@@ -2188,6 +2338,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এখনো যাচাই হয়নি। আগে আপনার KUET ইমেইলের লিংকটা খুলুন।"
+          }
+        }
+      }
+    },
+    "Note, e.g. Normal-2 late 15 min, flat tyre": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নোট, যেমন Normal-2 ১৫ মিনিট দেরি, টায়ার পাংচার"
           }
         }
       }
@@ -2312,6 +2472,16 @@
         }
       }
     },
+    "Paste the text of the KUET transport timetable. The assistant turns it into trips; every time and field is checked, and you see the changes before anything is saved.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কুয়েট পরিবহন সময়সূচির লেখা পেস্ট করুন। সহকারী এটিকে ট্রিপে রূপান্তর করবে; প্রতিটি সময় ও ঘর যাচাই করা হয়, এবং কিছু সংরক্ষণের আগে আপনি পরিবর্তনগুলো দেখবেন।"
+          }
+        }
+      }
+    },
     "Pick a bus and a route first": {
       "localizations": {
         "bn": {
@@ -2338,6 +2508,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ওঠার জায়গা"
+          }
+        }
+      }
+    },
+    "Please wait a few seconds before asking again.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আবার জিজ্ঞেস করার আগে কয়েক সেকেন্ড অপেক্ষা করুন।"
           }
         }
       }
@@ -2388,6 +2568,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আবার সক্রিয় করুন"
+          }
+        }
+      }
+    },
+    "Read with assistant": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী দিয়ে পড়ুন"
           }
         }
       }
@@ -2468,6 +2658,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "মন্তব্য"
+          }
+        }
+      }
+    },
+    "Removed (%lld)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাদ দেওয়া (%lld)"
           }
         }
       }
@@ -2852,6 +3052,26 @@
         }
       }
     },
+    "Smart assistant": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্মার্ট সহকারী"
+          }
+        }
+      }
+    },
+    "Smart assistant (on this iPhone)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্মার্ট সহকারী (এই আইফোনে)"
+          }
+        }
+      }
+    },
     "Smart suggestions": {
       "localizations": {
         "bn": {
@@ -3012,6 +3232,16 @@
         }
       }
     },
+    "Suggest": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরামর্শ দিন"
+          }
+        }
+      }
+    },
     "Suggest my usual bus": {
       "localizations": {
         "bn": {
@@ -3112,6 +3342,16 @@
         }
       }
     },
+    "That text is too long for the assistant. Paste a smaller part.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লেখাটি সহকারীর জন্য অনেক বড়। ছোট একটি অংশ পেস্ট করুন।"
+          }
+        }
+      }
+    },
     "The KUET transport office will check your %@ (%@). This screen opens the app as soon as you're approved.": {
       "localizations": {
         "bn": {
@@ -3152,12 +3392,72 @@
         }
       }
     },
+    "The assistant can't run on this iPhone: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনে সহকারী চলতে পারছে না: %@"
+          }
+        }
+      }
+    },
+    "The assistant doesn't support this language yet, so it's hidden while the app is in this language.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী এখনো এই ভাষা সমর্থন করে না, তাই অ্যাপ এই ভাষায় থাকলে এটি লুকানো থাকে।"
+          }
+        }
+      }
+    },
+    "The assistant doesn't support this language yet.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী এখনো এই ভাষা সমর্থন করে না।"
+          }
+        }
+      }
+    },
+    "The assistant's answer couldn't be read. Try again.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারীর উত্তর পড়া যায়নি। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The assistant's timetable didn't pass the checks (a time, day or field was wrong). Nothing was changed.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারীর সময়সূচি যাচাইয়ে টেকেনি (কোনো সময়, দিন বা ঘর ভুল ছিল)। কিছুই বদলানো হয়নি।"
+          }
+        }
+      }
+    },
     "The bus will have no regular driver.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "বাসটির কোনো নিয়মিত চালক থাকবে না।"
+          }
+        }
+      }
+    },
+    "The model is still downloading. Try again later.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মডেলটি এখনো ডাউনলোড হচ্ছে। পরে আবার চেষ্টা করুন।"
           }
         }
       }
@@ -3242,12 +3542,32 @@
         }
       }
     },
+    "Thinking...": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভাবছে..."
+          }
+        }
+      }
+    },
     "This bus has ended its trip.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "এই বাসের ট্রিপ শেষ হয়েছে।"
+          }
+        }
+      }
+    },
+    "This iPhone doesn't support Apple Intelligence, which the assistant needs (iOS 26 on a recent iPhone).": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোন Apple Intelligence সমর্থন করে না, যা সহকারীর জন্য দরকার (নতুন আইফোনে iOS 26)।"
           }
         }
       }
@@ -3402,6 +3722,16 @@
         }
       }
     },
+    "Turn on Apple Intelligence in Settings to use the assistant.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী ব্যবহার করতে সেটিংসে Apple Intelligence চালু করুন।"
+          }
+        }
+      }
+    },
     "Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.": {
       "localizations": {
         "bn": {
@@ -3452,12 +3782,62 @@
         }
       }
     },
+    "Urgency": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জরুরিতা"
+          }
+        }
+      }
+    },
     "Use %@": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "%@ ব্যবহার করুন"
+          }
+        }
+      }
+    },
+    "Use Bangla: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাংলা ব্যবহার করুন: %@"
+          }
+        }
+      }
+    },
+    "Use English: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ইংরেজি ব্যবহার করুন: %@"
+          }
+        }
+      }
+    },
+    "Use both": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দুটোই ব্যবহার করুন"
+          }
+        }
+      }
+    },
+    "Use this reply": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই উত্তর ব্যবহার করুন"
           }
         }
       }
@@ -3518,6 +3898,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার KUET শিক্ষার্থী ইমেইল ব্যবহার করুন (শেষে @%@)।"
+          }
+        }
+      }
+    },
+    "Uses Apple's model on this iPhone. Nothing you ask leaves the phone. Answers may be wrong, so check the timetable.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনের Apple মডেল ব্যবহার করে। আপনার প্রশ্ন ফোনের বাইরে যায় না। উত্তর ভুল হতে পারে, তাই সময়সূচি মিলিয়ে নিন।"
           }
         }
       }
@@ -3652,6 +4042,16 @@
         }
       }
     },
+    "Write a short note. You get an English and a Bangla version to edit before posting.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ছোট একটি নোট লিখুন। পোস্ট করার আগে ঠিক করার জন্য ইংরেজি ও বাংলা সংস্করণ পাবেন।"
+          }
+        }
+      }
+    },
     "Wrong passcode": {
       "localizations": {
         "bn": {
@@ -3738,6 +4138,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার নিয়মিত বাস"
+          }
+        }
+      }
+    },
+    "e.g. When is the next bus to Boyra?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যেমন: বয়রার পরের বাস কখন?"
           }
         }
       }
