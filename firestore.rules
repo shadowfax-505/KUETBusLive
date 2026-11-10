@@ -91,6 +91,19 @@ service cloud.firestore {
         && request.resource.data.lat is number && request.resource.data.lng is number;
     }
 
+    // ---------- Ride history (smart suggestions), only if the rider turns on the backup ----------
+
+    match /users/{uid}/rideHistory/{eventId} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['id', 'kind', 'tripTitle', 'routeId', 'boardingKey',
+            'boardingName', 'dayType', 'minuteOfDay', 'date'])
+        && request.resource.data.kind in ['followed', 'alerted', 'waved', 'boarded']
+        && request.resource.data.dayType in ['sunToThu', 'saturday', 'friday']
+        && request.resource.data.minuteOfDay is int
+        && isShortText(request.resource.data.tripTitle, 80);
+    }
+
     // ---------- Timetable, routes and news: everyone reads, only the admin writes ----------
 
     match /schedules/{id} {

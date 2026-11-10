@@ -235,6 +235,23 @@ test("nobody else reads your places", async () => {
   await assertSucceeds(deleteDoc(doc(db("student"), "users", "student", "places", "p1")));
 });
 
+// ---------- Ride history ----------
+
+function rideEvent(extra = {}) {
+  return { id: "e1", kind: "followed", tripTitle: "Normal-2 · Rupsha", routeId: "r1",
+           boardingKey: "place:p1", boardingName: "Home", dayType: "sunToThu", minuteOfDay: 490,
+           date: new Date(), ...extra };
+}
+
+test("ride history is private to the rider and well formed", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "users", "student", "rideHistory", "e1"), rideEvent()));
+  await assertFails(setDoc(doc(db("teacher"), "users", "student", "rideHistory", "e2"), rideEvent()));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "rideHistory", "e3"), rideEvent({ kind: "spied" })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "rideHistory", "e4"), rideEvent({ gps: [1, 2] })));
+  await assertFails(getDoc(doc(db("teacher"), "users", "student", "rideHistory", "e1")));
+  await assertSucceeds(deleteDoc(doc(db("student"), "users", "student", "rideHistory", "e1")));
+});
+
 // ---------- Waves ----------
 
 function wave(uid, extra = {}) {
