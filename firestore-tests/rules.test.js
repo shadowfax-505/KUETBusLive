@@ -45,7 +45,7 @@ function bus(driverId, extra = {}) {
   return {
     number: "Normal-1", routeId: "r1", routeName: "Rupsha", driverId,
     lat: 22.9, lng: 89.5, updatedAt: new Date(), crowd: "unknown", audience: "student",
-    scheduleId: "s1", ...extra,
+    scheduleId: "s1", fleetBusId: "normal-1", ...extra,
   };
 }
 
@@ -70,6 +70,9 @@ beforeEach(async () => {
     await setDoc(doc(store, "buses", "student-bus"), bus("driver"));
     await setDoc(doc(store, "buses", "teacher-bus"), bus("driver", { audience: "teacher" }));
     await setDoc(doc(store, "routes", "r1"), { name: "Rupsha", stops: [] });
+    // "driver" is the regular driver of Normal-1. Normal-2 has nobody.
+    await setDoc(doc(store, "fleet", "normal-1"), { name: "Normal-1", defaultDriverId: "driver" });
+    await setDoc(doc(store, "fleet", "normal-2"), { name: "Normal-2", defaultDriverId: null });
   });
 });
 
@@ -160,19 +163,19 @@ test("only the admin posts announcements, and they need a title and body", async
 // ---------- Buses ----------
 
 test("an approved driver starts a trip as themselves", async () => {
-  await assertSucceeds(setDoc(doc(db("driver"), "buses", "new-bus"), bus("driver")));
-  await assertFails(setDoc(doc(db("driver"), "buses", "new-bus2"), bus("someoneElse")));
+  await assertSucceeds(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver")));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("someoneElse")));
 });
 
 test("an unapproved driver or a student cannot start a trip", async () => {
-  await assertFails(setDoc(doc(db("newDriver"), "buses", "new-bus"), bus("newDriver")));
-  await assertFails(setDoc(doc(db("student"), "buses", "new-bus"), bus("student")));
+  await assertFails(setDoc(doc(db("newDriver"), "buses", "bus-normal-1"), bus("newDriver")));
+  await assertFails(setDoc(doc(db("student"), "buses", "bus-normal-1"), bus("student")));
 });
 
 test("a bus must have a position, a valid crowd level and no extra fields", async () => {
-  await assertFails(setDoc(doc(db("driver"), "buses", "b"), bus("driver", { lat: "north" })));
-  await assertFails(setDoc(doc(db("driver"), "buses", "b"), bus("driver", { crowd: "packed" })));
-  await assertFails(setDoc(doc(db("driver"), "buses", "b"), bus("driver", { owner: "me" })));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { lat: "north" })));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { crowd: "packed" })));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { owner: "me" })));
 });
 
 test("the driver moves their own bus, nobody else's", async () => {
@@ -297,6 +300,95 @@ test("a rider cancels their own wave", async () => {
     await setDoc(doc(context.firestore(), "buses", "student-bus", "waves", "student"), wave("student"));
   });
   await assertSucceeds(deleteDoc(doc(db("student"), "buses", "student-bus", "waves", "student")));
+});
+
+// ---------- Bus assignment ----------
+
+function day(offsetDays) {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return new Date(d.getTime() + offsetDays * 86400000);
+}
+
+async function setCover(busId, driverId, fromOffset, untilOffset) {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "fleet", busId), {
+      cover: { driverId, fromDate: "x", untilDate: "y", start: day(fromOffset), end: day(untilOffset + 1),
+               reason: "Sick", setBy: "admin" },
+    });
+  });
+}
+
+async function addDriver(uid, extra = {}) {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "users", uid),
+      { name: uid, email: `${uid}@test.com`, role: "driver", kuetId: "D", isApproved: true, ...extra });
+  });
+}
+
+test("only today's driver can start a trip on a fleet bus", async () => {
+  await addDriver("reserve");
+  await assertFails(setDoc(doc(db("reserve"), "buses", "bus-normal-1"), bus("reserve")));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-2"), bus("driver", { fleetBusId: "normal-2" })));
+  // The document ID must match the fleet bus, so one bus can't have two live trips.
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-other"), bus("driver")));
+});
+
+test("an active cover moves the bus to the cover driver", async () => {
+  await addDriver("reserve");
+  await setCover("normal-1", "reserve", 0, 2);
+  await assertSucceeds(setDoc(doc(db("reserve"), "buses", "bus-normal-1"), bus("reserve")));
+  await env.withSecurityRulesDisabled(async (context) => {
+    await deleteDoc(doc(context.firestore(), "buses", "bus-normal-1"));
+  });
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver")));
+});
+
+test("a cover that ended or hasn't started leaves the regular driver in charge", async () => {
+  await addDriver("reserve");
+  await setCover("normal-1", "reserve", -5, -2);
+  await assertSucceeds(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver")));
+  await setCover("normal-1", "reserve", 1, 3);
+  await assertFails(setDoc(doc(db("reserve"), "buses", "bus-normal-2"), bus("reserve", { fleetBusId: "normal-2" })));
+});
+
+test("a deactivated driver can't start or move a bus", async () => {
+  await addDriver("driver", { active: false });
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver")));
+  await assertFails(updateDoc(doc(db("driver"), "buses", "student-bus"), { lat: 1 }));
+});
+
+test("only the admin assigns drivers", async () => {
+  await assertFails(updateDoc(doc(db("driver"), "fleet", "normal-2"), { defaultDriverId: "driver" }));
+  await assertSucceeds(getDoc(doc(db("student"), "fleet", "normal-1")));
+  await assertSucceeds(updateDoc(doc(db("admin"), "fleet", "normal-2"), { defaultDriverId: "driver" }));
+});
+
+function absence(driverId, extra = {}) {
+  return { driverId, driverName: "D", fromDate: "2026-11-10", untilDate: "2026-11-12", reason: "Fever",
+           status: "open", createdAt: new Date(), ...extra };
+}
+
+test("drivers send and read only their own \"I can't drive\" requests", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "driverAbsences", "a1"), absence("driver")));
+  await assertFails(setDoc(doc(db("driver"), "driverAbsences", "a2"), absence("newDriver")));
+  await assertFails(setDoc(doc(db("driver"), "driverAbsences", "a3"), absence("driver", { status: "covered" })));
+  await assertFails(setDoc(doc(db("driver"), "driverAbsences", "a4"), absence("driver", { untilDate: "2026-11-01" })));
+  await assertFails(setDoc(doc(db("student"), "driverAbsences", "a5"), absence("student")));
+  await assertFails(getDoc(doc(db("newDriver"), "driverAbsences", "a1")));
+  await assertSucceeds(getDoc(doc(db("admin"), "driverAbsences", "a1")));
+  await assertFails(updateDoc(doc(db("driver"), "driverAbsences", "a1"), { status: "covered" }));
+  await assertSucceeds(updateDoc(doc(db("admin"), "driverAbsences", "a1"), { status: "covered", coverDriverId: "x" }));
+});
+
+test("trip history records who drove, and only the end time changes later", async () => {
+  const trip = { driverId: "driver", fleetBusId: "normal-1", scheduleId: "s1", routeId: "r1", startedAt: new Date() };
+  await assertSucceeds(setDoc(doc(db("driver"), "trips", "t1"), trip));
+  await assertFails(setDoc(doc(db("driver"), "trips", "t2"), { ...trip, fleetBusId: "normal-2" }));
+  await assertSucceeds(updateDoc(doc(db("driver"), "trips", "t1"), { endedAt: new Date() }));
+  await assertFails(updateDoc(doc(db("driver"), "trips", "t1"), { fleetBusId: "normal-2" }));
+  await assertFails(getDoc(doc(db("student"), "trips", "t1")));
+  await assertSucceeds(getDoc(doc(db("admin"), "trips", "t1")));
 });
 
 // ---------- Complaints ----------

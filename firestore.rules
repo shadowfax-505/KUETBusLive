@@ -24,8 +24,26 @@ service cloud.firestore {
       return hasProfile() && me().get('isApproved', false) == true;
     }
 
+    // Approved, and not deactivated by the admin (a driver who left the job).
     function isApprovedDriver() {
-      return isApproved() && me().role == 'driver';
+      return isApproved() && me().role == 'driver' && me().get('active', true) == true;
+    }
+
+    // ---------- Bus assignment ----------
+    // Who drives a fleet bus right now: the cover driver while the cover's dates
+    // include today (start and end are stored as timestamps for this check),
+    // otherwise the regular driver.
+    function coverActive(bus) {
+      return bus.get('cover', null) != null
+        && request.time >= bus.cover.start && request.time < bus.cover.end;
+    }
+
+    function drivesToday(fleetBusId) {
+      let path = /databases/$(database)/documents/fleet/$(fleetBusId);
+      let bus = get(path).data;
+      return exists(path)
+        && ((coverActive(bus) && bus.cover.driverId == request.auth.uid)
+            || (!coverActive(bus) && bus.get('defaultDriverId', null) == request.auth.uid));
     }
 
     // Students and teachers ride buses. Teachers must be approved first; students start approved.
@@ -129,7 +147,7 @@ service cloud.firestore {
     match /buses/{id} {
       function busFields() {
         return ['number', 'routeId', 'routeName', 'driverId', 'lat', 'lng', 'updatedAt',
-                'crowd', 'audience', 'scheduleId', 'heading', 'speed'];
+                'crowd', 'audience', 'scheduleId', 'heading', 'speed', 'fleetBusId'];
       }
 
       function isValidBus(bus) {
@@ -141,8 +159,12 @@ service cloud.firestore {
 
       allow read: if signedIn();
 
-      // An approved driver starts a trip, as themselves.
-      allow create: if isApprovedDriver() && isValidBus(request.resource.data);
+      // An approved driver starts a trip, as themselves, only on the fleet bus
+      // they drive today. The document ID is "bus-" + the fleet bus, so two
+      // drivers can never run the same bus at once.
+      allow create: if isApprovedDriver() && isValidBus(request.resource.data)
+        && id == 'bus-' + request.resource.data.fleetBusId
+        && drivesToday(request.resource.data.fleetBusId);
 
       // The admin can fix anything. An approved driver moves only their own bus.
       // Riders allowed on the bus can change only its crowd level.
@@ -186,6 +208,46 @@ service cloud.firestore {
       // The rider cancels, or the driver clears it once the bus has passed.
       allow delete: if signedIn()
         && (waveId == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
+    }
+
+    // ---------- Fleet: regular and cover drivers (only the admin assigns) ----------
+
+    match /fleet/{busId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- "I can't drive" requests ----------
+
+    match /driverAbsences/{id} {
+      allow read: if signedIn() && (resource.data.driverId == request.auth.uid || isAdmin());
+
+      allow create: if isApprovedDriver()
+        && request.resource.data.keys().hasOnly(['driverId', 'driverName', 'fromDate', 'untilDate',
+            'reason', 'status', 'createdAt'])
+        && request.resource.data.driverId == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.fromDate is string && request.resource.data.untilDate is string
+        && request.resource.data.fromDate <= request.resource.data.untilDate
+        && isShortText(request.resource.data.reason, 300);
+
+      // The admin answers it. A driver may withdraw their own request.
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.driverId == request.auth.uid);
+    }
+
+    // ---------- Trip history: who drove which bus, and when ----------
+
+    match /trips/{id} {
+      allow read: if signedIn() && (resource.data.driverId == request.auth.uid || isAdmin());
+      allow create: if isApprovedDriver()
+        && request.resource.data.keys().hasOnly(['driverId', 'fleetBusId', 'scheduleId', 'routeId',
+            'startedAt', 'endedAt'])
+        && request.resource.data.driverId == request.auth.uid
+        && drivesToday(request.resource.data.fleetBusId);
+      // Only the end time can be added later, by the same driver.
+      allow update: if signedIn() && resource.data.driverId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endedAt']);
     }
 
     // ---------- Complaints ----------
