@@ -28,13 +28,14 @@ How an Android version of KUET Bus Live would be built on the same backend. Noth
 | Smart suggestions | the scorer is pure maths: port `SuggestionScorer` and `DelayModel` to Kotlin and keep the history in Room or a JSON file |
 | Account deletion | same order: re-authenticate, delete bus/places/complaints/profile, then `user.delete()` |
 
-## Assistant (when it is added)
+## Smart assistant (optional, on the phone only)
 
-The same routing applies: on-device first, then the transport office's server model.
+The same idea as iOS: an opt-in switch, offered only on phones that can run a built-in model, and no server at all.
 
-- **On-device:** Gemini Nano through the ML Kit GenAI APIs (AICore), on supported phones (recent Pixel and Galaxy flagships). Check availability at run time and download the model the first time, as the API describes.
-- **Server:** the same OpenAI-compatible `POST {baseURL}/chat/completions` request as iOS, with the address and model name read from Firestore `config/assistant`.
-- Off by default, and the same rule as on iOS: the admin reviews anything before it is posted, and rider answers use only the data the app passes in.
+- **Model:** Gemini Nano through the ML Kit GenAI APIs (AICore), available on supported phones only (recent Pixel and Galaxy flagships and others that ship AICore). Check the feature status at run time; if the phone isn't supported, hide the switch and show a short explanation, just like iOS.
+- **Language:** if the model doesn't support the app's language (Bangla is likely unsupported), hide the assistant buttons with a note instead of calling anything else.
+- **Same four jobs and the same checks:** rider questions answered only from the data the app passes in, complaint triage, English/Bangla announcement drafts, and timetable extraction with strict validation and a diff the admin approves. Text that doesn't fit the model's context gets "too long, paste a smaller part".
+- Nothing leaves the phone.
 
 ## Order of work
 
