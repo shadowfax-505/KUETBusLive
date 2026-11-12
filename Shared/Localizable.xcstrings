@@ -4142,6 +4142,16 @@
         }
       }
     },
+    "You drive %lld trips today. Pick one below.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আপনি %lld টি ট্রিপ চালাবেন। নিচে একটি বেছে নিন।"
+          }
+        }
+      }
+    },
     "Your account is no longer active": {
       "localizations": {
         "bn": {

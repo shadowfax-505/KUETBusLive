@@ -28,9 +28,25 @@ struct DriverHomeView: View {
         return BusAssignment.bus(for: uid, in: fleetViewModel.fleet, on: Date())
     }
 
+    // Every trip this driver drives today: those of their own bus, and single trips the
+    // office gave them on any bus. Trips of their bus given to someone else are left out.
+    var myTrips: [(bus: FleetBus, schedule: BusSchedule)] {
+        guard let uid = authViewModel.user?.uid else { return [] }
+        return BusAssignment.trips(for: uid, fleet: fleetViewModel.fleet,
+                                   schedules: scheduleViewModel.schedules, on: Date())
+    }
+
+    // The bus of the trip picked below.
+    var selectedBus: FleetBus? {
+        myTrips.first { $0.schedule.id == selectedSchedule?.id }?.bus
+    }
+
     // "Your bus today: Normal-2", or "Covering Normal-3 until 12 Nov".
     var myBusText: String {
         guard let bus = myBus else {
+            if !myTrips.isEmpty {
+                return String(localized: "You drive \(myTrips.count) trips today. Pick one below.")
+            }
             return String(localized: "No bus assigned today. Contact the transport office.")
         }
         if BusAssignment.isCoverActive(bus.cover, on: Date()), let cover = bus.cover,
@@ -41,12 +57,13 @@ struct DriverHomeView: View {
         return String(localized: "Your bus today: \(bus.name)")
     }
 
-    // Today's trips of my bus only. On a day with no buses (Friday) all its trips are listed.
+    // Today's trips this driver drives. On a day with no buses (Friday) the week's are listed.
     var tripChoices: [BusSchedule] {
-        guard let bus = myBus else { return [] }
-        let mine = scheduleViewModel.schedules.filter { $0.tripName == bus.name }
-        let today = mine.filter { $0.runsToday }
-        return today.isEmpty ? mine : today
+        myTrips.map(\.schedule)
+    }
+
+    var hasWork: Bool {
+        myBus != nil || !myTrips.isEmpty
     }
 
     var selectedSchedule: BusSchedule? {
@@ -90,9 +107,9 @@ struct DriverHomeView: View {
                 }
 
                 Section {
-                    Label(myBusText, systemImage: myBus == nil ? "exclamationmark.triangle.fill" : "bus.fill")
+                    Label(myBusText, systemImage: hasWork ? "bus.fill" : "exclamationmark.triangle.fill")
                         .font(.headline)
-                        .foregroundColor(myBus == nil ? .orange : .primary)
+                        .foregroundColor(hasWork ? .primary : .orange)
                     Button {
                         showAbsence = true
                     } label: {
@@ -143,10 +160,10 @@ struct DriverHomeView: View {
                     } label: {
                         Text(driverViewModel.isOnTrip ? "End trip" : "Start trip")
                             .fontWeight(.bold)
-                            .foregroundColor(driverViewModel.isOnTrip ? .red : (myBus == nil ? .secondary : .green))
+                            .foregroundColor(driverViewModel.isOnTrip ? .red : (selectedBus == nil ? .secondary : .green))
                     }
-                    // Without a bus for today there is nothing to start. A running trip can always end.
-                    .disabled(!driverViewModel.isOnTrip && myBus == nil)
+                    // Without a trip for today there is nothing to start. A running trip can always end.
+                    .disabled(!driverViewModel.isOnTrip && selectedBus == nil)
 
                     Text(driverViewModel.statusMessage)
                         .foregroundColor(.secondary)
@@ -223,7 +240,7 @@ struct DriverHomeView: View {
             }
         }
         // The assignment arrived or changed: pick one of this bus's trips.
-        .onChange(of: myBus?.id) { _, _ in
+        .onChange(of: tripChoices.compactMap(\.id)) { _, _ in
             if !tripChoices.contains(where: { $0.id == selectedScheduleId }) {
                 selectedScheduleId = tripChoices.first?.id ?? ""
             }
@@ -241,7 +258,7 @@ struct DriverHomeView: View {
 
     func startTrip() {
         guard let uid = authViewModel.user?.uid else { return }
-        guard let bus = myBus else {
+        guard let bus = selectedBus else {
             driverViewModel.statusMessage = String(localized: "No bus assigned today. Contact the transport office.")
             return
         }
