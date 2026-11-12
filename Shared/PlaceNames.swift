@@ -60,7 +60,11 @@ enum PlaceNames {
 
     // True when the app is showing Bangla (the phone's language, or this app's own setting).
     static var isBangla: Bool {
-        Bundle.main.preferredLocalizations.first?.hasPrefix("bn") ?? false
+        // The app's own language setting, when one is chosen in Profile.
+        if let chosen = UserDefaults.standard.string(forKey: "appLanguage"), chosen == "en" || chosen == "bn" {
+            return chosen == "bn"
+        }
+        return Bundle.main.preferredLocalizations.first?.hasPrefix("bn") ?? false
     }
 
     // The name to show. `bangla` is the admin's own Bangla name, if one was typed.

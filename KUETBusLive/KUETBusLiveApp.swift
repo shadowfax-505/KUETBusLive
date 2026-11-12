@@ -17,10 +17,14 @@ struct KUETBusLiveApp: App {
     // StateObject is created lazily, so FirebaseApp.configure() in init runs first.
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showSplash = true
+    // English, Bangla or the phone's language, chosen in Profile.
+    @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
     init() {
         FirebaseApp.configure()
         Self.useLocalEmulatorsIfAsked()
+        AppLanguage.current.apply()
         // Creating the shared manager makes it the notification delegate from launch.
         _ = NotificationManager.shared
     }
@@ -46,6 +50,10 @@ struct KUETBusLiveApp: App {
             ZStack {
                 ContentView()
                     .environmentObject(authViewModel)
+                    // A new language rebuilds every screen, so all text changes at once.
+                    .environment(\.locale, (AppLanguage(rawValue: language) ?? .system).locale)
+                    .id(language)
+                    .preferredColorScheme(AppAppearance(rawValue: appearance)?.colorScheme)
 
                 if showSplash {
                     SplashView {
@@ -56,6 +64,9 @@ struct KUETBusLiveApp: App {
                     .transition(.opacity)
                     .zIndex(1)
                 }
+            }
+            .onChange(of: language) { _, code in
+                (AppLanguage(rawValue: code) ?? .system).apply()
             }
         }
     }
