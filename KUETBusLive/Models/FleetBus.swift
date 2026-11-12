@@ -11,9 +11,13 @@
 //  Each fleet bus has a regular driver and, sometimes, a cover driver for a few days
 //  (the regular driver is off sick, or has left and a replacement isn't fixed yet):
 //
-//      cover active today?  -> the cover driver drives
-//      otherwise            -> the regular (default) driver drives
-//      neither              -> nobody: "No driver today"
+//      a driver set for this trip? -> that driver drives this trip only
+//      cover active today?         -> the cover driver drives
+//      otherwise                   -> the regular (default) driver drives
+//      neither                     -> nobody: "No driver today"
+//
+//  Trip drivers are optional. Most buses have none, and then every trip goes to the
+//  cover or regular driver as before.
 //
 //  Dates are days in Khulna (Asia/Dhaka), written "yyyy-MM-dd". The cover also keeps
 //  the same range as two timestamps (start of the first day, start of the day after
@@ -38,6 +42,8 @@ struct FleetBus: Identifiable, Codable {
     var name: String              // "Normal-1", same as tripName in the timetable
     var defaultDriverId: String?
     var cover: BusCover?
+    // A different driver for some trips: schedule document ID -> driver uid.
+    var tripDrivers: [String: String]?
 }
 
 enum BusAssignment {
@@ -89,6 +95,33 @@ enum BusAssignment {
             return cover.driverId
         }
         return bus.defaultDriverId
+    }
+
+    // Who drives one trip of this bus: the driver set for that trip if there is one,
+    // otherwise whoever drives the bus that day.
+    static func driver(for bus: FleetBus, on date: Date, trip scheduleId: String?) -> String? {
+        if let scheduleId = scheduleId, let tripDriver = bus.tripDrivers?[scheduleId] {
+            return tripDriver
+        }
+        return driver(for: bus, on: date)
+    }
+
+    // The trips this driver drives on this day, on any bus, in timetable order.
+    // On a day with no trips at all (Friday) every trip of the week is considered,
+    // so a driver can still see their buses.
+    static func trips(for driverId: String, fleet: [FleetBus], schedules: [BusSchedule],
+                      on date: Date) -> [(bus: FleetBus, schedule: BusSchedule)] {
+        let today = schedules.filter { $0.days.includes(date) }
+        let candidates = today.isEmpty ? schedules : today
+        return candidates.compactMap { schedule in
+            guard let bus = fleet.first(where: { $0.name == schedule.tripName }),
+                  driver(for: bus, on: date, trip: schedule.id) == driverId else { return nil }
+            return (bus, schedule)
+        }
+        .sorted {
+            (BusSchedule.minutes(from: $0.schedule.campusTime) ?? 0)
+                < (BusSchedule.minutes(from: $1.schedule.campusTime) ?? 0)
+        }
     }
 
     // The bus this driver drives on this day, if any.

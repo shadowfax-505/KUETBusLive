@@ -4,7 +4,8 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  Who drives each bus today: the regular driver, a cover driver, or nobody.
+//  Who drives each bus today: a driver set for one trip, the regular driver, a cover
+//  driver, or nobody.
 //
 
 import XCTest
@@ -94,6 +95,57 @@ final class BusAssignmentTests: XCTestCase {
         let fleet = [bus(regular: "rahim", cover: c)]
         XCTAssertEqual(BusAssignment.bus(for: "karim", in: fleet, on: dhaka(2026, 11, 10))?.name, "Normal-2")
         XCTAssertNil(BusAssignment.bus(for: "rahim", in: fleet, on: dhaka(2026, 11, 10)))
+    }
+
+    // MARK: - Drivers for single trips
+
+    func trip(_ id: String, _ name: String = "Normal-2", campus: String = "07:00",
+              days: TripDays = .sunToThu) -> BusSchedule {
+        var schedule = BusSchedule(tripName: name, audience: BusAudience.from(tripName: name), days: days,
+                                   period: .morning, campusTime: campus, spot: "Rupsha", spotTime: "07:40",
+                                   remarks: "")
+        schedule.id = id
+        return schedule
+    }
+
+    func testTripDriverWinsOverCoverAndRegular() {
+        let c = cover("karim", from: dhaka(2026, 11, 10), until: dhaka(2026, 11, 12))
+        var b = bus(regular: "rahim", cover: c)
+        b.tripDrivers = ["s1": "jamal"]
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: "s1"), "jamal")
+        // Other trips of the same bus still follow the cover, then the regular driver.
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: "s2"), "karim")
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 15), trip: "s2"), "rahim")
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 15), trip: "s1"), "jamal")
+    }
+
+    func testNoTripDriversMeansTheBusDriverForEveryTrip() {
+        let b = bus(regular: "rahim")
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: "s1"), "rahim")
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: nil), "rahim")
+    }
+
+    func testTripDriverOnABusWithoutARegularDriver() {
+        var b = bus(regular: nil)
+        b.tripDrivers = ["s1": "jamal"]
+        XCTAssertEqual(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: "s1"), "jamal")
+        XCTAssertNil(BusAssignment.driver(for: b, on: dhaka(2026, 11, 10), trip: "s2"))
+    }
+
+    func testTripsForADriverAcrossBuses() {
+        var normal2 = bus(regular: "rahim")
+        normal2.tripDrivers = ["s2": "jamal"]
+        let special = FleetBus(id: "special-1", name: "Special-1", defaultDriverId: "jamal")
+        let schedules = [trip("s1", campus: "07:00"), trip("s2", campus: "13:00"),
+                         trip("s3", "Special-1", campus: "08:00"),
+                         trip("s4", campus: "09:00", days: .saturday)]
+        // 10 Nov 2026 is a Tuesday: the Saturday trip doesn't run.
+        let tuesday = dhaka(2026, 11, 10)
+        let jamal = BusAssignment.trips(for: "jamal", fleet: [normal2, special], schedules: schedules, on: tuesday)
+        XCTAssertEqual(jamal.compactMap(\.schedule.id), ["s3", "s2"])
+        XCTAssertEqual(jamal.map(\.bus.name), ["Special-1", "Normal-2"])
+        let rahim = BusAssignment.trips(for: "rahim", fleet: [normal2, special], schedules: schedules, on: tuesday)
+        XCTAssertEqual(rahim.compactMap(\.schedule.id), ["s1"])
     }
 
     func testFleetIds() {
