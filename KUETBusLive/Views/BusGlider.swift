@@ -55,14 +55,31 @@ final class BusGlider: ObservableObject {
         glides = next
     }
 
-    // Where to draw the bus right now, on the road line when its route is known.
+    // Where to draw the bus right now: along the road when its route is known and both
+    // points are on it, otherwise in a straight line (moved onto the road if close).
     func position(of bus: Bus, at now: Date, route: [CLLocationCoordinate2D]? = nil) -> CLLocationCoordinate2D {
         guard let id = bus.id, let glide = glides[id] else { return bus.coordinate }
+        if let onRoad = alongRoute(glide, at: now, route: route) {
+            return onRoad.coordinate
+        }
         return BusMotion.snapped(position(of: glide, at: now), to: route)
     }
 
-    func heading(of bus: Bus) -> Double? {
-        bus.id.flatMap { glides[$0]?.heading } ?? bus.heading
+    // The way the bus faces: the road's direction while it follows the road, otherwise
+    // its GPS heading. Kept unwrapped so the icon turns the short way.
+    func heading(of bus: Bus, at now: Date = Date(), route: [CLLocationCoordinate2D]? = nil) -> Double? {
+        guard let id = bus.id, let glide = glides[id] else { return bus.heading }
+        if let onRoad = alongRoute(glide, at: now, route: route) {
+            return glide.heading.map { BusMotion.shortestRotation(from: $0, to: onRoad.bearing) } ?? onRoad.bearing
+        }
+        return glide.heading ?? bus.heading
+    }
+
+    private func alongRoute(_ glide: Glide, at now: Date, route: [CLLocationCoordinate2D]?)
+        -> (coordinate: CLLocationCoordinate2D, bearing: Double)? {
+        BusMotion.glideAlongRoute(from: glide.from, to: glide.to,
+                                  fraction: BusMotion.fraction(start: glide.start, duration: glide.duration, now: now),
+                                  path: route)
     }
 
     // How long the current glide lasts, so the camera can follow at the same pace.

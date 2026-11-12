@@ -19,6 +19,10 @@
 //  from the last two points instead. Turning always takes the short way round:
 //  from 350° to 10° is a 20° turn to the right, not 340° to the left.
 //
+//  When the bus's route is known and both points are on it, the bus doesn't cut
+//  corners: both points are placed on the road line (as metres from its start)
+//  and the bus moves along the road between them, facing the road's direction.
+//
 
 import Foundation
 import CoreLocation
@@ -97,6 +101,47 @@ enum BusMotion {
         guard let path = path, let snap = PathMath.snap(point, to: path),
               snap.distanceFromRoute <= snapToRouteMetres else { return point }
         return snap.point
+    }
+
+    // MARK: - Gliding along the road
+
+    // The point `metres` along the path from its start, and the road's direction there.
+    // Uses the same flat x/y metres as PathMath.snap, so the two agree.
+    static func point(along path: [CLLocationCoordinate2D], metres: Double)
+        -> (coordinate: CLLocationCoordinate2D, bearing: Double)? {
+        guard path.count >= 2 else { return nil }
+        var left = max(metres, 0)
+        for index in 0..<(path.count - 1) {
+            let a = path[index], b = path[index + 1]
+            let length = flatLength(a, b)
+            if left <= length || index == path.count - 2 {
+                let t = length > 0 ? min(left / length, 1) : 0
+                return (interpolate(from: a, to: b, fraction: t), bearing(from: a, to: b))
+            }
+            left -= length
+        }
+        return nil
+    }
+
+    // Where to draw a bus `fraction` of the way between two GPS fixes. When both fixes
+    // are on the route and the second is ahead of the first, the bus follows the road
+    // between them (round corners) and faces along it. Otherwise nil: use a straight line.
+    static func glideAlongRoute(from a: CLLocationCoordinate2D, to b: CLLocationCoordinate2D,
+                                fraction: Double, path: [CLLocationCoordinate2D]?)
+        -> (coordinate: CLLocationCoordinate2D, bearing: Double)? {
+        guard let path = path,
+              let start = PathMath.snap(a, to: path), start.distanceFromRoute <= snapToRouteMetres,
+              let end = PathMath.snap(b, to: path), end.distanceFromRoute <= snapToRouteMetres,
+              end.distanceAlong >= start.distanceAlong else { return nil }
+        let t = min(max(fraction, 0), 1)
+        return point(along: path, metres: start.distanceAlong + (end.distanceAlong - start.distanceAlong) * t)
+    }
+
+    // Metres between two points with PathMath's flat approximation.
+    static func flatLength(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Double {
+        let x = (b.longitude - a.longitude) * 111_320.0 * cos(a.latitude * .pi / 180)
+        let y = (b.latitude - a.latitude) * 111_320.0
+        return hypot(x, y)
     }
 
     static func distance(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Double {

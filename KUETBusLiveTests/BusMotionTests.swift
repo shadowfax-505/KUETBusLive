@@ -108,4 +108,47 @@ final class BusMotionTests: XCTestCase {
         XCTAssertEqual(BusMotion.snapped(far, to: road).longitude, far.longitude)
         XCTAssertEqual(BusMotion.snapped(far, to: nil).latitude, far.latitude)
     }
+
+    // MARK: - Along the road
+
+    // An L-shaped road: 400 m north, then 300 m east.
+    var lRoad: [CLLocationCoordinate2D] {
+        [kuet, offset(north: 400), offset(north: 400, east: 300)]
+    }
+
+    func testPointAlongThePath() {
+        let p = BusMotion.point(along: lRoad, metres: 200)!
+        XCTAssertEqual(BusMotion.distance(p.coordinate, offset(north: 200)), 0, accuracy: 1)
+        XCTAssertEqual(p.bearing, 0, accuracy: 0.5)
+        let q = BusMotion.point(along: lRoad, metres: 500)!   // 100 m past the corner
+        XCTAssertEqual(BusMotion.distance(q.coordinate, offset(north: 400, east: 100)), 0, accuracy: 1)
+        XCTAssertEqual(q.bearing, 90, accuracy: 0.5)
+        // Past the end stays at the end.
+        XCTAssertEqual(BusMotion.distance(BusMotion.point(along: lRoad, metres: 9_999)!.coordinate,
+                                          offset(north: 400, east: 300)), 0, accuracy: 1)
+    }
+
+    func testGlideGoesRoundTheCornerNotAcrossIt() {
+        let a = offset(north: 300), b = offset(north: 400, east: 100)
+        // Halfway by road (100 m north, then 100 m east) is the corner itself.
+        let half = BusMotion.glideAlongRoute(from: a, to: b, fraction: 0.5, path: lRoad)!
+        XCTAssertEqual(BusMotion.distance(half.coordinate, offset(north: 400)), 0, accuracy: 1)
+        // A straight line would have cut across, 35 m away from the corner.
+        let straight = BusMotion.interpolate(from: a, to: b, fraction: 0.5)
+        XCTAssertGreaterThan(BusMotion.distance(straight, offset(north: 400)), 30)
+    }
+
+    func testGlideFacesAlongTheRoad() {
+        let a = offset(north: 300), b = offset(north: 400, east: 100)
+        XCTAssertEqual(BusMotion.glideAlongRoute(from: a, to: b, fraction: 0.2, path: lRoad)!.bearing, 0, accuracy: 0.5)
+        XCTAssertEqual(BusMotion.glideAlongRoute(from: a, to: b, fraction: 0.8, path: lRoad)!.bearing, 90, accuracy: 0.5)
+    }
+
+    func testOffRouteOrBackwardsFallsBackToAStraightLine() {
+        XCTAssertNil(BusMotion.glideAlongRoute(from: offset(north: 100, east: 200), to: offset(north: 200),
+                                               fraction: 0.5, path: lRoad))
+        XCTAssertNil(BusMotion.glideAlongRoute(from: offset(north: 300), to: offset(north: 100),
+                                               fraction: 0.5, path: lRoad))
+        XCTAssertNil(BusMotion.glideAlongRoute(from: kuet, to: offset(north: 100), fraction: 0.5, path: nil))
+    }
 }

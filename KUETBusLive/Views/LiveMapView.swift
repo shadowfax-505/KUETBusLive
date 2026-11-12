@@ -127,7 +127,10 @@ struct LiveMapView: View {
                                    coordinate: glider.position(of: bus, at: timeline.date,
                                                                route: busViewModel.routePaths[bus.routeId]),
                                    anchor: .center) {
-                            BusMarker(bus: bus, heading: glider.heading(of: bus), isSelected: bus.id == selectedBusId)
+                            BusMarker(bus: bus,
+                                      heading: glider.heading(of: bus, at: timeline.date,
+                                                              route: busViewModel.routePaths[bus.routeId]),
+                                      isSelected: bus.id == selectedBusId)
                                 .onTapGesture {
                                     select(bus)
                                 }
