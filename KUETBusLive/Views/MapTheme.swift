@@ -30,6 +30,14 @@ enum MapTheme {
     static let route = adaptive(light: ink.withAlphaComponent(0.35), dark: ivory.withAlphaComponent(0.35))
     static let stopFill = adaptive(light: ivory, dark: inkNavy)
 
+    // The road to my stop: brass that deepens towards the stop, over a soft glow.
+    static let brassGlow = Color(brass.withAlphaComponent(0.28))
+    static let routeGradient = LinearGradient(colors: [Color(brass), Color(brassDeep)],
+                                              startPoint: .leading, endPoint: .trailing)
+
+    // Main buttons: ink navy on a light map, brass on a dark one.
+    static let inkButton = adaptive(light: inkNavyLight, dark: brassDeep)
+
     static let sage = Color(rgb(0x7FA88A))
     static let terracotta = Color(rgb(0xC46A5A))
 

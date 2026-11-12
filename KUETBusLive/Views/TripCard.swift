@@ -41,13 +41,19 @@ struct TripCard: View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             // With large text the card can get tall, so it scrolls instead of covering the map.
             ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
+                // A small handle, like a sheet, so the card reads as something on top of the map.
+                Capsule()
+                    .fill(.secondary.opacity(0.35))
+                    .frame(width: 36, height: 5)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityHidden(true)
                 // Title row
                 HStack(alignment: .top) {
                     rowOrColumn {
                         VStack(alignment: .leading) {
                             Text(PlaceNames.display(bus.number))
-                                .font(.headline)
+                                .font(.system(.title3, design: .serif).weight(.semibold))
                             Text(PlaceNames.display(bus.routeName))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
@@ -70,8 +76,8 @@ struct TripCard: View {
                 if let point = busViewModel.boardingPoint(for: bus) {
                     rowOrColumn {
                         Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(.title, design: .rounded).weight(.bold))
+                            .foregroundStyle(MapTheme.accent)
                             // Digits roll to the new value instead of jumping.
                             .contentTransition(.numericText())
                             .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
@@ -100,20 +106,23 @@ struct TripCard: View {
                     }
                 }
 
-                // Live facts
+                // Live facts, on a faint band so they read as one group.
                 rowOrColumn {
                     Label(bus.speedText, systemImage: "speedometer")
                     Spacer()
                     Label(bus.crowd.label, systemImage: "person.3.fill")
-                        .foregroundColor(bus.crowd.color)
+                        .foregroundColor(MapTheme.crowd(bus.crowd))
                         .symbolEffect(.bounce, value: bus.crowd)
                     Spacer()
                     Label(bus.lastUpdateText, systemImage: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right")
                         .accessibilityLabel("Last update \(bus.lastUpdateText)")
-                        .foregroundColor(bus.isStale ? .orange : .green)
+                        .foregroundColor(bus.isStale ? MapTheme.terracotta : MapTheme.sage)
                         .symbolEffect(.pulse, isActive: !bus.isStale)
                 }
-                .font(.caption)
+                .font(.caption.weight(.medium))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 if bus.isStale {
                     Text("No signal from this bus for over a minute. Its position may be out of date.")
@@ -190,6 +199,7 @@ struct TripCard: View {
 
                     Button("Details", action: onDetails)
                         .buttonStyle(.borderedProminent)
+                        .tint(MapTheme.inkButton)
                 }
             }
             .padding()
@@ -197,8 +207,11 @@ struct TripCard: View {
             .scrollBounceBehavior(.basedOnSize)
             .frame(maxHeight: bigText ? 420 : nil)
             .fixedSize(horizontal: false, vertical: !bigText)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            // A hairline edge and a soft, wide shadow lift the card off the map.
+            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .strokeBorder(.white.opacity(0.18), lineWidth: 1))
+            .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Trip card for \(PlaceNames.display(bus.number))")
             .padding(.horizontal)

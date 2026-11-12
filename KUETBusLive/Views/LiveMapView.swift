@@ -71,27 +71,33 @@ struct LiveMapView: View {
                     UserAnnotation()
 
                     if let bus = selectedBus {
-                        // Whole route, drawn faintly.
+                        // Whole route: a thin ink line under everything.
                         if let path = busViewModel.routePaths[bus.routeId], !path.isEmpty {
                             MapPolyline(coordinates: path)
-                                .stroke(bus.allocation.color.opacity(0.35), lineWidth: 6)
+                                .stroke(MapTheme.route,
+                                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
                         }
-                        // The road from the bus to my stop, drawn strongly.
+                        // The road from the bus to my stop in brass, with a soft glow:
+                        // a wide faint line under a narrow bright one.
                         let toMyStop = busViewModel.remainingPath(for: bus)
                         if !toMyStop.isEmpty {
                             MapPolyline(coordinates: toMyStop)
-                                .stroke(bus.allocation.color,
-                                        style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                                .stroke(MapTheme.brassGlow,
+                                        style: StrokeStyle(lineWidth: 14, lineCap: .round, lineJoin: .round))
+                            MapPolyline(coordinates: toMyStop)
+                                .stroke(MapTheme.routeGradient,
+                                        style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
                         }
-                        // Every stop on the route.
+                        // Every stop on the route: an ivory dot with an ink ring.
                         if let stops = busViewModel.routeStops[bus.routeId] {
                             ForEach(stops, id: \.self) { stop in
-                                Annotation(stop.name, coordinate: stop.coordinate) {
+                                Annotation(stop.displayName, coordinate: stop.coordinate) {
                                     Circle()
-                                        .fill(.white)
-                                        .stroke(bus.allocation.color, lineWidth: 3)
-                                        .frame(width: 12, height: 12)
-                                        .accessibilityLabel("Stop: \(stop.name)")
+                                        .fill(MapTheme.stopFill)
+                                        .stroke(MapTheme.primary, lineWidth: 2.5)
+                                        .frame(width: 11, height: 11)
+                                        .shadow(color: .black.opacity(0.2), radius: 1.5, y: 1)
+                                        .accessibilityLabel("Stop: \(stop.displayName)")
                                 }
                             }
                         }
@@ -139,6 +145,9 @@ struct LiveMapView: View {
                         .annotationTitles(bus.id == selectedBusId ? .hidden : .automatic)
                     }
                 }
+                // Muted colours with fewer shops and places, so the buses and the route stand out.
+                .mapStyle(.standard(elevation: .realistic, emphasis: .muted,
+                                    pointsOfInterest: .including([.university, .publicTransport, .hospital])))
                 .mapControls {
                     MapUserLocationButton()
                     MapCompass()
@@ -187,10 +196,10 @@ struct LiveMapView: View {
                              followBus: $followBus,
                              onDetails: { showDetail = true },
                              onClose: { selectedBusId = nil })
-                        .transition(.move(edge: .bottom))
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.spring, value: selectedBusId)
+            .animation(.spring(response: 0.45, dampingFraction: 0.85), value: selectedBusId)
             .navigationTitle("Live Buses")
             // Riders: ask a question about today's buses.
             .toolbar {
