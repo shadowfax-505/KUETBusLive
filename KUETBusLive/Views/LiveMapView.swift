@@ -8,6 +8,10 @@
 //  route is drawn, the road it will take to your stop is highlighted, and a
 //  trip card slides up with the ETA, speed and nearest stop.
 //
+//  Buses glide between GPS points and turn to face the way they drive (see
+//  BusGlider and BusMotion). While any bus is gliding, TimelineView redraws the
+//  map every frame; when all have arrived it stops redrawing.
+//
 
 import SwiftUI
 import MapKit
@@ -27,6 +31,8 @@ struct LiveMapView: View {
     @EnvironmentObject var assistant: AssistantViewModel
     @EnvironmentObject var announcementsForAsk: AnnouncementViewModel
     @State private var showAsk = false
+    @StateObject private var glider = BusGlider()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
 
@@ -59,80 +65,85 @@ struct LiveMapView: View {
 
     var body: some View {
         NavigationStack {
-            Map(position: $camera) {
-                // The rider's own blue dot.
-                UserAnnotation()
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !glider.isGliding(at: Date()))) { timeline in
+                Map(position: $camera) {
+                    // The rider's own blue dot.
+                    UserAnnotation()
 
-                if let bus = selectedBus {
-                    // Whole route, drawn faintly.
-                    if let path = busViewModel.routePaths[bus.routeId], !path.isEmpty {
-                        MapPolyline(coordinates: path)
-                            .stroke(bus.allocation.color.opacity(0.35), lineWidth: 6)
-                    }
-                    // The road from the bus to my stop, drawn strongly.
-                    let toMyStop = busViewModel.remainingPath(for: bus)
-                    if !toMyStop.isEmpty {
-                        MapPolyline(coordinates: toMyStop)
-                            .stroke(bus.allocation.color,
-                                    style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                    }
-                    // Every stop on the route.
-                    if let stops = busViewModel.routeStops[bus.routeId] {
-                        ForEach(stops, id: \.self) { stop in
-                            Annotation(stop.name, coordinate: stop.coordinate) {
-                                Circle()
-                                    .fill(.white)
-                                    .stroke(bus.allocation.color, lineWidth: 3)
-                                    .frame(width: 12, height: 12)
-                                    .accessibilityLabel("Stop: \(stop.name)")
+                    if let bus = selectedBus {
+                        // Whole route, drawn faintly.
+                        if let path = busViewModel.routePaths[bus.routeId], !path.isEmpty {
+                            MapPolyline(coordinates: path)
+                                .stroke(bus.allocation.color.opacity(0.35), lineWidth: 6)
+                        }
+                        // The road from the bus to my stop, drawn strongly.
+                        let toMyStop = busViewModel.remainingPath(for: bus)
+                        if !toMyStop.isEmpty {
+                            MapPolyline(coordinates: toMyStop)
+                                .stroke(bus.allocation.color,
+                                        style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                        }
+                        // Every stop on the route.
+                        if let stops = busViewModel.routeStops[bus.routeId] {
+                            ForEach(stops, id: \.self) { stop in
+                                Annotation(stop.name, coordinate: stop.coordinate) {
+                                    Circle()
+                                        .fill(.white)
+                                        .stroke(bus.allocation.color, lineWidth: 3)
+                                        .frame(width: 12, height: 12)
+                                        .accessibilityLabel("Stop: \(stop.name)")
+                                }
                             }
                         }
                     }
-                }
 
-                if let stop = authViewModel.profile?.favoriteStop {
-                    Marker(stop.displayName, systemImage: "star.fill", coordinate: stop.coordinate)
-                        .tint(.orange)
-                }
+                    if let stop = authViewModel.profile?.favoriteStop {
+                        Marker(stop.displayName, systemImage: "star.fill", coordinate: stop.coordinate)
+                            .tint(.orange)
+                    }
 
-                // My places, and where the selected bus would pick me up.
-                ForEach(placesViewModel.places) { place in
-                    Marker(place.label, systemImage: place.kind.icon, coordinate: place.coordinate)
-                        .tint(place.id == boardingPlaceId ? .orange : .gray)
-                }
-                if let bus = selectedBus, let place = busViewModel.boardingPlace,
-                   let point = busViewModel.boardingPoint(for: bus)?.coordinate {
-                    MapPolyline(coordinates: [place.coordinate, point])
-                        .stroke(.orange, style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
-                    Annotation(String(localized: "Pick-up point"), coordinate: point) {
-                        Circle().fill(.orange).stroke(.white, lineWidth: 2).frame(width: 14, height: 14)
+                    // My places, and where the selected bus would pick me up.
+                    ForEach(placesViewModel.places) { place in
+                        Marker(place.label, systemImage: place.kind.icon, coordinate: place.coordinate)
+                            .tint(place.id == boardingPlaceId ? .orange : .gray)
+                    }
+                    if let bus = selectedBus, let place = busViewModel.boardingPlace,
+                       let point = busViewModel.boardingPoint(for: bus)?.coordinate {
+                        MapPolyline(coordinates: [place.coordinate, point])
+                            .stroke(.orange, style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
+                        Annotation(String(localized: "Pick-up point"), coordinate: point) {
+                            Circle().fill(.orange).stroke(.white, lineWidth: 2).frame(width: 14, height: 14)
+                        }
+                    }
+
+                    ForEach(busViewModel.buses) { bus in
+                        Annotation(PlaceNames.display(bus.number),
+                                   coordinate: glider.position(of: bus, at: timeline.date,
+                                                               route: busViewModel.routePaths[bus.routeId]),
+                                   anchor: .center) {
+                            BusMarker(bus: bus, heading: glider.heading(of: bus), isSelected: bus.id == selectedBusId)
+                                .onTapGesture {
+                                    select(bus)
+                                }
+                                // VoiceOver: "Normal-1 · Rupsha, Student bus, Seats available"
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel("\(PlaceNames.display(bus.number)), \(bus.allocation.title), \(bus.crowd.label)")
+                                .accessibilityHint("Shows the trip card with the ETA")
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction {
+                                    select(bus)
+                                }
+                        }
+                        // The trip card already shows the selected bus's name, and the
+                        // label would cover the heading arrow when the bus drives south.
+                        .annotationTitles(bus.id == selectedBusId ? .hidden : .automatic)
                     }
                 }
-
-                ForEach(busViewModel.buses) { bus in
-                    Annotation(PlaceNames.display(bus.number), coordinate: bus.coordinate) {
-                        BusMarker(bus: bus, isSelected: bus.id == selectedBusId)
-                            .onTapGesture {
-                                select(bus)
-                            }
-                            // VoiceOver: "Normal-1 · Rupsha, Student bus, Seats available"
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel("\(PlaceNames.display(bus.number)), \(bus.allocation.title), \(bus.crowd.label)")
-                            .accessibilityHint("Shows the trip card with the ETA")
-                            .accessibilityAddTraits(.isButton)
-                            .accessibilityAction {
-                                select(bus)
-                            }
-                    }
-                    // The trip card already shows the selected bus's name, and the
-                    // label would cover the heading arrow when the bus drives south.
-                    .annotationTitles(bus.id == selectedBusId ? .hidden : .automatic)
+                .mapControls {
+                    MapUserLocationButton()
+                    MapCompass()
+                    MapScaleView()
                 }
-            }
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-                MapScaleView()
             }
             .overlay(alignment: .top) {
                 VStack(spacing: 8) {
@@ -219,6 +230,8 @@ struct LiveMapView: View {
             scheduleViewModel.stopListening()
         }
         .onReceive(scheduleViewModel.$schedules) { busViewModel.schedules = $0 }
+        // New GPS points: start gliding each bus from where it is drawn to its new point.
+        .onReceive(busViewModel.$buses) { glider.update(with: $0, reduceMotion: reduceMotion) }
         // The boarding point changed (a place was chosen, added or removed): new ETAs.
         .onChange(of: placesViewModel.places) { updateBoardingPlace() }
         .onChange(of: boardingPlaceId) { updateBoardingPlace() }
@@ -230,10 +243,12 @@ struct LiveMapView: View {
             }
         }
         // Follow mode: keep the camera on the selected bus as it moves.
+        // The camera moves at the same steady pace as the bus glides, so the bus stays centred.
         .onChange(of: selectedBus?.lat) {
             if followBus, let bus = selectedBus {
-                withAnimation(.easeInOut(duration: 1)) {
-                    camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
+                let target = BusMotion.snapped(bus.coordinate, to: busViewModel.routePaths[bus.routeId])
+                withAnimation(reduceMotion ? nil : .linear(duration: max(glider.duration(of: bus), 1))) {
+                    camera = .camera(MapCamera(centerCoordinate: target, distance: 4000))
                 }
             }
         }
@@ -299,49 +314,5 @@ struct LiveMapView: View {
         withAnimation(.easeInOut(duration: 1)) {
             camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
         }
-    }
-}
-
-// The bus icon: colour shows the crowd level, the ring shows who may ride it,
-// and the small arrow points where the bus is heading.
-struct BusMarker: View {
-    let bus: Bus
-    let isSelected: Bool
-    @State private var pulse = false
-
-    var body: some View {
-        ZStack {
-            // A ring that keeps spreading out, so live buses look "alive".
-            if !bus.isStale {
-                Circle()
-                    .stroke(bus.allocation.color, lineWidth: 2)
-                    .frame(width: 36, height: 36)
-                    .scaleEffect(pulse ? 2 : 1)
-                    .opacity(pulse ? 0 : 0.7)
-                    .onAppear {
-                        withAnimation(.easeOut(duration: 1.6).repeatForever(autoreverses: false)) {
-                            pulse = true
-                        }
-                    }
-            }
-            Image(systemName: "bus.fill")
-                .padding(8)
-                .foregroundColor(.white)
-                .background(bus.crowd.color)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(bus.allocation.color, lineWidth: 3))
-                .opacity(bus.isStale ? 0.5 : 1)
-            // Drawn after the icon so it sits on top, just outside the ring.
-            if let heading = bus.heading {
-                Image(systemName: "arrowtriangle.up.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(bus.allocation.color)
-                    .offset(y: -27)
-                    .rotationEffect(.degrees(heading))
-            }
-        }
-        .scaleEffect(isSelected ? 1.3 : 1)
-        .shadow(radius: isSelected ? 4 : 1)
-        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: isSelected)
     }
 }
