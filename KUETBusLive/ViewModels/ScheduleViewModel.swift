@@ -20,7 +20,8 @@ class ScheduleViewModel: ObservableObject {
     // Read: real-time updates, sorted by the time the bus leaves campus.
     func startListening() {
         guard listener == nil else { return }
-        listener = db.collection("schedules").order(by: "campusTime").addSnapshotListener { snapshot, error in
+        listener = db.collection("schedules").order(by: "campusTime").addSnapshotListener { [weak self] snapshot, error in
+            guard let self = self else { return }
             if let error = error {
                 print("Error getting schedules: \(error)")
                 return
@@ -34,6 +35,10 @@ class ScheduleViewModel: ObservableObject {
     func stopListening() {
         listener?.remove()
         listener = nil
+    }
+
+    deinit {
+        listener?.remove()
     }
 
     // Only the trips this person is allowed to ride, on the chosen days and part of the day.

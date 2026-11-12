@@ -131,13 +131,12 @@ struct DriversAndBusesView: View {
         } message: {
             Text("Use this when a driver leaves the job. They are signed out of driving at once, a running trip ends, and their buses show \"No driver\" until you assign someone. You can reactivate them later.")
         }
+        // Not stopped in onDisappear: opening a bus also counts as disappearing, and the
+        // bus page then showed old data and saved against it. The view models stop
+        // listening when this page is closed for good.
         .onAppear {
-            fleetViewModel.listenAsAdmin()
+            if fleetViewModel.fleet.isEmpty { fleetViewModel.listenAsAdmin() }
             scheduleViewModel.startListening()
-        }
-        .onDisappear {
-            fleetViewModel.stopListening()
-            scheduleViewModel.stopListening()
         }
     }
 

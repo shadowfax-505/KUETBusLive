@@ -28,11 +28,13 @@ class FleetViewModel: ObservableObject {
         stopListening()
         listenToFleet()
         listeners.append(db.collection("users").whereField("role", isEqualTo: UserRole.driver.rawValue)
-            .addSnapshotListener { snapshot, _ in
+            .addSnapshotListener { [weak self] snapshot, _ in
+                guard let self = self else { return }
                 self.drivers = (snapshot?.documents.compactMap { try? $0.data(as: AppUser.self) } ?? [])
                     .sorted { $0.name < $1.name }
             })
-        listeners.append(db.collection("driverAbsences").addSnapshotListener { snapshot, _ in
+        listeners.append(db.collection("driverAbsences").addSnapshotListener { [weak self] snapshot, _ in
+            guard let self = self else { return }
             self.absences = (snapshot?.documents.compactMap { try? $0.data(as: DriverAbsence.self) } ?? [])
                 .sorted { $0.createdAt > $1.createdAt }
         })
@@ -42,14 +44,16 @@ class FleetViewModel: ObservableObject {
         stopListening()
         listenToFleet()
         listeners.append(db.collection("driverAbsences").whereField("driverId", isEqualTo: uid)
-            .addSnapshotListener { snapshot, _ in
+            .addSnapshotListener { [weak self] snapshot, _ in
+                guard let self = self else { return }
                 self.absences = (snapshot?.documents.compactMap { try? $0.data(as: DriverAbsence.self) } ?? [])
                     .sorted { $0.createdAt > $1.createdAt }
             })
     }
 
     private func listenToFleet() {
-        listeners.append(db.collection("fleet").addSnapshotListener { snapshot, error in
+        listeners.append(db.collection("fleet").addSnapshotListener { [weak self] snapshot, error in
+            guard let self = self else { return }
             if let error = error {
                 self.errorMessage = error.localizedDescription
                 return
@@ -62,6 +66,10 @@ class FleetViewModel: ObservableObject {
     func stopListening() {
         listeners.forEach { $0.remove() }
         listeners = []
+    }
+
+    deinit {
+        stopListening()
     }
 
     // MARK: - Reading
