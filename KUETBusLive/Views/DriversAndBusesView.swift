@@ -83,6 +83,7 @@ struct DriversAndBusesView: View {
                 ForEach(fleetViewModel.fleet) { bus in
                     NavigationLink {
                         BusAssignmentView(busId: bus.id ?? "", fleetViewModel: fleetViewModel,
+                                          scheduleViewModel: scheduleViewModel,
                                           onAddCover: { coverRequest = CoverRequest(bus: $0) })
                     } label: {
                         BusTodayRow(bus: bus, fleetViewModel: fleetViewModel)
@@ -177,12 +178,25 @@ struct BusTodayRow: View {
 struct BusAssignmentView: View {
     let busId: String
     @ObservedObject var fleetViewModel: FleetViewModel
+    @ObservedObject var scheduleViewModel: ScheduleViewModel
     let onAddCover: (FleetBus) -> Void
     @State private var pendingDriverId: String?
     @State private var askConfirm = false
+    @State private var showTripDrivers = false
 
     var bus: FleetBus? {
         fleetViewModel.fleet.first { $0.id == busId }
+    }
+
+    // This bus's trips in the timetable, in order of the days and then the time.
+    var trips: [BusSchedule] {
+        guard let bus = bus else { return [] }
+        return scheduleViewModel.schedules
+            .filter { $0.tripName == bus.name }
+            .sorted {
+                ($0.days == $1.days) ? (BusSchedule.minutes(from: $0.campusTime) ?? 0)
+                    < (BusSchedule.minutes(from: $1.campusTime) ?? 0) : $0.days == .sunToThu
+            }
     }
 
     var body: some View {
@@ -197,6 +211,36 @@ struct BusAssignmentView: View {
                         ForEach(fleetViewModel.activeDrivers) { driver in
                             Text(driver.name).tag(driver.id ?? "")
                         }
+                    }
+                }
+
+                // Off unless the office picks someone: usually one driver drives every trip.
+                Section(footer: Text("The driver you pick drives only that trip. The other trips stay with the cover or regular driver.")) {
+                    DisclosureGroup(isExpanded: $showTripDrivers) {
+                        if trips.isEmpty {
+                            Text("This bus has no trips in the timetable.")
+                                .foregroundColor(.secondary)
+                        }
+                        ForEach(trips) { trip in
+                            Picker(selection: Binding(
+                                get: { bus.tripDrivers?[trip.id ?? ""] ?? "" },
+                                set: { fleetViewModel.setTripDriver($0.isEmpty ? nil : $0, trip: trip.id ?? "", for: bus) })) {
+                                Text("Usual driver").tag("")
+                                ForEach(fleetViewModel.activeDrivers) { driver in
+                                    Text(driver.name).tag(driver.id ?? "")
+                                }
+                            } label: {
+                                VStack(alignment: .leading) {
+                                    Text("\(trip.days.title) · \(BusSchedule.display(trip.campusTime))")
+                                    Text(trip.spotDisplayName)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    } label: {
+                        LabeledContent("Different driver for some trips",
+                                       value: (bus.tripDrivers ?? [:]).isEmpty ? "" : "\((bus.tripDrivers ?? [:]).count)")
                     }
                 }
 
@@ -218,6 +262,9 @@ struct BusAssignmentView: View {
                 }
             }
             .navigationTitle(bus.name)
+            .onAppear {
+                if !(bus.tripDrivers ?? [:]).isEmpty { showTripDrivers = true }
+            }
             .alert(confirmTitle(for: bus), isPresented: $askConfirm) {
                 Button("Change") {
                     let id = pendingDriverId ?? ""

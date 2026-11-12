@@ -1122,6 +1122,16 @@
         }
       }
     },
+    "Different driver for some trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কিছু ট্রিপে অন্য চালক"
+          }
+        }
+      }
+    },
     "Discard": {
       "localizations": {
         "bn": {
@@ -3462,6 +3472,16 @@
         }
       }
     },
+    "The driver you pick drives only that trip. The other trips stay with the cover or regular driver.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি যাকে বেছে নেবেন তিনি শুধু সেই ট্রিপটি চালাবেন। বাকি ট্রিপগুলো বদলি বা নিয়মিত চালকের কাছেই থাকবে।"
+          }
+        }
+      }
+    },
     "The model is still downloading. Try again later.": {
       "localizations": {
         "bn": {
@@ -3568,6 +3588,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই বাসের ট্রিপ শেষ হয়েছে।"
+          }
+        }
+      }
+    },
+    "This bus has no trips in the timetable.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচিতে এই বাসের কোনো ট্রিপ নেই।"
           }
         }
       }
@@ -3918,6 +3948,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই আইফোনের Apple মডেল ব্যবহার করে। আপনার প্রশ্ন ফোনের বাইরে যায় না। উত্তর ভুল হতে পারে, তাই সময়সূচি মিলিয়ে নিন।"
+          }
+        }
+      }
+    },
+    "Usual driver": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাধারণ চালক"
           }
         }
       }

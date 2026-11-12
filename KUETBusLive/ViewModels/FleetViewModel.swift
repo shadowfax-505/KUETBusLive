@@ -5,7 +5,8 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  Bus assignment. The admin sets each bus's regular driver, adds cover when a driver
-//  is off, answers "I can't drive" requests and deactivates drivers who left.
+//  is off, sets a different driver for single trips, answers "I can't drive" requests
+//  and deactivates drivers who left.
 //  Drivers use it to see their bus for today and to send "I can't drive".
 //  The rules in firestore.rules check every write again on the server.
 //
@@ -124,6 +125,17 @@ class FleetViewModel: ObservableObject {
         }
     }
 
+    // A different driver for one trip of this bus, or nil to give the trip back to
+    // the bus's usual (cover or regular) driver.
+    func setTripDriver(_ driverId: String?, trip scheduleId: String, for bus: FleetBus) {
+        guard let busId = bus.id, !scheduleId.isEmpty else { return }
+        let value: Any = driverId ?? FieldValue.delete()
+        db.collection("fleet").document(busId)
+            .updateData([FieldPath(["tripDrivers", scheduleId]): value]) { error in
+                if let error = error { self.errorMessage = error.localizedDescription }
+            }
+    }
+
     // A temporary replacement for some days. Also marks the matching request as covered.
     func addCover(to bus: FleetBus, driverId: String, from: Date, until: Date, reason: String,
                   adminId: String, absence: DriverAbsence? = nil) {
@@ -160,6 +172,9 @@ class FleetViewModel: ObservableObject {
             }
             if bus.cover?.driverId == driverId {
                 db.collection("fleet").document(busId).updateData(["cover": FieldValue.delete()])
+            }
+            for (scheduleId, tripDriver) in bus.tripDrivers ?? [:] where tripDriver == driverId {
+                setTripDriver(nil, trip: scheduleId, for: bus)
             }
         }
         // Their live bus disappears from every map.
