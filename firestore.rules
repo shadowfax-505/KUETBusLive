@@ -46,6 +46,16 @@ service cloud.firestore {
             || (!coverActive(bus) && bus.get('defaultDriverId', null) == request.auth.uid));
     }
 
+    // Who drives one trip (a schedule document) of a fleet bus: the driver set for that
+    // trip in tripDrivers if there is one, otherwise whoever drives the bus today.
+    function drivesTrip(fleetBusId, scheduleId) {
+      let path = /databases/$(database)/documents/fleet/$(fleetBusId);
+      let tripDriver = get(path).data.get('tripDrivers', {}).get(scheduleId, null);
+      return exists(path)
+        && ((tripDriver != null && tripDriver == request.auth.uid)
+            || (tripDriver == null && drivesToday(fleetBusId)));
+    }
+
     // Students and teachers ride buses. Teachers must be approved first; students start approved.
     function isApprovedRider() {
       return isApproved() && me().role in ['student', 'teacher'];
@@ -159,12 +169,12 @@ service cloud.firestore {
 
       allow read: if signedIn();
 
-      // An approved driver starts a trip, as themselves, only on the fleet bus
-      // they drive today. The document ID is "bus-" + the fleet bus, so two
-      // drivers can never run the same bus at once.
+      // An approved driver starts a trip, as themselves, only on a fleet bus trip
+      // they drive. The document ID is "bus-" + the fleet bus, so two drivers can
+      // never run the same bus at once.
       allow create: if isApprovedDriver() && isValidBus(request.resource.data)
         && id == 'bus-' + request.resource.data.fleetBusId
-        && drivesToday(request.resource.data.fleetBusId);
+        && drivesTrip(request.resource.data.fleetBusId, request.resource.data.get('scheduleId', ''));
 
       // The admin can fix anything. An approved driver moves only their own bus.
       // Riders allowed on the bus can change only its crowd level.
@@ -210,11 +220,14 @@ service cloud.firestore {
         && (waveId == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
     }
 
-    // ---------- Fleet: regular and cover drivers (only the admin assigns) ----------
+    // ---------- Fleet: regular, cover and trip drivers (only the admin assigns) ----------
 
     match /fleet/{busId} {
       allow read: if signedIn();
-      allow write: if isAdmin();
+      // tripDrivers, when present, is a map of schedule ID -> driver uid.
+      allow create, update: if isAdmin()
+        && request.resource.data.get('tripDrivers', {}) is map;
+      allow delete: if isAdmin();
     }
 
     // ---------- "I can't drive" requests ----------
@@ -244,7 +257,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['driverId', 'fleetBusId', 'scheduleId', 'routeId',
             'startedAt', 'endedAt'])
         && request.resource.data.driverId == request.auth.uid
-        && drivesToday(request.resource.data.fleetBusId);
+        && drivesTrip(request.resource.data.fleetBusId, request.resource.data.scheduleId);
       // Only the end time can be added later, by the same driver.
       allow update: if signedIn() && resource.data.driverId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endedAt']);

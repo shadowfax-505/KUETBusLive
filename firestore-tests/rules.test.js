@@ -364,6 +364,50 @@ test("only the admin assigns drivers", async () => {
   await assertSucceeds(updateDoc(doc(db("admin"), "fleet", "normal-2"), { defaultDriverId: "driver" }));
 });
 
+async function setTripDrivers(busId, tripDrivers) {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "fleet", busId), { tripDrivers });
+  });
+}
+
+test("a driver set for one trip drives that trip, and only that trip", async () => {
+  await addDriver("reserve");
+  await setTripDrivers("normal-1", { s2: "reserve" });
+  // Trip s2 belongs to the trip driver, even over the regular driver.
+  await assertSucceeds(setDoc(doc(db("reserve"), "buses", "bus-normal-1"), bus("reserve", { scheduleId: "s2" })));
+  await env.withSecurityRulesDisabled(async (context) => {
+    await deleteDoc(doc(context.firestore(), "buses", "bus-normal-1"));
+  });
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { scheduleId: "s2" })));
+  // Other trips of the bus stay with the regular driver.
+  await assertFails(setDoc(doc(db("reserve"), "buses", "bus-normal-1"), bus("reserve", { scheduleId: "s1" })));
+  await assertSucceeds(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { scheduleId: "s1" })));
+});
+
+test("a trip driver wins over an active cover", async () => {
+  await addDriver("reserve");
+  await addDriver("cover");
+  await setCover("normal-1", "cover", 0, 2);
+  await setTripDrivers("normal-1", { s1: "reserve" });
+  await assertFails(setDoc(doc(db("cover"), "buses", "bus-normal-1"), bus("cover")));
+  await assertSucceeds(setDoc(doc(db("reserve"), "buses", "bus-normal-1"), bus("reserve")));
+});
+
+test("trip history follows trip drivers too", async () => {
+  await addDriver("reserve");
+  await setTripDrivers("normal-2", { s9: "reserve" });
+  const trip = { driverId: "reserve", fleetBusId: "normal-2", scheduleId: "s9", routeId: "r1", startedAt: new Date() };
+  await assertSucceeds(setDoc(doc(db("reserve"), "trips", "t1"), trip));
+  await assertFails(setDoc(doc(db("reserve"), "trips", "t2"), { ...trip, scheduleId: "s1" }));
+});
+
+test("only the admin sets trip drivers, and only as a map", async () => {
+  await assertFails(updateDoc(doc(db("driver"), "fleet", "normal-2"), { tripDrivers: { s1: "driver" } }));
+  await assertSucceeds(updateDoc(doc(db("admin"), "fleet", "normal-2"), { tripDrivers: { s1: "driver" } }));
+  await assertFails(updateDoc(doc(db("admin"), "fleet", "normal-2"), { tripDrivers: "driver" }));
+  await assertSucceeds(updateDoc(doc(db("admin"), "fleet", "normal-2"), { tripDrivers: {} }));
+});
+
 function absence(driverId, extra = {}) {
   return { driverId, driverName: "D", fromDate: "2026-11-10", untilDate: "2026-11-12", reason: "Fever",
            status: "open", createdAt: new Date(), ...extra };
