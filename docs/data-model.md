@@ -119,6 +119,7 @@ The document ID is made from the name: lower case, anything that isn't a letter 
 | `name` | string | same as `schedules.tripName` |
 | `defaultDriverId` | string or null | the regular driver |
 | `cover` | map, optional | a temporary replacement, see below |
+| `tripDrivers` | map, optional | a different driver for single trips: `schedules` document ID → driver uid. Missing or empty for most buses |
 
 `cover` map:
 
@@ -133,7 +134,9 @@ The document ID is made from the name: lower case, anything that isn't a letter 
 
 **Who drives today:** the cover driver if today is between `fromDate` and `untilDate`, otherwise `defaultDriverId`, otherwise nobody. The rules use `start ≤ now < end` for the same check.
 
-Everyone signed in reads; only the admin writes.
+**Who drives one trip:** the driver in `tripDrivers[scheduleId]` if there is one, otherwise whoever drives the bus today (above). A trip driver comes first even while a cover is active. Every client must resolve it in this order; the rules do the same when a trip starts.
+
+Everyone signed in reads; only the admin writes. `tripDrivers`, when present, must be a map.
 
 ## `buses/{busId}`: live trips
 
@@ -153,7 +156,7 @@ Exists only while a trip runs. The ID is `bus-<fleetBusId>`, so a fleet bus can 
 | `updatedAt` | timestamp | |
 | `crowd` | string | |
 
-Who can do what: an approved, active driver creates it only for the fleet bus they drive today, as themselves. They may move it afterwards even if their cover ends during the trip. Riders allowed on the bus change only `crowd`. The driver or the admin deletes it (end of trip).
+Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip. Riders allowed on the bus change only `crowd`. The driver or the admin deletes it (end of trip).
 
 ### `buses/{busId}/waves/{uid}`: "I'm waiting here"
 
@@ -188,7 +191,7 @@ A driver creates and reads their own and may withdraw it. The admin reads and up
 | `startedAt` | timestamp |
 | `endedAt` | timestamp, added when the trip ends |
 
-The driver creates it (only for their bus today) and later adds `endedAt`. The driver reads their own; the admin reads all.
+The driver creates it (only for a trip they drive, as for `buses`) and later adds `endedAt`. The driver reads their own; the admin reads all.
 
 ## `complaints/{id}`
 

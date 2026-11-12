@@ -1311,12 +1311,16 @@ Each of the office's buses (Normal-1, Normal-2, Special-1 ...) is a document in 
 
 ```mermaid
 flowchart TB
-    START["Who drives Normal-2 today?"] --> C{"Cover set and today<br/>between its first and last day?<br/>(days in Dhaka time)"}
+    START["Who drives this trip of Normal-2?"] --> T{"A driver set<br/>for this trip?"}
+    T -->|yes| TD["the trip's driver"]
+    T -->|no| C{"Cover set and today<br/>between its first and last day?<br/>(days in Dhaka time)"}
     C -->|yes| CD["the cover driver"]
     C -->|no| D{"Regular driver set?"}
     D -->|yes| RD["the regular driver"]
     D -->|no| NO["nobody:<br/>'No driver today'<br/>+ a drafted notice for the admin"]
 ```
+
+Most buses have one driver for all their trips. When the office wants a different driver for some trips (an evening trip, a Saturday trip), the bus page has a "Different driver for some trips" section with a driver menu for each trip. That driver sees the trip in their list and may start only that trip of the bus; the bus's other trips stay with the cover or regular driver.
 
 The sick-day flow:
 
