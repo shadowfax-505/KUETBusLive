@@ -8,6 +8,8 @@
 import SwiftUI
 
 // Used by students and teachers. Each screen filters buses by the signed-in role.
+// Three tabs: the map, the timetable (with a route filter) and Profile, which
+// also holds News, routes and stops, and the rider's places.
 struct StudentTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var announcementViewModel: AnnouncementViewModel
@@ -28,27 +30,15 @@ struct StudentTabView: View {
                     Label("Schedule", systemImage: "calendar")
                 }
 
-            RoutesListView()
-                .tabItem {
-                    Label("Routes", systemImage: "list.bullet")
-                }
-
-            NavigationStack {
-                AnnouncementsView()
-            }
-            .tabItem {
-                Label("News", systemImage: "megaphone")
-            }
-            // Red number on the tab: announcements posted since the list was last opened.
-            // Turned off in Profile, the tab stays but the badge goes away.
-            .badge(showNews ? announcementViewModel.unreadCount : 0)
-
             NavigationStack {
                 ProfileView()
             }
             .tabItem {
                 Label("Profile", systemImage: "person.circle")
             }
+            // News lives in Profile: unread announcements show on its tab.
+            // Turned off in Profile, the badge goes away.
+            .badge(showNews ? announcementViewModel.unreadCount : 0)
         }
         .onAppear {
             widgetSchedules.startListening()

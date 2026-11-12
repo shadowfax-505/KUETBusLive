@@ -6,6 +6,7 @@
 //
 //  The KUET bus timetable. Students see only student (Normal) trips.
 //  Teachers and the admin see every trip. The admin can also add, edit and delete trips.
+//  The chips at the top narrow the list to one route (the place the trip goes to).
 //
 
 import SwiftUI
@@ -17,6 +18,8 @@ struct SchedulesView: View {
     @State private var editingSchedule: BusSchedule?
     @State private var confirmReload = false
     @State private var showImport = false
+    // nil: all routes. Otherwise the trips' place, e.g. "Rupsha".
+    @State private var routeFilter: String?
     @EnvironmentObject var assistant: AssistantViewModel
 
     var role: UserRole {
@@ -27,6 +30,18 @@ struct SchedulesView: View {
         role == .admin
     }
 
+    // Every place this person's trips go to, with its name in the app's language.
+    var routeChoices: [(spot: String, name: String)] {
+        let mine = scheduleViewModel.schedules.filter { $0.audience.canBoard(role) }
+        let names = Dictionary(mine.map { ($0.spot, $0.spotDisplayName) }, uniquingKeysWith: { first, _ in first })
+        return names.map { (spot: $0.key, name: $0.value) }.sorted { $0.name < $1.name }
+    }
+
+    var nextTrip: BusSchedule? {
+        let trips = scheduleViewModel.schedules.filter { routeFilter == nil || $0.spot == routeFilter }
+        return BusSchedule.nextTrip(in: trips, for: role)
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -34,7 +49,15 @@ struct SchedulesView: View {
                     DaysPicker(days: $days)
                 }
 
-                if let next = scheduleViewModel.nextTrip(for: role) {
+                if routeChoices.count > 1 {
+                    Section {
+                        RouteChips(choices: routeChoices, selected: $routeFilter)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
+                }
+
+                if let next = nextTrip {
                     Section(header: Text("Next bus you can take today")) {
                         ScheduleRow(schedule: next)
                     }
@@ -42,6 +65,7 @@ struct SchedulesView: View {
 
                 ForEach(TripPeriod.allCases, id: \.self) { period in
                     let trips = scheduleViewModel.trips(for: role, days: days, period: period)
+                        .filter { routeFilter == nil || $0.spot == routeFilter }
                     if !trips.isEmpty {
                         Section(header: Text(period.title)) {
                             ForEach(trips) { trip in
@@ -117,6 +141,43 @@ struct SchedulesView: View {
         .onDisappear {
             scheduleViewModel.stopListening()
         }
+    }
+}
+
+// "All routes", then one chip per place. @Binding: changes SchedulesView's filter.
+struct RouteChips: View {
+    let choices: [(spot: String, name: String)]
+    @Binding var selected: String?
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                chip(String(localized: "All routes"), isOn: selected == nil) { selected = nil }
+                ForEach(choices, id: \.spot) { choice in
+                    chip(choice.name, isOn: selected == choice.spot) {
+                        selected = selected == choice.spot ? nil : choice.spot
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+        }
+        .animation(.snappy, value: selected)
+        .sensoryFeedback(.selection, trigger: selected)
+    }
+
+    func chip(_ title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(isOn ? .semibold : .regular))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .foregroundColor(isOn ? .white : .primary)
+                .background(isOn ? AnyShapeStyle(MapTheme.accent) : AnyShapeStyle(.thinMaterial), in: Capsule())
+                .overlay(Capsule().stroke(.primary.opacity(isOn ? 0 : 0.1)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
