@@ -352,6 +352,16 @@
         }
       }
     },
+    "Add a profile photo": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোফাইল ছবি যোগ করুন"
+          }
+        }
+      }
+    },
     "Add a trip": {
       "localizations": {
         "bn": {
@@ -548,6 +558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অ্যাপের সমস্যা"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চেহারা"
           }
         }
       }
@@ -812,6 +832,16 @@
         }
       }
     },
+    "Change profile photo": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোফাইল ছবি বদলান"
+          }
+        }
+      }
+    },
     "Change the regular driver of %@?": {
       "localizations": {
         "bn": {
@@ -1062,6 +1092,16 @@
         }
       }
     },
+    "Dark": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গাঢ়"
+          }
+        }
+      }
+    },
     "Days": {
       "localizations": {
         "bn": {
@@ -1138,6 +1178,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "শেষ অঙ্ক মুছুন"
+          }
+        }
+      }
+    },
+    "Deleting removes your profile and login for good.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মুছে ফেললে আপনার প্রোফাইল ও লগইন চিরতরে মুছে যাবে।"
           }
         }
       }
@@ -1482,6 +1532,16 @@
         }
       }
     },
+    "Help & feedback": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাহায্য ও মতামত"
+          }
+        }
+      }
+    },
     "Here": {
       "localizations": {
         "bn": {
@@ -1702,6 +1762,16 @@
         }
       }
     },
+    "Language & appearance": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভাষা ও চেহারা"
+          }
+        }
+      }
+    },
     "Last update": {
       "localizations": {
         "bn": {
@@ -1788,6 +1858,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "শুরুর জায়গা থেকে ছাড়ে"
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "হালকা"
           }
         }
       }
@@ -2088,6 +2168,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "খবর"
+          }
+        }
+      }
+    },
+    "News and announcements": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খবর ও ঘোষণা"
           }
         }
       }
@@ -2402,6 +2492,16 @@
         }
       }
     },
+    "Not set": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঠিক করা হয়নি"
+          }
+        }
+      }
+    },
     "Not set. Pick one in Routes.": {
       "localizations": {
         "bn": {
@@ -2498,6 +2598,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "খোলা"
+          }
+        }
+      }
+    },
+    "Open iOS Settings": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS সেটিংস খুলুন"
           }
         }
       }
@@ -2602,12 +2712,32 @@
         }
       }
     },
+    "Pick your stop on a route's page. Your places are where you usually wait, like home or a tuition centre.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুটের পাতায় আপনার স্টপ বেছে নিন। আপনার জায়গা হলো যেখানে আপনি সাধারণত অপেক্ষা করেন, যেমন বাসা বা কোচিং।"
+          }
+        }
+      }
+    },
     "Pick-up point": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "ওঠার জায়গা"
+          }
+        }
+      }
+    },
+    "Places": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জায়গা"
           }
         }
       }
@@ -2758,6 +2888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "মন্তব্য"
+          }
+        }
+      }
+    },
+    "Remove photo": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ছবি সরান"
           }
         }
       }
@@ -2942,6 +3082,16 @@
         }
       }
     },
+    "Routes and stops": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুট ও স্টপ"
+          }
+        }
+      }
+    },
     "Running now": {
       "localizations": {
         "bn": {
@@ -2958,6 +3108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এখন চলছে: %@।"
+          }
+        }
+      }
+    },
+    "Same as iPhone": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আইফোনের মতো"
           }
         }
       }
@@ -3018,6 +3178,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সিট খালি আছে"
+          }
+        }
+      }
+    },
+    "Security": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিরাপত্তা"
           }
         }
       }
@@ -3108,6 +3278,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "লুকানোগুলো দেখান (%lld)"
+          }
+        }
+      }
+    },
+    "Show news alerts": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খবরের সতর্কবার্তা দেখান"
           }
         }
       }
@@ -3612,6 +3792,16 @@
         }
       }
     },
+    "The language changes at once. Same as iPhone follows the phone's own language.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভাষা সঙ্গে সঙ্গে বদলে যায়। \"আইফোনের মতো\" বেছে নিলে ফোনের ভাষা অনুসরণ করে।"
+          }
+        }
+      }
+    },
     "The last bus today": {
       "localizations": {
         "bn": {
@@ -3918,6 +4108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "যাত্রার অগ্রগতি"
+          }
+        }
+      }
+    },
+    "Trips & alerts": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ ও সতর্কবার্তা"
           }
         }
       }
@@ -4348,6 +4548,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আপনার তথ্য"
+          }
+        }
+      }
+    },
+    "Your photo stays on this iPhone and isn't uploaded.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ছবি এই আইফোনেই থাকে, আপলোড হয় না।"
           }
         }
       }

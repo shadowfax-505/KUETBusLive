@@ -4,10 +4,13 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  Shown inside a NavigationStack by its parent.
+//  Shown inside a NavigationStack by its parent. Grouped like the Settings app:
+//  who you are, your trips and places, news, language and look, security,
+//  help, and finally signing out.
 //
 
 import SwiftUI
+import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -19,6 +22,11 @@ struct ProfileView: View {
     @AppStorage(RideHistory.backupOnKey) private var backupOn = false
     @State private var confirmReset = false
     @State private var showSetPasscode = false
+    @EnvironmentObject var announcementViewModel: AnnouncementViewModel
+    @ObservedObject private var photoStore = ProfilePhotoStore.shared
+    @State private var pickedPhoto: PhotosPickerItem?
+    @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 
     // Set by the driver screen while a trip runs, so deleting the account can end it first.
     var endActiveTrip: (() -> Void)? = nil
@@ -58,45 +66,21 @@ struct ProfileView: View {
         authViewModel.profile?.role == .student || authViewModel.profile?.role == .teacher
     }
 
+    // Switch the bundle first, then store the choice, which rebuilds every screen.
+    var languageBinding: Binding<String> {
+        Binding(get: { language }, set: { code in
+            (AppLanguage(rawValue: code) ?? .system).apply()
+            language = code
+        })
+    }
+
     var body: some View {
         Form {
-            Section(header: Text("Account")) {
-                LabeledContent("Name", value: authViewModel.profile?.name ?? "")
-                LabeledContent("Email", value: authViewModel.profile?.email ?? "")
-                LabeledContent("Role", value: authViewModel.profile?.role.title ?? "")
-                if let profile = authViewModel.profile, let kuetId = profile.kuetId {
-                    LabeledContent(profile.role.idLabel, value: kuetId)
-                }
-                if isRider {
-                    LabeledContent("Can ride", value: authViewModel.profile?.role == .teacher
-                                   ? String(localized: "Any bus") : String(localized: "Student buses only"))
-                }
-            }
+            accountHeader
 
             if isRider {
-                Section(header: Text("My stop")) {
-                    NavigationLink {
-                        MyPlacesView()
-                    } label: {
-                        Label("My places", systemImage: "mappin.and.ellipse")
-                    }
-                    Text(authViewModel.profile?.favoriteStopName.map { PlaceNames.display($0) } ?? String(localized: "Not set. Pick one in Routes."))
+                Section(header: Text("Trips & alerts")) {
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
-                }
-            }
-
-            // The admin writes the news, so only riders and drivers get this switch.
-            if authViewModel.profile?.role != .admin {
-                Section(header: Text("News"),
-                        footer: Text("Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.")) {
-                    Toggle("Show news and announcements", isOn: $showNews)
-                }
-            }
-
-            // Smart suggestions learn the rider's usual bus on this phone.
-            if isRider {
-                Section(header: Text("Smart suggestions"),
-                        footer: Text("The app notices which bus you follow, wave at or get on, and suggests it at the same time next week. This stays on this phone unless you keep it in your account.")) {
                     Toggle("Suggest my usual bus", isOn: $suggestionsOn)
                     Toggle("Keep my ride history in my account", isOn: $backupOn)
                         .disabled(!suggestionsOn)
@@ -109,10 +93,68 @@ struct ProfileView: View {
                         confirmReset = true
                     }
                 }
+
+                Section(header: Text("Places"),
+                        footer: Text("Pick your stop on a route's page. Your places are where you usually wait, like home or a tuition centre.")) {
+                    LabeledContent("My stop", value: authViewModel.profile?.favoriteStopName.map { PlaceNames.display($0) }
+                                   ?? String(localized: "Not set"))
+                    NavigationLink {
+                        RoutesList()
+                    } label: {
+                        Label("Routes and stops", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    }
+                    NavigationLink {
+                        MyPlacesView()
+                    } label: {
+                        Label("My places", systemImage: "mappin.and.ellipse")
+                    }
+                }
+            }
+
+            // The admin writes the news, so only riders and drivers read it here.
+            if authViewModel.profile?.role != .admin {
+                Section(header: Text("News"),
+                        footer: Text("Turned off, there is no badge and no banner on the map. You can still open News yourself, and hide single announcements by swiping them.")) {
+                    NavigationLink {
+                        AnnouncementsView()
+                    } label: {
+                        Label("News and announcements", systemImage: "megaphone")
+                    }
+                    .badge(showNews ? announcementViewModel.unreadCount : 0)
+                    Toggle("Show news alerts", isOn: $showNews)
+                }
+            }
+
+            Section {
+                Picker(selection: languageBinding) {
+                    ForEach(AppLanguage.allCases) { option in
+                        Text(option.title).tag(option.rawValue)
+                    }
+                } label: {
+                    Label("Language", systemImage: "globe")
+                }
+                Picker(selection: $appearance) {
+                    ForEach(AppAppearance.allCases) { option in
+                        Text(option.title).tag(option.rawValue)
+                    }
+                } label: {
+                    Label("Appearance", systemImage: "circle.lefthalf.filled")
+                }
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Label("Open iOS Settings", systemImage: "gear")
+                }
+            } header: {
+                Text("Language & appearance")
+            } footer: {
+                Text("The language changes at once. Same as iPhone follows the phone's own language.")
             }
 
             // Both, either or neither: each lock is its own switch.
-            Section(header: Text("App lock"),
+            Section(header: Text("Security"),
                     footer: Text("The app locks when you leave it. With both on, Face ID is tried first and the passcode is the backup.")) {
                 if let biometry = BiometricAuth.biometryName {
                     Toggle("Unlock with \(biometry)", isOn: $faceIDOn)
@@ -125,27 +167,12 @@ struct ProfileView: View {
                 }
             }
 
-            // The app has English and Bangla text. iOS picks one from the phone's language.
-            Section {
-                Button {
-                    // Opens this app's page in Settings, where its language can be changed.
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                } label: {
-                    LabeledContent("Language", value: Locale.current.localizedString(
-                        forLanguageCode: Locale.current.language.languageCode?.identifier ?? "en") ?? "English")
-                }
-                .foregroundColor(.primary)
-            } header: {
-                Text("Language")
-            } footer: {
-                Text("The app follows your phone's language. To use it in Bangla, set Bangla in Settings > General > Language & Region, or choose it for this app only in Settings > KUET Bus Live > Language.")
-            }
+            // Optional, per phone: only offered where Apple's on-device model can run.
+            AssistantSettingsSection()
 
-            // Riders and drivers can tell the transport office about a problem.
-            if authViewModel.profile?.role != .admin {
-                Section(header: Text("Help")) {
+            Section(header: Text("Help & feedback")) {
+                // Riders and drivers can tell the transport office about a problem.
+                if authViewModel.profile?.role != .admin {
                     NavigationLink {
                         ReportProblemView()
                     } label: {
@@ -157,12 +184,6 @@ struct ProfileView: View {
                         Label("My complaints", systemImage: "tray.full")
                     }
                 }
-            }
-
-            // Optional, per phone: only offered where Apple's on-device model can run.
-            AssistantSettingsSection()
-
-            Section(header: Text("About")) {
                 Link(destination: Self.privacyPolicyURL) {
                     Label("Privacy policy", systemImage: "hand.raised")
                 }
@@ -173,9 +194,6 @@ struct ProfileView: View {
                 Button("Sign Out", role: .destructive) {
                     authViewModel.signOut()
                 }
-            }
-
-            Section {
                 Button(role: .destructive) {
                     deletePassword = ""
                     showDeleteConfirm = true
@@ -190,8 +208,10 @@ struct ProfileView: View {
                 }
                 .foregroundColor(.red)
                 .disabled(isDeleting)
+            } header: {
+                Text("Account")
             } footer: {
-                Text("Removes your profile and login for good.")
+                Text("Deleting removes your profile and login for good.")
             }
         }
         .navigationTitle("Profile")
@@ -237,6 +257,14 @@ struct ProfileView: View {
                 }
             }
         }
+        .onAppear { photoStore.load(uid: authViewModel.user?.uid) }
+        .onChange(of: pickedPhoto) { _, item in
+            item?.loadTransferable(type: Data.self) { result in
+                if case .success(let data?) = result {
+                    DispatchQueue.main.async { photoStore.save(data) }
+                }
+            }
+        }
         .onChange(of: arrivalAlertOn) { _, newValue in
             if newValue {
                 NotificationManager.shared.requestPermission()
@@ -246,6 +274,52 @@ struct ProfileView: View {
 }
 
 extension ProfileView {
+    // Photo, name and role at the top, like a contact card. Tap the photo to change it.
+    var accountHeader: some View {
+        Section {
+            HStack(spacing: 16) {
+                PhotosPicker(selection: $pickedPhoto, matching: .images) {
+                    ProfileAvatar(image: photoStore.image, name: authViewModel.profile?.name ?? "", size: 72)
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "camera.circle.fill")
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, MapTheme.accent)
+                                .font(.title3)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(photoStore.image == nil ? "Add a profile photo" : "Change profile photo")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(authViewModel.profile?.name ?? "")
+                        .font(.title3.weight(.semibold))
+                    Text(authViewModel.profile?.role.title ?? "")
+                        .font(.subheadline)
+                        .foregroundColor(MapTheme.accent)
+                    Text(authViewModel.profile?.email ?? "")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+            .padding(.vertical, 4)
+            if let profile = authViewModel.profile, let kuetId = profile.kuetId {
+                LabeledContent(profile.role.idLabel, value: kuetId)
+            }
+            if isRider {
+                LabeledContent("Can ride", value: authViewModel.profile?.role == .teacher
+                               ? String(localized: "Any bus") : String(localized: "Student buses only"))
+            }
+            if photoStore.image != nil {
+                Button("Remove photo", role: .destructive) {
+                    photoStore.remove()
+                }
+            }
+        } footer: {
+            Text("Your photo stays on this iPhone and isn't uploaded.")
+        }
+    }
+
     func deleteAccount() {
         let password = deletePassword
         deletePassword = ""
