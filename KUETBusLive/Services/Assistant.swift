@@ -22,6 +22,9 @@ enum AssistantError: Error, Equatable {
     case badResponse                // the answer wasn't in the expected shape
     case rateLimited
     case cancelled
+    case modelNotReady              // the model's files are still downloading or updating
+    case busy                       // the system is busy with other requests; try again soon
+    case declined                   // the model's safety checks stopped the answer
 
     var message: String {
         switch self {
@@ -31,6 +34,9 @@ enum AssistantError: Error, Equatable {
         case .badResponse: return String(localized: "The assistant's answer couldn't be read. Try again.")
         case .rateLimited: return String(localized: "Please wait a few seconds before asking again.")
         case .cancelled: return String(localized: "Cancelled.")
+        case .modelNotReady: return String(localized: "The assistant is still getting ready on this iPhone. Try again later.")
+        case .busy: return String(localized: "The assistant is busy. Try again in a moment.")
+        case .declined: return String(localized: "The assistant couldn't answer that question.")
         }
     }
 }

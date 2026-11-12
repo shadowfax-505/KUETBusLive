@@ -52,6 +52,26 @@
         }
       }
     },
+    "%@ has left KUET. It leaves %@ at %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ কুয়েট ছেড়ে গেছে। এটি %2$@ ছাড়বে %3$@-এ।"
+          }
+        }
+      }
+    },
+    "%@ is %@: leaves KUET %@, leaves %@ %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ হলো %2$@: কুয়েট ছাড়ে %3$@, %4$@ ছাড়ে %5$@।"
+          }
+        }
+      }
+    },
     "%@ is almost here": {
       "localizations": {
         "bn": {
@@ -458,6 +478,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "উত্তর আসে এই আইফোনের নিজস্ব মডেল থেকে, শুধু আজকের সময়সূচি, এখন চলা বাস ও সর্বশেষ খবর ব্যবহার করে। উত্তর ভুল হতে পারে, তাই ভরসা করার আগে সময়সূচি দেখে নিন।"
+          }
+        }
+      }
+    },
+    "Answers come straight from today's timetable. Turn on the smart assistant in Profile for answers in your own words, where the iPhone supports it.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উত্তর সরাসরি আজকের সময়সূচি থেকে আসে। আইফোন সমর্থন করলে নিজের ভাষায় উত্তরের জন্য প্রোফাইলে স্মার্ট সহকারী চালু করুন।"
           }
         }
       }
@@ -1422,6 +1452,16 @@
         }
       }
     },
+    "From the timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি থেকে"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "bn": {
@@ -2122,12 +2162,32 @@
         }
       }
     },
+    "No bus you can take goes to %@ in the timetable. Buses go to: %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচিতে আপনার চড়ার মতো কোনো বাস %1$@ যায় না। বাস যায়: %2$@।"
+          }
+        }
+      }
+    },
     "No buses are running right now": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "এখন কোনো বাস চলছে না"
+          }
+        }
+      }
+    },
+    "No buses are running right now.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখন কোনো বাস চলছে না।"
           }
         }
       }
@@ -2218,6 +2278,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই সপ্তাহে আর কোনো বাস নেই"
+          }
+        }
+      }
+    },
+    "No more buses to %@ today. The last one left KUET at %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ %1$@ যাওয়ার আর কোনো বাস নেই। শেষটি কুয়েট ছেড়েছে %2$@-এ।"
+          }
+        }
+      }
+    },
+    "No more buses today. The last one left KUET at %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আর কোনো বাস নেই। শেষটি কুয়েট ছেড়েছে %@-এ।"
           }
         }
       }
@@ -2872,6 +2952,16 @@
         }
       }
     },
+    "Running now: %@.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখন চলছে: %@।"
+          }
+        }
+      }
+    },
     "Saturday": {
       "localizations": {
         "bn": {
@@ -3422,6 +3512,16 @@
         }
       }
     },
+    "The assistant couldn't answer that question.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী এই প্রশ্নের উত্তর দিতে পারেনি।"
+          }
+        }
+      }
+    },
     "The assistant doesn't support this language yet, so it's hidden while the app is in this language.": {
       "localizations": {
         "bn": {
@@ -3438,6 +3538,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "সহকারী এখনো এই ভাষা সমর্থন করে না।"
+          }
+        }
+      }
+    },
+    "The assistant is busy. Try again in a moment.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহকারী এখন ব্যস্ত। একটু পরে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The assistant is still getting ready on this iPhone. Try again later.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনে সহকারী এখনও প্রস্তুত হচ্ছে। পরে আবার চেষ্টা করুন।"
           }
         }
       }
@@ -3482,12 +3602,42 @@
         }
       }
     },
+    "The first bus today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজকের প্রথম বাস"
+          }
+        }
+      }
+    },
+    "The last bus today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজকের শেষ বাস"
+          }
+        }
+      }
+    },
     "The model is still downloading. Try again later.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "মডেলটি এখনো ডাউনলোড হচ্ছে। পরে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The next bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরের বাস"
           }
         }
       }
@@ -3558,6 +3708,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই দিনগুলোতে পরিবহন দপ্তর আপনার বাসের জন্য অন্য চালক ঠিক করবে।"
+          }
+        }
+      }
+    },
+    "There are no buses you can take today.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ আপনার চড়ার মতো কোনো বাস নেই।"
+          }
+        }
+      }
+    },
+    "There is no bus you can take to %@ today.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ %@ যাওয়ার মতো কোনো বাস নেই।"
           }
         }
       }
@@ -4208,6 +4378,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "যেমন: বয়রার পরের বাস কখন?"
+          }
+        }
+      }
+    },
+    "e.g. When is the next bus to Rupsha?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যেমন: রূপসার পরের বাস কখন?"
           }
         }
       }

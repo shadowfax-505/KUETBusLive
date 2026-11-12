@@ -192,9 +192,10 @@ struct LiveMapView: View {
             }
             .animation(.spring, value: selectedBusId)
             .navigationTitle("Live Buses")
-            // Riders: ask a question about today's buses (only when the assistant is on).
+            // Riders: ask a question about today's buses.
             .toolbar {
-                if assistant.isReady() && authViewModel.profile?.role != .admin {
+                // Always offered to riders: without the model, the timetable answers.
+                if authViewModel.profile?.role != .admin {
                     Button {
                         showAsk = true
                     } label: {
@@ -203,7 +204,7 @@ struct LiveMapView: View {
                 }
             }
             .sheet(isPresented: $showAsk) {
-                AskView(makePrompt: askPrompt)
+                AskView(makePrompt: askPrompt, fallback: timetableAnswer)
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $showDetail) {
@@ -297,6 +298,13 @@ struct LiveMapView: View {
                                     role: authViewModel.profile?.role ?? .student,
                                     boarding: busViewModel.boardingKey?.name, liveBuses: live,
                                     announcements: announcementsForAsk.visibleAnnouncements)
+    }
+
+    // The same question answered from the timetable alone, when the model can't.
+    func timetableAnswer(_ question: String) -> String {
+        TimetableAnswerer.answer(question: question, now: Date(), schedules: scheduleViewModel.schedules,
+                                 role: authViewModel.profile?.role ?? .student,
+                                 liveBuses: busViewModel.buses.map(\.number))
     }
 
     func updateBoardingPlace() {

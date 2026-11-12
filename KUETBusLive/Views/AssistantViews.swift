@@ -46,9 +46,13 @@ struct AskView: View {
     @Environment(\.dismiss) private var dismiss
     // Everything the answer may use, gathered by the map screen.
     let makePrompt: (String) -> String
+    // A timetable answer that needs no model (TimetableAnswerer).
+    let fallback: (String) -> String
 
     @State private var question = ""
     @State private var answer = ""
+    // Why the timetable answered instead of the model, if it did.
+    @State private var fallbackReason: String?
     @State private var isAsking = false
     @State private var request: AssistantRequest?
 
@@ -56,8 +60,9 @@ struct AskView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("e.g. When is the next bus to Boyra?", text: $question, axis: .vertical)
+                    TextField("e.g. When is the next bus to Rupsha?", text: $question, axis: .vertical)
                         .lineLimit(1...4)
+                        .onSubmit { if !isAsking { ask() } }
                     Button(isAsking ? String(localized: "Cancel") : String(localized: "Ask")) {
                         isAsking ? cancel() : ask()
                     }
@@ -66,11 +71,24 @@ struct AskView: View {
                 if !answer.isEmpty {
                     Section {
                         Text(answer)
-                        AssistantSourceNote()
+                        if let reason = fallbackReason {
+                            Label("From the timetable", systemImage: "tablecells")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            if !reason.isEmpty {
+                                Text(reason)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else if !isAsking {
+                            AssistantSourceNote()
+                        }
                     }
                 }
                 Section {
-                    Text("Answers come from this iPhone's own model, using only today's timetable, the buses running now and the latest news. They may be wrong, so check the timetable before you rely on them.")
+                    Text(assistant.isReady()
+                         ? LocalizedStringKey("Answers come from this iPhone's own model, using only today's timetable, the buses running now and the latest news. They may be wrong, so check the timetable before you rely on them.")
+                         : LocalizedStringKey("Answers come straight from today's timetable. Turn on the smart assistant in Profile for answers in your own words, where the iPhone supports it."))
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
@@ -86,15 +104,30 @@ struct AskView: View {
     }
 
     func ask() {
+        let text = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        // No model on this phone (or switched off): answer from the timetable at once.
+        guard assistant.isReady() else {
+            answer = fallback(text)
+            fallbackReason = ""
+            return
+        }
         let language = PlaceNames.isBangla ? "Bangla" : "English"
         isAsking = true
+        fallbackReason = nil
         answer = String(localized: "Thinking...")
         request = assistant.askAsRider(system: RiderQuestion.system(languageName: language),
-                                       user: makePrompt(question)) { result in
+                                       user: makePrompt(text)) { result in
             isAsking = false
             switch result {
-            case .success(let text): answer = text
-            case .failure(let error): answer = error.message
+            case .success(let reply):
+                answer = reply
+            case .failure(.cancelled):
+                answer = ""
+            case .failure(let error):
+                // The model failed: the timetable still answers, with the reason underneath.
+                answer = fallback(text)
+                fallbackReason = error.message
             }
         }
         if request == nil { isAsking = false }

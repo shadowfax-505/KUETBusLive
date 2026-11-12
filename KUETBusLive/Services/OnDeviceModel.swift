@@ -94,10 +94,15 @@ struct OnDeviceModel: AssistantModel {
     static func mapError(_ error: Error) -> AssistantError {
         if error is CancellationError { return .cancelled }
         if let generation = error as? LanguageModelSession.GenerationError {
+            // Each case named, so riders never see a raw "GenerationError error -1".
             switch generation {
             case .exceededContextWindowSize: return .contextTooLong
             case .unsupportedLanguageOrLocale: return .languageNotSupported
-            default: return .unavailable(generation.localizedDescription)
+            case .assetsUnavailable: return .modelNotReady
+            case .rateLimited, .concurrentRequests: return .busy
+            case .guardrailViolation, .refusal: return .declined
+            case .decodingFailure, .unsupportedGuide: return .badResponse
+            @unknown default: return .badResponse
             }
         }
         return .unavailable(error.localizedDescription)

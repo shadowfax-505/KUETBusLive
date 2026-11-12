@@ -92,15 +92,29 @@ enum RiderQuestion {
 
     // Everything the model may use: today's trips for this rider, their boarding point,
     // the buses running now with their ETAs, and the latest announcements.
+    // The on-device model has a small context window (about 4,000 tokens for
+    // instructions, prompt and answer together), so the data is kept short: only
+    // trips still to come today, only the place asked about when one is named, and
+    // the start of each announcement.
+    static let maxTrips = 12
+    static let maxNewsCharacters = 160
+
     static func prompt(question: String, now: Date, schedules: [BusSchedule], role: UserRole,
                        boarding: String?, liveBuses: [(name: String, eta: String?)],
                        announcements: [Announcement]) -> String {
-        let today = schedules
-            .filter { $0.days.includes(now) && $0.audience.canBoard(role) }
+        let mine = schedules.filter { $0.days.includes(now) && $0.audience.canBoard(role) }
+        let spots = Dictionary(mine.map { ($0.spot, $0.spotBn) }, uniquingKeysWith: { first, _ in first })
+            .map { (english: $0.key, bangla: $0.value) }
+        let asked = TimetableAnswerer.place(in: question, spots: spots)
+        let lastToday = TimetableAnswerer.kind(of: question) == .last
+        let today = mine
+            .filter { asked == nil || $0.spot == asked }
+            .filter { lastToday || $0.isUpcoming(at: now) }
             .sorted { ($0.campusTime, $0.tripName) < ($1.campusTime, $1.tripName) }
-            .map { "- \($0.tripName): leaves KUET \(BusSchedule.display($0.campusTime)), leaves \($0.spot) \(BusSchedule.display($0.spotTime))\($0.remarks.isEmpty ? "" : " (\($0.remarks))")" }
-        let buses = liveBuses.map { "- \($0.name) is running now\($0.eta.map { ", reaches my stop in \($0)" } ?? "")" }
-        let news = announcements.prefix(3).map { "- \($0.title): \($0.body)" }
+            .prefix(maxTrips)
+            .map { "- \($0.tripName): leaves KUET \(BusSchedule.display($0.campusTime)), leaves \($0.spot) \(BusSchedule.display($0.spotTime))\($0.remarks.isEmpty ? "" : " (\($0.remarks.prefix(60)))")" }
+        let buses = liveBuses.prefix(6).map { "- \($0.name) is running now\($0.eta.map { ", reaches my stop in \($0)" } ?? "")" }
+        let news = announcements.prefix(2).map { "- \($0.title.prefix(80)): \($0.body.prefix(maxNewsCharacters))" }
         let time = now.formatted(date: .abbreviated, time: .shortened)
         return """
         Question: \(question.prefix(maxQuestionLength))
@@ -108,7 +122,7 @@ enum RiderQuestion {
         DATA
         Now: \(time)
         My boarding point: \(boarding ?? "not set")
-        Today's trips I may take:
+        Trips I may take that are still to come today:
         \(today.isEmpty ? "- none today" : today.joined(separator: "\n"))
         Buses running now:
         \(buses.isEmpty ? "- none" : buses.joined(separator: "\n"))
