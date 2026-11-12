@@ -105,6 +105,12 @@ struct OnDeviceModel: AssistantModel {
             @unknown default: return .badResponse
             }
         }
+        // "GenerationError error -1": the system couldn't load the model's files (they are
+        // missing, still downloading, or being updated) and passed the error on without a
+        // case of its own. The device log shows "Model Catalog error ... no underlying assets".
+        if (error as NSError).domain.hasSuffix("GenerationError") {
+            return .modelNotReady
+        }
         return .unavailable(error.localizedDescription)
     }
     #endif
