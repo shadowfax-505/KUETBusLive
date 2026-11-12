@@ -11,7 +11,7 @@
 import SwiftUI
 
 struct AdminTabView: View {
-    // Kept here so the Complaints tab can show how many are unread.
+    // Kept here so the Complaints item can show how many are unread.
     @StateObject private var complaintViewModel = ComplaintViewModel()
 
     var body: some View {
@@ -25,15 +25,6 @@ struct AdminTabView: View {
                 .tabItem {
                     Label("Approvals", systemImage: "person.badge.shield.checkmark")
                 }
-
-            // Next to Approvals, so its unread badge is always visible on the tab bar.
-            NavigationStack {
-                AdminComplaintsView(complaintViewModel: complaintViewModel)
-            }
-            .tabItem {
-                Label("Complaints", systemImage: "exclamationmark.bubble")
-            }
-            .badge(complaintViewModel.unreadCount)
 
             LiveMapView()
                 .tabItem {
@@ -51,6 +42,15 @@ struct AdminTabView: View {
             .tabItem {
                 Label("Drivers & buses", systemImage: "bus.doubledecker")
             }
+
+            // Under More, after Drivers & buses. The unread count shows next to it there.
+            NavigationStack {
+                AdminComplaintsView(complaintViewModel: complaintViewModel)
+            }
+            .tabItem {
+                Label("Complaints", systemImage: "exclamationmark.bubble")
+            }
+            .badge(complaintViewModel.unreadCount)
 
             NavigationStack {
                 AnnouncementsView()
