@@ -1872,6 +1872,16 @@
         }
       }
     },
+    "More": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আরও"
+          }
+        }
+      }
+    },
     "Morning": {
       "localizations": {
         "bn": {

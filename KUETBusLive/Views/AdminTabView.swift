@@ -11,7 +11,7 @@
 import SwiftUI
 
 struct AdminTabView: View {
-    // Kept here so the Complaints item can show how many are unread.
+    // Kept here so the More tab and its Complaints row can show how many are unread.
     @StateObject private var complaintViewModel = ComplaintViewModel()
 
     var body: some View {
@@ -36,35 +36,39 @@ struct AdminTabView: View {
                     Label("Routes", systemImage: "list.bullet")
                 }
 
+            // Our own More tab instead of the system one. The system More list wraps each
+            // page in a second navigation bar, so the pages showed two back buttons.
             NavigationStack {
-                DriversAndBusesView()
+                List {
+                    NavigationLink {
+                        DriversAndBusesView()
+                    } label: {
+                        Label("Drivers & buses", systemImage: "bus.doubledecker")
+                    }
+                    NavigationLink {
+                        AdminComplaintsView(complaintViewModel: complaintViewModel)
+                    } label: {
+                        Label("Complaints", systemImage: "exclamationmark.bubble")
+                    }
+                    .badge(complaintViewModel.unreadCount)
+                    NavigationLink {
+                        AnnouncementsView()
+                    } label: {
+                        Label("News", systemImage: "megaphone")
+                    }
+                    NavigationLink {
+                        ProfileView()
+                    } label: {
+                        Label("Profile", systemImage: "person.circle")
+                    }
+                }
+                .navigationTitle("More")
             }
             .tabItem {
-                Label("Drivers & buses", systemImage: "bus.doubledecker")
+                Label("More", systemImage: "ellipsis")
             }
-
-            // Under More, after Drivers & buses. The unread count shows next to it there.
-            NavigationStack {
-                AdminComplaintsView(complaintViewModel: complaintViewModel)
-            }
-            .tabItem {
-                Label("Complaints", systemImage: "exclamationmark.bubble")
-            }
+            // Unread complaints, so they are seen without opening More.
             .badge(complaintViewModel.unreadCount)
-
-            NavigationStack {
-                AnnouncementsView()
-            }
-            .tabItem {
-                Label("News", systemImage: "megaphone")
-            }
-
-            NavigationStack {
-                ProfileView()
-            }
-            .tabItem {
-                Label("Profile", systemImage: "person.circle")
-            }
         }
         .onAppear { complaintViewModel.listenToAll() }
         .onDisappear { complaintViewModel.stopListening() }
