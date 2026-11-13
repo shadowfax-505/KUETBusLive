@@ -18,7 +18,7 @@ At the end of every trip, the driver's phone turns its own GPS track (one point 
 | Time on each stretch (stop *i* to stop *i+1*) | From 20 m past stop *i* until 20 m before stop *i+1* |
 | Time standing at each stop | The time between those two moments around a stop |
 | Whether the driver stops for a wave | The bus was within 20 m of the waving rider and slower than 1.5 m/s (walking pace) |
-| Where riders get off | A rider's phone stayed within 40 m of a moving bus for a minute, then ended up more than 150 m from it. The last point it was on board is added as one drop-off, with no name saved |
+| Where riders get off | A rider's phone stayed within 30 m of the moving bus for a minute at about the same speed (OnBoardDetector), then left it. The last point it was on board is added as one drop-off, with no name saved |
 | The rider's walking speed | From the rider's own GPS speed while walking (0.5–2.5 m/s). This stays on the phone only |
 
 Stretch times are kept for each **kind of day** (Sunday–Thursday or Saturday), each **half-hour of the day**, and also for each **driver**. A stretch at 8:00 is a different number from the same stretch at 14:00.
@@ -97,7 +97,30 @@ The extra 3 minutes stands for the risk that the bus doesn't stop there, so the 
 
 **Compare buses** runs both planners for every running bus the rider is allowed on, and for every trip that leaves later today. It then sorts them by arrival time. A trip that hasn't started is placed at its first stop at its timetable time, and its route is the one whose name contains the trip's city spot. A bus the rider can't reach in time is left out.
 
-## 8. Where it is stored, and who may write
+## 8. Four ways it gets more accurate
+
+**Today's pace (live correction).** While the map is open, the app watches the selected bus. Over the last 10 minutes it compares how long the bus really took with what the model expected for that stretch of road:
+
+    factor = real seconds / expected seconds        (kept between 0.6 and 1.8)
+    used   = 1 + trust × (factor - 1),  trust = distance covered / 2 km (at most 1)
+
+The rest of today's trip is then multiplied by `used`, so rain or a jam on the way also delays the suggested leaving time. When the bus is clearly off its usual pace, the sheet shows one small line: "Slower than usual today" or "Faster than usual today". Standing at a stop doesn't add a point. That time counts when the bus moves on.
+
+**Timetable lateness.** When a trip ends, the driver's phone compares the moment the bus left its first stop with the timetable time: the campus time for trips from KUET, or the city spot's time for trips back. It saves how late it was (never below 0). A trip that hasn't started yet is then assumed to leave by the usual amount late. Before 3 such trips exist, the delay this phone has seen itself (smart suggestions) is used.
+
+**Special days.** The transport admin marks exam days, holidays and events under More → Special days (`specialDays/{yyyy-MM-dd}`). Trips on those days are learned under their own buckets, for example `exam-16` instead of `sunToThu-16`. Until a special bucket has 3 trips, the same half-hour on an ordinary day is used. The fallback chain becomes: driver on this special day → anyone on this special day → driver on an ordinary day → anyone on an ordinary day → the stretch at any time → road distance.
+
+**Margin checked against real trips (calibration).** When a trip ends, the driver's phone also asks: what would the model have predicted, when the bus left, for up to 4 later stops, using only the numbers from before this trip? It then measures how far each real arrival was from that prediction, in spreads:
+
+    z = (real - predicted) / spread
+
+The z values add up in a running average and spread per route. Once there are 10 of them, the margin's 1.28 is replaced by the value that really gives 90%:
+
+    k = 1.28 × spread of z - average of z        (kept between 0.8 and 3)
+
+If buses tend to come earlier than predicted, k grows and riders are told to leave a little sooner. If predictions turn out steady, k shrinks and riders wait less.
+
+## 9. Where it is stored, and who may write
 
 See [data-model.md](data-model.md): `segmentStats`, `spotStats`, `driverStats` and `buses/{busId}/dropoffs`. The Firestore rules (`firestore.rules`, the single source of truth for every platform) only allow these writes:
 
@@ -106,8 +129,9 @@ See [data-model.md](data-model.md): `segmentStats`, `spotStats`, `driverStats` a
 - **Values**: they must look sane (0–2 hours, no extra fields).
 - **Reading**: everyone signed in can read the numbers.
 
-## 9. Limits
+## 10. Limits
 
 - With no trips learned yet, the times come only from the road distance. They improve once each stretch has 3 trips at that time of day.
-- Drop-offs and walking speed are learned only while the map is open on the rider's phone (there is no background tracking for riders).
+- Drop-offs, walking speed and today's pace are learned only while the map is open on the rider's phone (there is no background tracking for riders).
+- Special days help only once the admin marks them.
 - A rider could add false drop-offs. Each write adds only one, and a spot only counts after two drop-offs, but the counts are not checked against real trips.
