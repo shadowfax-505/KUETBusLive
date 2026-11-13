@@ -170,6 +170,54 @@ Who can do what: an approved, active driver creates it, as themselves, only for 
 
 An approved rider allowed on the bus creates their own. The rider, the bus's driver and the admin read and delete.
 
+### `buses/{busId}/dropoffs/{uid}`: "Please stop here"
+
+Same fields and readers as waves: `uid`, `label` (the place the rider gets off near), `lat`, `lng` (the drop-off point on the route), `createdAt`, `expiresAt` (at most 120 minutes ahead). The driver's screen lists them in order along the road.
+
+## Learned travel model
+
+Aggregated numbers only: no GPS track and no record of who rode where. Every signed-in user reads them. The driver of a running bus adds exactly one trip per write (each counter or `n` goes up by one), only for that bus's route and before the trip ends (`lastBusId` must be their running bus). See [catch-point.md](catch-point.md) for the formulas.
+
+### `segmentStats/{id}`: time on each stretch and at each stop
+
+Document IDs (built the same way on every platform; `bucket` is `{dayType}-{slot}`, slot = minutes since midnight / 30):
+
+| ID | Meaning |
+|---|---|
+| `{routeId}_t{segment}_{bucket}_{driverUid}` | stretch from stop `segment` to `segment + 1`, this driver, this kind of day and half-hour |
+| `{routeId}_t{segment}_{bucket}` | the same stretch, any driver, this half-hour |
+| `{routeId}_t{segment}_all` | the same stretch, any time |
+| `{routeId}_d{stop}_all` | time standing at stop `stop` |
+
+| Field | Type | Notes |
+|---|---|---|
+| `routeId` | string | must match the start of the ID |
+| `kind` | string | `travel` or `dwell` |
+| `index` | int | the segment or stop number |
+| `dayType`, `slot` | string, int | only on bucketed documents |
+| `driverId` | string | only on per-driver documents; must be the writer |
+| `n` | int | trips so far |
+| `mean`, `variance` | number | seconds and seconds²; weighted average with weight max(1/n, 0.1) |
+| `lastBusId` | string | the running bus that wrote last |
+| `updatedAt` | timestamp | |
+
+### `spotStats/{routeId}_{lat}_{lng}`: where riders wave and get off
+
+`lat`/`lng` are rounded to a 0.0003° grid (about 30 m), written with 4 decimals, so nearby points share a document.
+
+| Field | Type | Notes |
+|---|---|---|
+| `routeId`, `lat`, `lng` | string, number, number | fixed once created |
+| `asks` | int | waves the driver saw here (driver writes, +1) |
+| `stops` | int | of those, how many the bus stopped for (+0 or +1 with each ask) |
+| `dropoffs` | int | riders who got off here (a rider writes +1, nothing else, no uid) |
+| `lastBusId` | string | set by drivers only |
+| `updatedAt` | timestamp | |
+
+### `driverStats/{uid}`: how often a driver stops for a wave
+
+`asks` (int, +1 per wave seen) and `stops` (int, +0 or +1 each time), plus `updatedAt`. Only that driver writes it.
+
 ## `driverAbsences/{id}`: "I can't drive"
 
 | Field | Type |
@@ -213,4 +261,4 @@ The sender creates and reads their own and can't edit it; deleting is allowed (a
 
 ## Kept only on the phone
 
-These never go to Firestore: announcements read and hidden, the "Show news" switch, the app passcode hash (Keychain), Face ID and alert settings, the chosen boarding point, the current wave, the smart-suggestions history and learned delays (unless the backup is on), and the widget / Live Activity data.
+These never go to Firestore: announcements read and hidden, the "Show news" switch, the app passcode hash (Keychain), Face ID and alert settings, the chosen boarding point, the current wave, the smart-suggestions history and learned delays (unless the backup is on), the rider's walking speed (learned from their own steps for "best place to wait"), and the widget / Live Activity data.

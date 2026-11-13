@@ -226,6 +226,145 @@ service cloud.firestore {
         && (waveId == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
     }
 
+    // ---------- "Please stop here": where a rider wants to get off ----------
+
+    match /buses/{busId}/dropoffs/{uid} {
+      function bus() {
+        return get(/databases/$(database)/documents/buses/$(busId)).data;
+      }
+
+      function busExists() {
+        return exists(/databases/$(database)/documents/buses/$(busId));
+      }
+
+      // Same people as waves: the rider, the bus's driver, or the admin.
+      allow read: if signedIn()
+        && (uid == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
+
+      // One request per rider per bus, for a bus they may ride, lasting at most two hours.
+      allow create, update: if isApprovedRider() && uid == request.auth.uid
+        && busExists() && canBoard(bus())
+        && request.resource.data.keys().hasOnly(['uid', 'label', 'lat', 'lng', 'createdAt', 'expiresAt'])
+        && request.resource.data.uid == request.auth.uid
+        && isShortText(request.resource.data.label, 60)
+        && request.resource.data.lat is number && request.resource.data.lng is number
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt <= request.time + duration.value(120, 'm');
+
+      allow delete: if signedIn()
+        && (uid == request.auth.uid || isAdmin() || (busExists() && bus().driverId == request.auth.uid));
+    }
+
+    // ---------- Learned travel model (best place to wait / to get off) ----------
+    // Only numbers, never a GPS track or who rode where. Everyone signed in reads them.
+    // The driver of a running bus adds one trip at a time, for that bus's route only,
+    // before the trip ends. Each write adds exactly one sample (n goes up by one).
+
+    // The bus `busId` is running now, driven by the person asking, on `routeId`.
+    function drivesRouteNow(busId, routeId) {
+      let path = /databases/$(database)/documents/buses/$(busId);
+      return busId is string && exists(path)
+        && get(path).data.driverId == request.auth.uid
+        && get(path).data.routeId == routeId;
+    }
+
+    function isRunningStat(data) {
+      return data.n is int && data.mean is number && data.variance is number
+        && data.mean >= 0 && data.mean <= 7200
+        && data.variance >= 0 && data.variance <= 51840000;
+    }
+
+    match /segmentStats/{id} {
+      function fields() {
+        return ['routeId', 'kind', 'index', 'dayType', 'slot', 'driverId', 'n', 'mean', 'variance',
+                'lastBusId', 'updatedAt'];
+      }
+
+      // A per-driver document carries the driver's uid, at the end of its ID too.
+      function ownDriverField(data) {
+        return !('driverId' in data)
+          || (data.driverId == request.auth.uid && id.matches('.*_' + request.auth.uid));
+      }
+
+      function validStat(data) {
+        return data.keys().hasOnly(fields())
+          && data.kind in ['travel', 'dwell']
+          && data.index is int && data.index >= 0 && data.index < 100
+          && id.split('_')[0] == data.routeId
+          && ownDriverField(data)
+          && isRunningStat(data)
+          && drivesRouteNow(data.lastBusId, data.routeId);
+      }
+
+      allow read: if signedIn();
+      allow create: if isApprovedDriver() && validStat(request.resource.data)
+        && request.resource.data.n == 1;
+      allow update: if isApprovedDriver() && validStat(request.resource.data)
+        && request.resource.data.n == resource.data.n + 1
+        && request.resource.data.routeId == resource.data.routeId
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.index == resource.data.index
+        && request.resource.data.get('driverId', '') == resource.data.get('driverId', '');
+      allow delete: if isAdmin();
+    }
+
+    // Spots on a route (about 30 m squares) where drivers were asked to stop and did,
+    // and where riders got off. No uid is stored: a drop-off is just a count.
+    match /spotStats/{id} {
+      function fields() {
+        return ['routeId', 'lat', 'lng', 'asks', 'stops', 'dropoffs', 'lastBusId', 'updatedAt'];
+      }
+
+      function validSpot(data) {
+        return data.keys().hasOnly(fields())
+          && id.split('_')[0] == data.routeId
+          && data.lat is number && data.lng is number
+          && data.asks is int && data.stops is int && data.dropoffs is int
+          && data.stops >= 0 && data.stops <= data.asks;
+      }
+
+      allow read: if signedIn();
+
+      // The driver records one wave on a running bus: asked once more, stopped or not.
+      // A rider records one drop-off, and nothing else.
+      allow create: if validSpot(request.resource.data)
+        && ((isApprovedDriver() && drivesRouteNow(request.resource.data.lastBusId, request.resource.data.routeId)
+             && request.resource.data.asks == 1 && request.resource.data.dropoffs == 0)
+          || (isApprovedRider() && !('lastBusId' in request.resource.data)
+             && request.resource.data.asks == 0 && request.resource.data.stops == 0
+             && request.resource.data.dropoffs == 1));
+
+      allow update: if validSpot(request.resource.data)
+        && request.resource.data.routeId == resource.data.routeId
+        && request.resource.data.lat == resource.data.lat && request.resource.data.lng == resource.data.lng
+        && ((isApprovedDriver() && drivesRouteNow(request.resource.data.lastBusId, request.resource.data.routeId)
+             && request.resource.data.asks == resource.data.asks + 1
+             && request.resource.data.stops >= resource.data.stops
+             && request.resource.data.stops <= resource.data.stops + 1
+             && request.resource.data.dropoffs == resource.data.dropoffs)
+          || (isApprovedRider()
+             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dropoffs', 'updatedAt'])
+             && request.resource.data.dropoffs == resource.data.dropoffs + 1));
+
+      allow delete: if isAdmin();
+    }
+
+    // How often each driver stops when a rider waves. Only that driver adds to it.
+    match /driverStats/{uid} {
+      allow read: if signedIn();
+      allow create: if isApprovedDriver() && uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['asks', 'stops', 'updatedAt'])
+        && request.resource.data.asks == 1
+        && request.resource.data.stops is int && request.resource.data.stops >= 0
+        && request.resource.data.stops <= 1;
+      allow update: if isApprovedDriver() && uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['asks', 'stops', 'updatedAt'])
+        && request.resource.data.asks == resource.data.asks + 1
+        && request.resource.data.stops >= resource.data.stops
+        && request.resource.data.stops <= resource.data.stops + 1;
+      allow delete: if isAdmin();
+    }
+
     // ---------- Fleet: regular, cover and trip drivers (only the admin assigns) ----------
 
     match /fleet/{busId} {

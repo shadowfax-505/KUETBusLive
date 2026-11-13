@@ -512,6 +512,107 @@ test("you can delete your own complaints (account deletion)", async () => {
   await assertSucceeds(deleteDoc(doc(db("student"), "complaints", "c1")));
 });
 
+// ---------- "Please stop here" drop-off requests ----------
+
+function dropoff(uid, minutes = 60) {
+  return { uid, label: "Sonadanga", lat: 22.82, lng: 89.54, createdAt: new Date(),
+           expiresAt: new Date(Date.now() + minutes * 60 * 1000) };
+}
+
+test("a rider asks the driver to stop where they get off, on a bus they may ride", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "buses", "student-bus", "dropoffs", "student"), dropoff("student")));
+  await assertFails(setDoc(doc(db("student"), "buses", "teacher-bus", "dropoffs", "student"), dropoff("student")));
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "dropoffs", "teacher"), dropoff("teacher")));
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "dropoffs", "student"), dropoff("student", 180)));
+  await assertFails(setDoc(doc(db("driver"), "buses", "student-bus", "dropoffs", "driver"), dropoff("driver")));
+});
+
+test("the driver reads and clears drop-off requests; other riders can't see them", async () => {
+  await assertSucceeds(setDoc(doc(db("student"), "buses", "student-bus", "dropoffs", "student"), dropoff("student")));
+  await assertSucceeds(getDoc(doc(db("driver"), "buses", "student-bus", "dropoffs", "student")));
+  await assertFails(getDoc(doc(db("teacher"), "buses", "student-bus", "dropoffs", "student")));
+  await assertSucceeds(deleteDoc(doc(db("driver"), "buses", "student-bus", "dropoffs", "student")));
+});
+
+// ---------- Learned travel model ----------
+
+function stat(extra = {}) {
+  return { routeId: "r1", kind: "travel", index: 0, n: 1, mean: 120, variance: 0,
+           lastBusId: "student-bus", updatedAt: new Date(), ...extra };
+}
+
+test("everyone signed in reads the learned model; signed-out people don't", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "segmentStats", "r1_t0_all"), stat());
+  });
+  await assertSucceeds(getDoc(doc(db("student"), "segmentStats", "r1_t0_all")));
+  await assertFails(getDoc(doc(db(), "segmentStats", "r1_t0_all")));
+});
+
+test("the driver of a running bus adds one trip at a time to its own route", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat()));
+  await assertSucceeds(updateDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), { n: 2, mean: 130, variance: 25 }));
+  // Skipping ahead, going back, or another route.
+  await assertFails(updateDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), { n: 5 }));
+  await assertFails(updateDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), { n: 1 }));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r2_t0_all"), stat({ routeId: "r2" })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r9_t0_all"), stat()));
+});
+
+test("riders, and drivers without a running bus, can't change the model", async () => {
+  await assertFails(setDoc(doc(db("student"), "segmentStats", "r1_t0_all"), stat()));
+  await assertFails(setDoc(doc(db("newDriver"), "segmentStats", "r1_t0_all"), stat()));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat({ lastBusId: "nope" })));
+});
+
+test("model values must look sane, with no extra fields", async () => {
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat({ mean: -5 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat({ mean: 99999 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat({ kind: "speed" })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_all"), stat({ track: [1, 2] })));
+});
+
+test("a per-driver model document belongs to that driver only", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "segmentStats", "r1_t0_sunToThu-16_driver"),
+    stat({ driverId: "driver", dayType: "sunToThu", slot: 16 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_sunToThu-16_other"),
+    stat({ driverId: "other", dayType: "sunToThu", slot: 16 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_t0_sunToThu-16_other"),
+    stat({ driverId: "driver", dayType: "sunToThu", slot: 16 })));
+});
+
+function spot(extra = {}) {
+  return { routeId: "r1", lat: 22.8891, lng: 89.5095, asks: 1, stops: 1, dropoffs: 0,
+           lastBusId: "student-bus", updatedAt: new Date(), ...extra };
+}
+
+test("the driver records whether they stopped for a wave, one wave at a time", async () => {
+  const ref = (who) => doc(db(who), "spotStats", "r1_22.8891_89.5095");
+  await assertSucceeds(setDoc(ref("driver"), spot()));
+  await assertSucceeds(updateDoc(ref("driver"), { asks: 2, stops: 1 }));
+  await assertFails(updateDoc(ref("driver"), { asks: 3, stops: 3 }));
+  await assertFails(updateDoc(ref("driver"), { asks: 4, stops: 2 }));
+  await assertFails(updateDoc(ref("driver"), { asks: 3, dropoffs: 5 }));
+});
+
+test("a rider adds one anonymous drop-off and nothing else", async () => {
+  const ref = (who) => doc(db(who), "spotStats", "r1_22.8891_89.5095");
+  const { lastBusId, ...noBus } = spot({ asks: 0, stops: 0, dropoffs: 1 });
+  await assertSucceeds(setDoc(ref("student"), noBus));
+  await assertSucceeds(updateDoc(ref("teacher"), { dropoffs: 2, updatedAt: new Date() }));
+  await assertFails(updateDoc(ref("student"), { dropoffs: 4 }));
+  await assertFails(updateDoc(ref("student"), { asks: 1, stops: 1 }));
+  await assertFails(setDoc(doc(db("student"), "spotStats", "r1_22.0000_89.0000"), { ...noBus, uid: "student" }));
+});
+
+test("only a driver adds to their own wave-stopping record", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "driverStats", "driver"), { asks: 1, stops: 0, updatedAt: new Date() }));
+  await assertSucceeds(updateDoc(doc(db("driver"), "driverStats", "driver"), { asks: 2, stops: 1 }));
+  await assertFails(updateDoc(doc(db("driver"), "driverStats", "driver"), { asks: 2, stops: 2 }));
+  await assertFails(setDoc(doc(db("student"), "driverStats", "student"), { asks: 1, stops: 0 }));
+  await assertSucceeds(getDoc(doc(db("student"), "driverStats", "driver")));
+});
+
 // ---------- Everything else ----------
 
 test("unknown collections are closed", async () => {
