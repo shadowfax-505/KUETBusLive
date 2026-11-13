@@ -46,9 +46,10 @@ struct LiveMapView: View {
     @State private var locationPermission = CLLocationManager()
     @State private var showAnnouncements = false
     @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
+    @AppStorage(MapStyleChoice.storageKey) private var mapStyle = MapStyleChoice.standard.rawValue
 
     // Riders see the newest announcement as a banner until they close or read it,
-    // unless they turned news off in Profile.
+    // unless they turned news off in Settings.
     var bannerAnnouncement: Announcement? {
         guard showNews, authViewModel.profile?.role != .admin,
               let latest = announcementViewModel.latest,
@@ -181,8 +182,11 @@ struct LiveMapView: View {
                     }
                 }
                 // Muted colours with fewer shops and places, so the buses and the route stand out.
-                .mapStyle(.standard(elevation: .flat, emphasis: .muted,
-                                    pointsOfInterest: .including([.university, .publicTransport])))
+                // Satellite (Settings > Appearance) shows photos with road names on top.
+                .mapStyle(mapStyle == MapStyleChoice.satellite.rawValue
+                          ? .hybrid(elevation: .flat, pointsOfInterest: .including([.university, .publicTransport]))
+                          : .standard(elevation: .flat, emphasis: .muted,
+                                      pointsOfInterest: .including([.university, .publicTransport])))
                 .mapControls {
                     MapCompass()
                     MapScaleView()

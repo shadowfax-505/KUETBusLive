@@ -37,7 +37,7 @@ struct StudentTabView: View {
                 Label("Profile", systemImage: "person.circle")
             }
             // News lives in Profile: unread announcements show on its tab.
-            // Turned off in Profile, the badge goes away.
+            // Turned off in Settings, the badge goes away.
             .badge(showNews ? announcementViewModel.unreadCount : 0)
         }
         .onAppear {

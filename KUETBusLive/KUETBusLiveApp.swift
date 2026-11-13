@@ -17,7 +17,7 @@ struct KUETBusLiveApp: App {
     // StateObject is created lazily, so FirebaseApp.configure() in init runs first.
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showSplash = true
-    // English, Bangla or the phone's language, chosen in Profile.
+    // English, Bangla or the phone's language, chosen in Settings > Language.
     @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
 

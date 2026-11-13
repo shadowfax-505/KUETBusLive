@@ -25,7 +25,7 @@ class AnnouncementViewModel: ObservableObject {
     @Published var hiddenIds: Set<String> = []
 
     static let lastSeenKey = "announcementsLastSeen"
-    // Profile > "Show news and announcements". Off hides the badge and the map banner.
+    // Settings > Notifications > "Show news alerts". Off hides the badge and the map banner.
     static let showNewsKey = "showAnnouncements"
 
     // "hiddenAnnouncements.<uid>", so two people sharing a phone keep separate lists.

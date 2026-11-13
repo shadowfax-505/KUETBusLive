@@ -55,7 +55,7 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: screenName)
-        // Turning a lock on in Profile shouldn't lock the screen you're looking at.
+        // Turning a lock on in Settings shouldn't lock the screen you're looking at.
         .onChange(of: faceIDOn || passcodeOn) { _, lockOn in
             if lockOn && scenePhase == .active {
                 isUnlocked = true

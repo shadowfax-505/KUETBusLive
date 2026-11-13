@@ -5,7 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  One document in the "complaints" collection: a problem a rider or driver
-//  reported from Profile > Report a problem. Only the transport admin can
+//  reported from Settings > Help & feedback > Report a problem. Only the transport admin can
 //  change its status or reply. Categories and statuses are saved as plain
 //  strings, so an Android app can read the same documents.
 //

@@ -4,7 +4,7 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  Covers the app until the user unlocks it. Each person chooses in Profile:
+//  Covers the app until the user unlocks it. Each person chooses in Settings > Privacy & security:
 //  - Face ID only: the Face ID prompt (falls back to the phone's passcode)
 //  - App passcode only: the number pad
 //  - Both: Face ID first, and the app passcode if Face ID fails

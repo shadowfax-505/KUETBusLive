@@ -5,7 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  The smart assistant's switch and its requests. Each person turns it on for their
-//  own iPhone in Profile; it is off by default. Everything runs on the phone.
+//  own iPhone in Settings > Smart assistant; it is off by default. Everything runs on the phone.
 //
 
 import Foundation
