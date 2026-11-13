@@ -99,17 +99,23 @@ struct Estimate: Equatable {
 }
 
 // The document IDs used in segmentStats. Platform-neutral: Android builds the same strings.
+// Buses run both ways: "t" is a stretch in the route's own stop order (from KUET),
+// "u" the same road driven the other way (back to KUET), numbered in that order.
 enum StatKey {
-    static func travel(route: String, segment: Int, bucket: TimeBucket, driver: String) -> String {
-        "\(route)_t\(segment)_\(bucket.key)_\(driver)"
+    static func letter(_ reversed: Bool) -> String {
+        reversed ? "u" : "t"
     }
 
-    static func travel(route: String, segment: Int, bucket: TimeBucket) -> String {
-        "\(route)_t\(segment)_\(bucket.key)"
+    static func travel(route: String, segment: Int, bucket: TimeBucket, driver: String, reversed: Bool = false) -> String {
+        "\(route)_\(letter(reversed))\(segment)_\(bucket.key)_\(driver)"
     }
 
-    static func travel(route: String, segment: Int) -> String {
-        "\(route)_t\(segment)_all"
+    static func travel(route: String, segment: Int, bucket: TimeBucket, reversed: Bool = false) -> String {
+        "\(route)_\(letter(reversed))\(segment)_\(bucket.key)"
+    }
+
+    static func travel(route: String, segment: Int, reversed: Bool = false) -> String {
+        "\(route)_\(letter(reversed))\(segment)_all"
     }
 
     static func dwell(route: String, stop: Int) -> String {
@@ -132,13 +138,14 @@ struct SegmentProfile {
     static let defaultDwell = Estimate(seconds: 20, variance: 15 * 15, samples: 0, source: .router)
 
     func travel(route: String, segment: Int, bucket: TimeBucket, driver: String?,
-                metres: Double, routerSpeed: Double? = nil) -> Estimate {
+                metres: Double, routerSpeed: Double? = nil, reversed: Bool = false) -> Estimate {
         var keys: [(String, EstimateSource)] = []
         if let driver {
-            keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket, driver: driver), .driverSlot))
+            keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket, driver: driver,
+                                        reversed: reversed), .driverSlot))
         }
-        keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket), .slot))
-        keys.append((StatKey.travel(route: route, segment: segment), .route))
+        keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket, reversed: reversed), .slot))
+        keys.append((StatKey.travel(route: route, segment: segment, reversed: reversed), .route))
         for (key, source) in keys {
             if let stat = stats[key], stat.n >= Self.minSamples {
                 return Estimate(seconds: stat.mean, variance: stat.variance, samples: stat.n, source: source)
@@ -158,15 +165,23 @@ struct SegmentProfile {
 }
 
 // A route laid out along its road path: where each stop sits, in metres from the start.
+// `reversed` lays it out the other way round, for a bus driving back to KUET:
+// stop 0 is then the route's last stop.
 struct RouteLine {
     var routeId: String
     var path: [CLLocationCoordinate2D]
     var stopAlong: [Double]
+    var stops: [CLLocationCoordinate2D]   // in this line's order
+    var reversed = false
 
-    init(routeId: String, path: [CLLocationCoordinate2D], stops: [CLLocationCoordinate2D]) {
+    init(routeId: String, path: [CLLocationCoordinate2D], stops: [CLLocationCoordinate2D], reversed: Bool = false) {
         self.routeId = routeId
-        let line = path.count >= 2 ? path : stops
+        self.reversed = reversed
+        let forward = path.count >= 2 ? path : stops
+        let line = reversed ? Array(forward.reversed()) : forward
+        let stops = reversed ? Array(stops.reversed()) : stops
         self.path = line
+        self.stops = stops
         var along: [Double] = []
         for stop in stops {
             // Stops come in order, so never let one sit before the previous one.
@@ -178,6 +193,38 @@ struct RouteLine {
 
     var length: Double {
         stopAlong.last ?? 0
+    }
+
+    // The stop's number in the route's own order, whichever way the line is laid out.
+    func routeStopIndex(_ index: Int) -> Int {
+        reversed ? stopAlong.count - 1 - index : index
+    }
+
+    // The same route laid out the other way round.
+    func flipped() -> RouteLine {
+        let forwardPath = reversed ? Array(path.reversed()) : path
+        let forwardStops = reversed ? Array(stops.reversed()) : stops
+        return RouteLine(routeId: routeId, path: forwardPath, stops: forwardStops, reversed: !reversed)
+    }
+
+    // Compass bearing of the path where it passes closest to `point`.
+    func bearing(at point: CLLocationCoordinate2D) -> Double? {
+        guard path.count >= 2, let snap = PathMath.snap(point, to: path) else { return nil }
+        let a = self.point(at: max(snap.distanceAlong - 15, 0))
+        let b = self.point(at: snap.distanceAlong + 15)
+        let dLng = (b.longitude - a.longitude) * cos(a.latitude * .pi / 180)
+        let dLat = b.latitude - a.latitude
+        guard dLng != 0 || dLat != 0 else { return nil }
+        let degrees = atan2(dLng, dLat) * 180 / .pi
+        return degrees < 0 ? degrees + 360 : degrees
+    }
+
+    // Is a bus at `point` heading the other way along this line? From its compass
+    // heading when known: more than 90 degrees off the road's direction.
+    func isAgainst(heading: Double, at point: CLLocationCoordinate2D) -> Bool {
+        guard let road = bearing(at: point) else { return false }
+        let difference = abs((heading - road + 540).truncatingRemainder(dividingBy: 360) - 180)
+        return difference > 90
     }
 
     func along(_ point: CLLocationCoordinate2D) -> Double {
@@ -227,7 +274,8 @@ struct RouteTiming {
             guard overlap > 0, b > a else { continue }
             let fraction = overlap / (b - a)
             let part = profile.travel(route: line.routeId, segment: segment, bucket: bucket,
-                                      driver: driver, metres: b - a, routerSpeed: routerSpeed)
+                                      driver: driver, metres: b - a, routerSpeed: routerSpeed,
+                                      reversed: line.reversed)
             seconds += fraction * part.seconds
             variance += fraction * part.totalVariance
             fewestSamples = min(fewestSamples, part.samples)
@@ -235,7 +283,7 @@ struct RouteTiming {
         }
         // Stops strictly between the two points: the bus usually pauses there.
         for (index, along) in line.stopAlong.enumerated() where along > start + 1 && along < end - 1 {
-            let dwell = profile.dwell(route: line.routeId, stop: index)
+            let dwell = profile.dwell(route: line.routeId, stop: line.routeStopIndex(index))
             seconds += dwell.seconds
             variance += dwell.totalVariance
         }

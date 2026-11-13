@@ -288,7 +288,7 @@ service cloud.firestore {
 
       function validStat(data) {
         return data.keys().hasOnly(fields())
-          && data.kind in ['travel', 'dwell']
+          && data.kind in ['travel', 'travelBack', 'dwell']
           && data.index is int && data.index >= 0 && data.index < 100
           && id.split('_')[0] == data.routeId
           && ownDriverField(data)

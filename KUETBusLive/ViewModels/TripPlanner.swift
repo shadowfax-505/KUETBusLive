@@ -100,6 +100,30 @@ final class TripPlanner: ObservableObject {
         return line
     }
 
+    // The route laid out the way this bus is driving: from its compass heading, or
+    // else from whether it moved forwards or backwards since last time.
+    private var lastAlong: [String: Double] = [:]
+    private var backwards: [String: Bool] = [:]
+
+    func directedLine(for bus: Bus, busViewModel: BusViewModel) -> RouteLine? {
+        guard let forward = line(for: bus.routeId, busViewModel: busViewModel), let busId = bus.id else { return nil }
+        if let heading = bus.heading, (bus.speed ?? 0) > 1 {
+            backwards[busId] = forward.isAgainst(heading: heading, at: bus.coordinate)
+        } else {
+            let along = forward.along(bus.coordinate)
+            if let last = lastAlong[busId], abs(along - last) > 20 {
+                backwards[busId] = along < last
+            }
+            lastAlong[busId] = along
+        }
+        return backwards[busId] == true ? forward.flipped() : forward
+    }
+
+    // Stops in the same order as the line.
+    private func ordered(_ stops: [Stop], _ line: RouteLine) -> [Stop] {
+        line.reversed ? Array(stops.reversed()) : stops
+    }
+
     private func stopName(_ stops: [Stop], line: RouteLine) -> (Double) -> String {
         { along in
             let index = line.stopAlong.enumerated().min { abs($0.element - along) < abs($1.element - along) }?.offset ?? 0
@@ -120,8 +144,9 @@ final class TripPlanner: ObservableObject {
     // Called when the bus or the rider moves.
     func update(bus: Bus, busViewModel: BusViewModel, rider: CLLocation?) {
         StatsStore.shared.load(route: bus.routeId, driver: bus.driverId)
-        guard let line = line(for: bus.routeId, busViewModel: busViewModel),
-              let stops = busViewModel.routeStops[bus.routeId] else { return }
+        guard let line = directedLine(for: bus, busViewModel: busViewModel),
+              let routeStops = busViewModel.routeStops[bus.routeId] else { return }
+        let stops = ordered(routeStops, line)
         let busAlong = line.along(bus.coordinate)
         let timing = timing(for: bus, line: line, busViewModel: busViewModel)
         let names = stops.map(\.displayName)
@@ -224,8 +249,9 @@ final class TripPlanner: ObservableObject {
         var found: [TripOption] = []
         let walking = WalkingSpeed.load()
         for bus in buses {
-            guard let line = line(for: bus.routeId, busViewModel: busViewModel),
-                  let stops = busViewModel.routeStops[bus.routeId] else { continue }
+            guard let line = directedLine(for: bus, busViewModel: busViewModel),
+                  let routeStops = busViewModel.routeStops[bus.routeId] else { continue }
+            let stops = ordered(routeStops, line)
             if let option = option(title: PlaceNames.display(bus.number), routeId: bus.routeId, driver: bus.driverId,
                                    line: line, stops: stops, busAlong: line.along(bus.coordinate), startsIn: 0,
                                    destination: destination, rider: rider, walking: walking, now: now,
@@ -233,19 +259,26 @@ final class TripPlanner: ObservableObject {
                 found.append(option)
             }
         }
-        // Trips leaving KUET later today, on a route whose name has the trip's city spot.
-        for schedule in schedules where schedule.isUpcoming(at: now) {
-            guard let departure = BusSchedule.minutes(from: schedule.campusTime),
-                  let route = routes.first(where: { $0.name.localizedCaseInsensitiveContains(schedule.spot) }),
+        // Trips later today, on a route whose name has the trip's city spot: leaving KUET
+        // at the campus time (the route's own order), or leaving the spot at the spot
+        // time (driven back to KUET).
+        let nowMinutes = BusSchedule.minutesNow(now)
+        for schedule in schedules where schedule.runsToday {
+            guard let route = routes.first(where: { $0.name.localizedCaseInsensitiveContains(schedule.spot) }),
                   let routeId = route.id, route.stops.count >= 2 else { continue }
-            let startsIn = Double(departure - BusSchedule.minutesNow(now)) * 60
-            let line = lines[routeId] ?? RouteLine(routeId: routeId, path: busViewModel.routePaths[routeId] ?? [],
-                                                   stops: route.stops.map(\.coordinate))
+            let forward = lines[routeId] ?? RouteLine(routeId: routeId, path: busViewModel.routePaths[routeId] ?? [],
+                                                      stops: route.stops.map(\.coordinate))
             StatsStore.shared.load(route: routeId, driver: nil)
-            if let option = option(title: schedule.displayTitle, routeId: routeId, driver: nil, line: line,
-                                   stops: route.stops, busAlong: 0, startsIn: startsIn, destination: destination,
-                                   rider: rider, walking: walking, now: now, routerBus: nil, busViewModel: busViewModel) {
-                found.append(option)
+            for (time, line) in [(schedule.campusTime, forward), (schedule.spotTime, forward.flipped())] {
+                guard let departure = BusSchedule.minutes(from: time), departure > nowMinutes else { continue }
+                let startsIn = Double(departure - nowMinutes) * 60
+                if let option = option(title: schedule.displayTitle + " · " + BusSchedule.display(time),
+                                       routeId: routeId, driver: nil, line: line,
+                                       stops: ordered(route.stops, line), busAlong: 0, startsIn: startsIn,
+                                       destination: destination, rider: rider, walking: walking, now: now,
+                                       routerBus: nil, busViewModel: busViewModel) {
+                    found.append(option)
+                }
             }
         }
         options = TripOption.ranked(found)

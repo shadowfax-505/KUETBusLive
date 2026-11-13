@@ -185,6 +185,7 @@ Document IDs (built the same way on every platform; `bucket` is `{dayType}-{slot
 | ID | Meaning |
 |---|---|
 | `{routeId}_t{segment}_{bucket}_{driverUid}` | stretch from stop `segment` to `segment + 1`, this driver, this kind of day and half-hour |
+| `{routeId}_u{segment}_…` | the same three kinds, for buses driving back towards the route's first stop (stops numbered in that order) |
 | `{routeId}_t{segment}_{bucket}` | the same stretch, any driver, this half-hour |
 | `{routeId}_t{segment}_all` | the same stretch, any time |
 | `{routeId}_d{stop}_all` | time standing at stop `stop` |
@@ -192,7 +193,7 @@ Document IDs (built the same way on every platform; `bucket` is `{dayType}-{slot
 | Field | Type | Notes |
 |---|---|---|
 | `routeId` | string | must match the start of the ID |
-| `kind` | string | `travel` or `dwell` |
+| `kind` | string | `travel`, `travelBack` (the `u` documents) or `dwell` |
 | `index` | int | the segment or stop number |
 | `dayType`, `slot` | string, int | only on bucketed documents |
 | `driverId` | string | only on per-driver documents; must be the writer |

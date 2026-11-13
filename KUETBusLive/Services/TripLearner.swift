@@ -62,6 +62,7 @@ struct TripObservations: Equatable {
         }
     }
 
+    var reversed = false        // driven back towards the route's first stop
     var stretches: [Stretch] = []
     var stopTimes: [StopTime] = []
     var waves: [WaveOutcome] = []
@@ -78,9 +79,14 @@ enum TripLearner {
     static let stretchSeconds = 5.0...3600.0
     static let stopSeconds = 0.0...900.0
 
-    static func learn(samples: [GPSSample], line: RouteLine, waves: [SeenWave]) -> TripObservations {
+    // `line` is the route in its own order; a trip driven the other way is noticed
+    // (it ends nearer the start than it began) and learned on the flipped line.
+    static func learn(samples: [GPSSample], line forward: RouteLine, waves: [SeenWave]) -> TripObservations {
         var result = TripObservations()
-        guard samples.count >= 2, line.stopAlong.count >= 2 else { return result }
+        guard samples.count >= 2, forward.stopAlong.count >= 2 else { return result }
+        let backwards = forward.along(samples.last!.coordinate) < forward.along(samples.first!.coordinate)
+        let line = backwards ? forward.flipped() : forward
+        result.reversed = backwards
 
         // Distance along the route for each sample. GPS wobbles, so never let it go backwards.
         var along: [Double] = []
@@ -114,7 +120,8 @@ enum TripLearner {
             guard let from = arrive[stop], let to = leave[stop] else { continue }
             let seconds = to.timeIntervalSince(from)
             if stopSeconds.contains(seconds) {
-                result.stopTimes.append(.init(stop: stop, seconds: seconds))
+                // Stop times are kept by the route's own stop number, the same both ways.
+                result.stopTimes.append(.init(stop: line.routeStopIndex(stop), seconds: seconds))
             }
         }
 

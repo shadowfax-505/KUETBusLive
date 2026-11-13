@@ -114,17 +114,20 @@ final class StatsStore: ObservableObject {
         let group = DispatchGroup()
         for stretch in observations.stretches {
             let bucket = TimeBucket(stretch.startedAt)
-            let base: [String: Any] = ["routeId": routeId, "kind": "travel", "index": stretch.segment]
+            let base: [String: Any] = ["routeId": routeId, "kind": observations.reversed ? "travelBack" : "travel",
+                                       "index": stretch.segment]
             var slotted = base
             slotted["dayType"] = bucket.dayType.rawValue
             slotted["slot"] = bucket.slot
             var mine = slotted
             mine["driverId"] = driverId
-            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment, bucket: bucket, driver: driverId),
+            let back = observations.reversed
+            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment, bucket: bucket,
+                                                    driver: driverId, reversed: back),
                 fields: mine, busId: busId, group: group)
-            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment, bucket: bucket),
+            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment, bucket: bucket, reversed: back),
                 fields: slotted, busId: busId, group: group)
-            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment),
+            add(stretch.seconds, to: StatKey.travel(route: routeId, segment: stretch.segment, reversed: back),
                 fields: base, busId: busId, group: group)
         }
         for stop in observations.stopTimes {

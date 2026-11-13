@@ -200,7 +200,8 @@ enum CatchPlanner {
             let bus = timing.estimate(from: busAlong, to: point.along)
             let stopping: Double
             if case .stop(let index) = point.kind {
-                stopping = timing.profile.dwell(route: timing.line.routeId, stop: index).seconds / 2
+                stopping = timing.profile.dwell(route: timing.line.routeId,
+                                                stop: timing.line.routeStopIndex(index)).seconds / 2
             } else {
                 stopping = SegmentProfile.defaultDwell.seconds
             }

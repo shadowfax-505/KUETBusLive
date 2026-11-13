@@ -83,6 +83,27 @@ final class TripLearnerTests: XCTestCase {
         XCTAssertEqual(result.stretches.count, 3)
     }
 
+    func testATripDrivenBackIsLearnedOnTheFlippedLine() {
+        // The same track, driven from D back to A, with the pause at 1000 m from D (stop C).
+        let back = track().map { sample -> GPSSample in
+            var flipped = sample
+            let metres = (sample.coordinate.latitude - base.latitude) * 111_320
+            flipped.coordinate = north(3000 - metres)
+            return flipped
+        }
+        let result = TripLearner.learn(samples: back, line: line, waves: [])
+        XCTAssertTrue(result.reversed)
+        XCTAssertEqual(result.stretches.map(\.segment), [0, 1, 2])
+        // The 30 s stand is at the route's stop 2 (C), counted in the route's own numbering.
+        XCTAssertEqual(result.stopTimes.first?.stop, 2)
+        XCTAssertNotEqual(StatKey.travel(route: "r1", segment: 0, reversed: true), StatKey.travel(route: "r1", segment: 0))
+    }
+
+    func testDirectionFromHeading() {
+        XCTAssertFalse(line.isAgainst(heading: 5, at: north(1500)))
+        XCTAssertTrue(line.isAgainst(heading: 185, at: north(1500)))
+    }
+
     func testTooFewSamplesLearnNothing() {
         XCTAssertEqual(TripLearner.learn(samples: [], line: line, waves: []), TripObservations())
     }
