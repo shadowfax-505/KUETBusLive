@@ -167,6 +167,8 @@ enum CatchPlanner {
                           timing: RouteTiming, walking: WalkingSpeed,
                           driverWaveRate: Double, startsIn: Double = 0) -> CatchPlan? {
         var best: (plan: CatchPlan, score: Double)?
+        // The margin's k, checked against this route's real trips once there are enough.
+        let marginK = Margin.k(calibration: timing.profile.calibration(route: timing.line.routeId))
         for point in candidates where point.along > busAlong {
             let bus = timing.estimate(from: busAlong, to: point.along)
             let busSeconds = startsIn + bus.seconds
@@ -177,7 +179,7 @@ enum CatchPlanner {
             let score = chance * point.stopChance(driverWaveRate: driverWaveRate)
                 - walkCostPerMinute * walk / 60
             let plan = CatchPlan(point: point, busSeconds: busSeconds, walkSeconds: walk,
-                                 marginSeconds: Margin.seconds(for: bus), catchChance: chance,
+                                 marginSeconds: Margin.seconds(for: bus, k: marginK), catchChance: chance,
                                  samples: bus.samples)
             if best == nil || score > best!.score {
                 best = (plan, score)

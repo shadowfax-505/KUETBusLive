@@ -49,22 +49,32 @@ struct RunningStat: Codable, Equatable {
 struct TimeBucket: Hashable {
     var dayType: DayType
     var slot: Int
+    // A day the admin marked in the special-days calendar ("exam", "holiday", "event"):
+    // traffic and riders differ, so it is learned on its own.
+    var special: String?
 
     static let slotMinutes = 30
 
-    init(dayType: DayType, slot: Int) {
+    init(dayType: DayType, slot: Int, special: String? = nil) {
         self.dayType = dayType
         self.slot = slot
+        self.special = special
     }
 
-    init(_ date: Date, calendar: Calendar = .current) {
+    init(_ date: Date, special: String? = nil, calendar: Calendar = .current) {
         dayType = DayType(date, calendar: calendar)
         let parts = calendar.dateComponents([.hour, .minute], from: date)
         slot = ((parts.hour ?? 0) * 60 + (parts.minute ?? 0)) / Self.slotMinutes
+        self.special = special
     }
 
     var key: String {
-        "\(dayType.rawValue)-\(slot)"
+        "\(special ?? dayType.rawValue)-\(slot)"
+    }
+
+    // The same half-hour on an ordinary day of this kind.
+    var ordinary: TimeBucket {
+        TimeBucket(dayType: dayType, slot: slot)
     }
 }
 
@@ -121,6 +131,16 @@ enum StatKey {
     static func dwell(route: String, stop: Int) -> String {
         "\(route)_d\(stop)_all"
     }
+
+    // How late a timetable trip usually leaves its first stop.
+    static func late(route: String, schedule: String) -> String {
+        "\(route)_late_\(schedule)"
+    }
+
+    // How far real arrivals fell from the predictions, in spreads (for the margin).
+    static func calibration(route: String) -> String {
+        "\(route)_calib_all"
+    }
 }
 
 struct SegmentProfile {
@@ -140,11 +160,15 @@ struct SegmentProfile {
     func travel(route: String, segment: Int, bucket: TimeBucket, driver: String?,
                 metres: Double, routerSpeed: Double? = nil, reversed: Bool = false) -> Estimate {
         var keys: [(String, EstimateSource)] = []
-        if let driver {
-            keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket, driver: driver,
-                                        reversed: reversed), .driverSlot))
+        // On a special day, that day's own numbers first, then an ordinary day's.
+        let buckets = bucket.special == nil ? [bucket] : [bucket, bucket.ordinary]
+        for slotBucket in buckets {
+            if let driver {
+                keys.append((StatKey.travel(route: route, segment: segment, bucket: slotBucket, driver: driver,
+                                            reversed: reversed), .driverSlot))
+            }
+            keys.append((StatKey.travel(route: route, segment: segment, bucket: slotBucket, reversed: reversed), .slot))
         }
-        keys.append((StatKey.travel(route: route, segment: segment, bucket: bucket, reversed: reversed), .slot))
         keys.append((StatKey.travel(route: route, segment: segment, reversed: reversed), .route))
         for (key, source) in keys {
             if let stat = stats[key], stat.n >= Self.minSamples {
@@ -154,6 +178,17 @@ struct SegmentProfile {
         let speed = (routerSpeed ?? 0) > 1 ? routerSpeed! : Self.defaultSpeed
         let seconds = metres / speed
         return Estimate(seconds: seconds, variance: pow(seconds * Self.routerSpread, 2), samples: 0, source: .router)
+    }
+
+    // Seconds a timetable trip usually leaves late (0 until 3 trips are known).
+    func lateness(route: String, schedule: String) -> Double {
+        guard let stat = stats[StatKey.late(route: route, schedule: schedule)], stat.n >= Self.minSamples else { return 0 }
+        return stat.mean
+    }
+
+    // Past prediction errors for this route, in spreads.
+    func calibration(route: String) -> RunningStat? {
+        stats[StatKey.calibration(route: route)]
     }
 
     func dwell(route: String, stop: Int) -> Estimate {
@@ -257,6 +292,8 @@ struct RouteTiming {
     var bucket: TimeBucket
     var driver: String?
     var routerSpeed: Double? = nil
+    // Today's bus compared with the usual (LiveCorrection): 1.2 means 20% slower.
+    var liveFactor: Double = 1
 
     // From one distance along the route to a later one: travel on each stretch it
     // covers (in proportion), plus the usual stop time at every stop it passes.
@@ -276,8 +313,8 @@ struct RouteTiming {
             let part = profile.travel(route: line.routeId, segment: segment, bucket: bucket,
                                       driver: driver, metres: b - a, routerSpeed: routerSpeed,
                                       reversed: line.reversed)
-            seconds += fraction * part.seconds
-            variance += fraction * part.totalVariance
+            seconds += fraction * part.seconds * liveFactor
+            variance += fraction * part.totalVariance * liveFactor * liveFactor
             fewestSamples = min(fewestSamples, part.samples)
             weakest = max(weakest, part.source)
         }
@@ -297,8 +334,19 @@ enum Margin {
     // About 90% of buses come later than "average minus 1.28 spreads" (normal distribution).
     static let k = 1.2816
     static let minimumSeconds = 30.0
+    // Real errors are used once this many trips have been checked.
+    static let minCalibrationTrips = 10
 
-    static func seconds(for estimate: Estimate) -> Double {
+    // k checked against real trips. Each trip leaves one number: how far the bus
+    // really was from the prediction, in spreads (z = (real - predicted) / spread).
+    // If z has average m and spread s, 90% of buses come later than
+    // "predicted - (1.28 x s - m) spreads", so that is the k to use.
+    static func k(calibration: RunningStat?) -> Double {
+        guard let calibration, calibration.n >= minCalibrationTrips else { return k }
+        return min(max(k * calibration.standardDeviation - calibration.mean, 0.8), 3)
+    }
+
+    static func seconds(for estimate: Estimate, k: Double = Margin.k) -> Double {
         max(k * sqrt(estimate.totalVariance), minimumSeconds)
     }
 
@@ -306,5 +354,42 @@ enum Margin {
     static func probabilityPositive(mean: Double, sd: Double) -> Double {
         guard sd > 0 else { return mean >= 0 ? 1 : 0 }
         return 0.5 * (1 + erf(mean / (sd * 2.squareRoot())))
+    }
+}
+
+// Today's bus against the usual: while the map is open the app watches how long
+// the selected bus takes for the road it has just driven, and compares that with
+// what the model expected. Rain or a jam makes the rest of today's trip slower too.
+//     factor = real seconds / expected seconds, over the last 10 minutes,
+//     pulled towards 1 until the bus has covered 2 km, and kept within 0.6 ... 1.8.
+struct LiveCorrection {
+    struct Point: Equatable {
+        var date: Date
+        var along: Double
+    }
+
+    private(set) var points: [Point] = []
+    static let window: TimeInterval = 10 * 60
+    static let trustedMetres = 2000.0
+    static let range = 0.6...1.8
+
+    mutating func add(date: Date, along: Double) {
+        // A new position only once the bus has moved on (it may stand at a stop; that
+        // time is counted when it moves again).
+        if let last = points.last, along <= last.along + 5 || date <= last.date { return }
+        points.append(Point(date: date, along: along))
+        points.removeAll { date.timeIntervalSince($0.date) > Self.window }
+    }
+
+    func factor(timing: RouteTiming) -> Double {
+        guard let first = points.first, let last = points.last, last.along - first.along > 100 else { return 1 }
+        var plain = timing
+        plain.liveFactor = 1
+        let expected = plain.estimate(from: first.along, to: last.along).seconds
+        guard expected > 0 else { return 1 }
+        let real = last.date.timeIntervalSince(first.date)
+        let raw = min(max(real / expected, Self.range.lowerBound), Self.range.upperBound)
+        let trust = min((last.along - first.along) / Self.trustedMetres, 1)
+        return 1 + trust * (raw - 1)
     }
 }
