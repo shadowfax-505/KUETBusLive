@@ -188,6 +188,21 @@ test("the driver moves their own bus, nobody else's", async () => {
   await assertFails(updateDoc(doc(db("driver2"), "buses", "student-bus"), { lat: 1 }));
 });
 
+test("a driver moving their bus can't change its route, trip or audience", async () => {
+  await assertSucceeds(updateDoc(doc(db("driver"), "buses", "student-bus"), { lat: 22.92, lng: 89.52, heading: 90, speed: 8 }));
+  await assertFails(updateDoc(doc(db("driver"), "buses", "student-bus"), { audience: "teacher" }));
+  await assertFails(updateDoc(doc(db("driver"), "buses", "student-bus"), { routeId: "other-route" }));
+  await assertFails(updateDoc(doc(db("driver"), "buses", "student-bus"), { scheduleId: "s9", lat: 22.93 }));
+});
+
+test("starting a trip again on a live bus is checked like a new trip", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver")));
+  await assertSucceeds(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { scheduleId: "s3" })));
+  await addDriver("reserve");
+  await setTripDrivers("normal-1", { s2: "reserve" });
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { scheduleId: "s2" })));
+});
+
 test("riders report the crowd only on buses they may ride", async () => {
   await assertSucceeds(updateDoc(doc(db("student"), "buses", "student-bus"), { crowd: "full" }));
   await assertFails(updateDoc(doc(db("student"), "buses", "teacher-bus"), { crowd: "full" }));

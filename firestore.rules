@@ -176,11 +176,17 @@ service cloud.firestore {
         && id == 'bus-' + request.resource.data.fleetBusId
         && drivesTrip(request.resource.data.fleetBusId, request.resource.data.get('scheduleId', ''));
 
-      // The admin can fix anything. An approved driver moves only their own bus.
+      // The admin can fix anything. An approved driver moves only their own bus:
+      // position, heading, speed and time. Anything else (route, trip, audience) may
+      // change only by starting a trip again, with the same checks as a new trip.
       // Riders allowed on the bus can change only its crowd level.
       allow update: if isAdmin()
         || (isApprovedDriver() && resource.data.driverId == request.auth.uid
-            && isValidBus(request.resource.data))
+            && isValidBus(request.resource.data)
+            && (request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['lat', 'lng', 'updatedAt', 'heading', 'speed'])
+                || (id == 'bus-' + request.resource.data.fleetBusId
+                    && drivesTrip(request.resource.data.fleetBusId, request.resource.data.get('scheduleId', '')))))
         || (isApprovedRider() && canBoard(resource.data)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['crowd'])
             && isCrowdLevel(request.resource.data.crowd));

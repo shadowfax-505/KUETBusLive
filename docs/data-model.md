@@ -156,7 +156,7 @@ Exists only while a trip runs. The ID is `bus-<fleetBusId>`, so a fleet bus can 
 | `updatedAt` | timestamp | |
 | `crowd` | string | |
 
-Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip. Riders allowed on the bus change only `crowd`. The driver or the admin deletes it (end of trip).
+Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip, but a move changes only `lat`, `lng`, `heading`, `speed` and `updatedAt`; changing the route, trip or audience means starting the trip again, which is checked like a new trip. Riders allowed on the bus change only `crowd`. The driver or the admin deletes it (end of trip).
 
 ### `buses/{busId}/waves/{uid}`: "I'm waiting here"
 
