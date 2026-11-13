@@ -134,7 +134,8 @@ struct LiveMapView: View {
                         }
                     }
 
-                    if let stop = authViewModel.profile?.favoriteStop {
+                    // My stop. While a bus is selected it is drawn as the ring with the ETA pill instead.
+                    if selectedBus == nil, let stop = authViewModel.profile?.favoriteStop {
                         Marker(stop.displayName, systemImage: "star.fill", coordinate: stop.coordinate)
                             .tint(MapTheme.primary)
                     }
