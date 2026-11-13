@@ -5,9 +5,17 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  The sheet at the bottom of the map for the selected bus, like the trip sheet
-//  in a ride-hailing app: a title, the bus in an outlined card, and one solid
-//  main button. TimelineView redraws it every second, so "updated"
-//  times count up live between GPS updates.
+//  in a ride-hailing app:
+//  - a compact header: the route, the bus, and the ETA and distance on the right
+//  - a thin track from KUET to my stop, with the stops as dots
+//  - three small tiles: speed, crowd and the last update
+//  - a one-line banner only when the bus has gone quiet
+//  - one main button, then a row of round buttons with captions
+//
+//  It has two heights, like a sheet's detents: drag the handle (or tap it) to
+//  show less or more. Showing less keeps the header, the track and the main
+//  button, so more of the map is visible. TimelineView redraws it every second,
+//  so "updated" times count up live between GPS updates.
 //
 
 import SwiftUI
@@ -17,223 +25,388 @@ struct TripCard: View {
     @ObservedObject var busViewModel: BusViewModel
     @Binding var followBus: Bool
     let onDetails: () -> Void
+    let onRecenter: () -> Void
     let onClose: () -> Void
     @EnvironmentObject var authViewModel: AuthViewModel
     @ObservedObject private var liveActivity = LiveActivityManager.shared
+
+    // Remembered between buses, like a sheet left at its smaller height.
+    @AppStorage("tripCardExpanded") private var expanded = true
+    @GestureState private var dragOffset: CGFloat = 0
 
     // With very large text (Settings > Accessibility > Larger Text), rows that sit
     // side by side are stacked instead, so nothing gets cut off.
     @Environment(\.dynamicTypeSize) private var typeSize
 
+    static let spacing: CGFloat = 16
+
     var bigText: Bool {
         typeSize.isAccessibilitySize
-    }
-
-    // A row normally, a column with large text.
-    var rowOrColumn: AnyLayout {
-        bigText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout())
     }
 
     var canBoard: Bool {
         bus.allocation.canBoard(authViewModel.profile?.role ?? .student)
     }
 
+    var boardingName: String? {
+        busViewModel.boardingPoint(for: bus).map { PlaceNames.display($0.name) }
+    }
+
+    var eta: RouteInfo? {
+        bus.id.flatMap { busViewModel.etaInfo[$0] }
+    }
+
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             // With large text the card can get tall, so it scrolls instead of covering the map.
             ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                // A small handle, like a sheet, so the card reads as something on top of the map.
-                Capsule()
-                    .fill(.secondary.opacity(0.35))
-                    .frame(width: 36, height: 5)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityHidden(true)
-                // Sheet title, with the close button.
-                HStack(alignment: .firstTextBaseline) {
-                    Text(PlaceNames.display(bus.routeName))
-                        .font(.title3.weight(.bold))
-                        .accessibilityAddTraits(.isHeader)
-                    Spacer()
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(MapTheme.primary)
-                            .frame(width: 32, height: 32)
-                            .background(MapTheme.raised, in: Circle())
+                VStack(alignment: .leading, spacing: Self.spacing) {
+                    grabber
+                    header
+                    progress
+                    if bus.isStale {
+                        staleBanner
                     }
-                    .accessibilityLabel("Close trip card")
-                }
-
-                // The selected bus in a card with a solid outline, and its ETA on the right.
-                rowOrColumn {
-                    HStack(spacing: 12) {
-                        TopDownBus(crowd: MapTheme.crowd(bus.crowd))
-                            .frame(width: 18, height: 36)
-                            .rotationEffect(.degrees(90))
-                            .frame(width: 40, height: 36)
-                            .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(PlaceNames.display(bus.number))
-                                .font(.headline)
-                            AudienceBadge(audience: bus.allocation)
-                        }
+                    if expanded {
+                        statTiles
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
-                    if !bigText {
-                        Spacer()
-                    }
-                    if let point = busViewModel.boardingPoint(for: bus) {
-                        VStack(alignment: bigText ? .leading : .trailing, spacing: 2) {
-                            Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
-                                .font(.headline.monospacedDigit())
-                                // Digits roll to the new value instead of jumping.
-                                .contentTransition(.numericText())
-                                .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
-                            Text("to \(PlaceNames.display(point.name))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                    primaryAction
+                    if expanded {
+                        secondaryActions
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
                 }
-                .padding(12)
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(MapTheme.primary, lineWidth: 2))
-                .accessibilityElement(children: .combine)
-
-                if busViewModel.boardingPoint(for: bus) == nil {
-                    Text("Set your stop in Routes to see the ETA.")
-                        .foregroundColor(.secondary)
-                }
-
-                // Where the bus is between KUET and my stop, like a parcel tracker.
-                if let track = busViewModel.tripProgress(for: bus),
-                   let stopName = busViewModel.boardingPoint(for: bus)?.name {
-                    TripProgressView(progress: track, endLabel: PlaceNames.display(stopName), tint: MapTheme.primary,
-                                     busGlyphColor: MapTheme.buttonText)
-                        .animation(.easeInOut, value: track.fraction)
-                } else if let progress = busViewModel.nearestStop(for: bus) {
-                    // My stop isn't on this route: show the nearest stop instead.
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Near \(progress.stop.name) · stop \(progress.index + 1) of \(progress.count)")
-                            .font(.footnote)
-                        ProgressView(value: Double(progress.index),
-                                     total: Double(max(progress.count - 1, 1)))
-                            .tint(MapTheme.primary)
-                            .animation(.easeInOut, value: progress.index)
-                    }
-                }
-
-                // Live facts, on a faint band so they read as one group.
-                rowOrColumn {
-                    Label(bus.speedText, systemImage: "speedometer")
-                    Spacer()
-                    Label(bus.crowd.label, systemImage: "person.3.fill")
-                        .foregroundColor(MapTheme.crowd(bus.crowd))
-                        .symbolEffect(.bounce, value: bus.crowd)
-                    Spacer()
-                    Label(bus.lastUpdateText, systemImage: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right")
-                        .accessibilityLabel("Last update \(bus.lastUpdateText)")
-                        .foregroundColor(bus.isStale ? MapTheme.terracotta : MapTheme.sage)
-                        .symbolEffect(.pulse, isActive: !bus.isStale)
-                }
-                .font(.caption.weight(.medium))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(MapTheme.raised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                if bus.isStale {
-                    Text("No signal from this bus for over a minute. Its position may be out of date.")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
-
-                // Follow on Lock Screen: a Live Activity with the ETA, also in the Dynamic Island.
-                if busViewModel.boardingPoint(for: bus) != nil && liveActivity.isAvailable {
-                    Button {
-                        if liveActivity.isFollowing(bus) {
-                            liveActivity.stop()
-                        } else {
-                            busViewModel.follow(bus)
-                        }
-                    } label: {
-                        Label(liveActivity.isFollowing(bus) ? "Stop following" : "Follow on Lock Screen",
-                              systemImage: liveActivity.isFollowing(bus) ? "lock.slash" : "lock.iphone")
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                }
-
-                // "I'm waiting here": the driver sees where you stand, without a phone call.
-                if canBoard, let uid = authViewModel.user?.uid, busViewModel.boardingPoint(for: bus) != nil {
-                    if busViewModel.wavingAtBusId == bus.id {
-                        Button {
-                            busViewModel.cancelWave(uid: uid)
-                        } label: {
-                            Label("Waiting at \(PlaceNames.display(busViewModel.boardingPoint(for: bus)?.name ?? "")) · Cancel",
-                                  systemImage: "hand.raised.slash")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.orange)
-                    } else {
-                        Button {
-                            busViewModel.wave(at: bus, uid: uid)
-                        } label: {
-                            Label("I'm waiting here", systemImage: "hand.wave.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(MapTheme.primary)
-                    }
-                }
-
-                // Actions
-                rowOrColumn {
-                    if canBoard {
-                        Button("Seats") {
-                            busViewModel.report(.seats, for: bus)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.green)
-
-                        Button("Full") {
-                            busViewModel.report(.full, for: bus)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                    }
-
-                    if !bigText {
-                        Spacer()
-                    }
-
-                    Toggle(isOn: $followBus) {
-                        Image(systemName: "location.north.line.fill")
-                    }
-                    .toggleStyle(.button)
-                    .tint(MapTheme.primary)
-                    .accessibilityLabel("Keep the map on this bus")
-
-                    Button("Details", action: onDetails)
-                        .buttonStyle(.bordered)
-                        .tint(MapTheme.primary)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
+                .padding(.horizontal, Self.spacing)
+                .padding(.bottom, Self.spacing)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .frame(maxHeight: bigText ? 420 : nil)
+            .scrollDisabled(!bigText)
+            .frame(maxHeight: bigText ? 460 : nil)
             .fixedSize(horizontal: false, vertical: !bigText)
             // Rounded at the top only, and flush with the bottom of the screen, like a sheet.
             .background(MapTheme.surface,
-                        in: UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
+                        in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous))
             .background(MapTheme.surface.ignoresSafeArea(edges: .bottom).padding(.top, 40))
-            .shadow(color: .black.opacity(0.15), radius: 16, y: -2)
+            .shadow(color: .black.opacity(0.12), radius: 20, y: -4)
+            .offset(y: max(dragOffset, 0) * 0.4)
+            .gesture(bigText ? nil : resizeGesture)
+            .animation(.spring(response: 0.4, dampingFraction: 0.86), value: expanded)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Trip card for \(PlaceNames.display(bus.number))")
-            // A small tap on the phone when a crowd report lands.
+            // A small tap on the phone when a crowd report lands, and when the card changes height.
             .sensoryFeedback(.success, trigger: bus.crowd)
+            .sensoryFeedback(.selection, trigger: expanded)
         }
+    }
+
+    // Drag up for more, down for less. Dragging down from the smaller height closes the card.
+    var resizeGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .updating($dragOffset) { value, state, _ in
+                state = value.translation.height
+            }
+            .onEnded { value in
+                let dy = value.predictedEndTranslation.height
+                if dy < -60 {
+                    expanded = true
+                } else if dy > 60 {
+                    if expanded {
+                        expanded = false
+                    } else {
+                        onClose()
+                    }
+                }
+            }
+    }
+
+    // MARK: Header
+
+    // The handle, which also works as a button for VoiceOver, and the close button.
+    var grabber: some View {
+        ZStack {
+            Capsule()
+                .fill(.secondary.opacity(0.35))
+                .frame(width: 36, height: 5)
+                .frame(maxWidth: .infinity, minHeight: 20)
+                .contentShape(Rectangle())
+                .onTapGesture { expanded.toggle() }
+                .accessibilityElement()
+                .accessibilityLabel(expanded ? "Show less" : "Show more")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { expanded.toggle() }
+            HStack {
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 30, height: 30)
+                        .background(MapTheme.raised, in: Circle())
+                }
+                .accessibilityLabel("Close trip card")
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, -8)
+    }
+
+    var header: some View {
+        HStack(alignment: .center, spacing: 12) {
+            TopDownBus(crowd: MapTheme.crowd(bus.crowd))
+                .frame(width: 14, height: 28)
+                .rotationEffect(.degrees(90))
+                .frame(width: 48, height: 48)
+                .background(MapTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(PlaceNames.display(bus.routeName))
+                    .font(.headline)
+                    .lineLimit(2)
+                    .accessibilityAddTraits(.isHeader)
+                Text("\(PlaceNames.display(bus.number)) · \(bus.allocation.title)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            .layoutPriority(1)
+
+            Spacer(minLength: 8)
+
+            etaBlock
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // "7 min" big, the road distance under it. Without a stop, a hint instead.
+    @ViewBuilder
+    var etaBlock: some View {
+        if boardingName != nil {
+            VStack(alignment: .trailing, spacing: 0) {
+                if let eta {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text("\(eta.minutes)")
+                            .font(.system(.title, design: .rounded).weight(.bold).monospacedDigit())
+                            .contentTransition(.numericText())
+                            .animation(.default, value: eta.minutes)
+                        Text("min")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    Text(String(format: "%.1f km", eta.kilometres))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
+                        .font(.subheadline.weight(.semibold))
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+            .fixedSize()
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    // MARK: Progress
+
+    @ViewBuilder
+    var progress: some View {
+        if let track = busViewModel.tripProgress(for: bus), let boardingName {
+            TripProgressView(progress: track, endLabel: boardingName, tint: MapTheme.primary,
+                             trackColor: MapTheme.raised, refined: true,
+                             stopColor: .secondary.opacity(0.6), busGlyphColor: MapTheme.buttonText)
+                .animation(.easeInOut, value: track.fraction)
+        } else if let near = busViewModel.nearestStop(for: bus) {
+            // My stop isn't on this route: show the nearest stop instead.
+            VStack(alignment: .leading, spacing: 6) {
+                ProgressView(value: Double(near.index), total: Double(max(near.count - 1, 1)))
+                    .tint(MapTheme.primary)
+                    .animation(.easeInOut, value: near.index)
+                Text("Near \(near.stop.name) · stop \(near.index + 1) of \(near.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } else if boardingName == nil {
+            Text("Set your stop in Routes to see the ETA.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: Live facts
+
+    var statTiles: some View {
+        let layout = bigText ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+        return layout {
+            StatTile(icon: "speedometer", value: bus.speedText, caption: String(localized: "Speed"))
+            StatTile(icon: "person.3.fill", value: bus.crowd.shortLabel, caption: String(localized: "Crowd"),
+                     iconColor: MapTheme.crowd(bus.crowd))
+                .symbolEffect(.bounce, value: bus.crowd)
+            StatTile(icon: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right",
+                     value: bus.lastUpdateText, caption: String(localized: "Updated"),
+                     iconColor: bus.isStale ? MapTheme.terracotta : MapTheme.sage)
+        }
+    }
+
+    // One short line, only when the bus has gone quiet.
+    var staleBanner: some View {
+        Label {
+            Text("Last seen \(bus.lastUpdateText) · position may be old")
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(MapTheme.primary)
+        } icon: {
+            Image(systemName: "wifi.exclamationmark")
+                .foregroundStyle(MapTheme.terracotta)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(MapTheme.terracotta.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: Actions
+
+    // Follow on Lock Screen: a Live Activity with the ETA, also in the Dynamic Island.
+    @ViewBuilder
+    var primaryAction: some View {
+        if boardingName != nil && liveActivity.isAvailable {
+            let following = liveActivity.isFollowing(bus)
+            Button {
+                if following {
+                    liveActivity.stop()
+                } else {
+                    busViewModel.follow(bus)
+                }
+            } label: {
+                Label(following ? "Stop following" : "Follow on Lock Screen",
+                      systemImage: following ? "lock.slash" : "lock.iphone")
+            }
+            .buttonStyle(PrimaryButtonStyle())
+        }
+    }
+
+    var secondaryActions: some View {
+        let layout = bigText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                             : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return layout {
+            // "I'm waiting here": the driver sees where you stand, without a phone call.
+            if canBoard, let uid = authViewModel.user?.uid, let boardingName {
+                if busViewModel.wavingAtBusId == bus.id {
+                    RoundAction(icon: "hand.raised.slash.fill", caption: String(localized: "Stop waiting"),
+                                isOn: true) {
+                        busViewModel.cancelWave(uid: uid)
+                    }
+                    .accessibilityLabel("Waiting at \(boardingName) · Cancel")
+                } else {
+                    RoundAction(icon: "hand.wave.fill", caption: String(localized: "I'm waiting")) {
+                        busViewModel.wave(at: bus, uid: uid)
+                    }
+                    .accessibilityLabel("I'm waiting here")
+                }
+            }
+
+            // Tell other riders how full the bus is.
+            if canBoard {
+                Menu {
+                    Button {
+                        busViewModel.report(.seats, for: bus)
+                    } label: {
+                        Label("Seats available", systemImage: "chair")
+                    }
+                    Button {
+                        busViewModel.report(.full, for: bus)
+                    } label: {
+                        Label("Full", systemImage: "person.3.fill")
+                    }
+                } label: {
+                    RoundActionLabel(icon: "person.3", caption: String(localized: "Report crowd"))
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+                .accessibilityLabel("Report crowd")
+            }
+
+            RoundAction(icon: "info", caption: String(localized: "Details"), action: onDetails)
+
+            RoundAction(icon: "location.north.line.fill", caption: String(localized: "Recenter"),
+                        isOn: followBus, action: onRecenter)
+                .accessibilityLabel("Keep the map on this bus")
+                .accessibilityValue(followBus ? String(localized: "On") : String(localized: "Off"))
+        }
+    }
+}
+
+// A small tile: icon on top, the value, and a grey caption.
+struct StatTile: View {
+    let icon: String
+    let value: String
+    let caption: String
+    var iconColor: Color = MapTheme.primary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: icon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(iconColor)
+                .frame(height: 18)
+            Text(value)
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(caption)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(MapTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(caption): \(value)")
+    }
+}
+
+// A round icon button with a caption under it, like a phone's call screen.
+struct RoundAction: View {
+    let icon: String
+    let caption: String
+    var isOn = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            RoundActionLabel(icon: icon, caption: caption, isOn: isOn)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct RoundActionLabel: View {
+    let icon: String
+    let caption: String
+    var isOn = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let circle = Image(systemName: icon)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(isOn ? MapTheme.buttonText : MapTheme.primary)
+            .frame(width: 52, height: 52)
+            .background(isOn ? MapTheme.buttonFill : MapTheme.raised, in: Circle())
+        let text = Text(caption)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(MapTheme.primary)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+        Group {
+            if typeSize.isAccessibilitySize {
+                HStack(spacing: 12) { circle; text }
+            } else {
+                VStack(spacing: 6) { circle; text }
+            }
+        }
+        .contentShape(Rectangle())
     }
 }

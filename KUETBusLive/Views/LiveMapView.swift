@@ -230,21 +230,24 @@ struct LiveMapView: View {
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(alignment: .trailing, spacing: 12) {
-                    Button(action: recenter) {
-                        Image(systemName: "location.fill")
+                    // With a bus selected, the trip card has its own recenter button.
+                    if let bus = selectedBus {
+                        TripCard(bus: bus,
+                                 busViewModel: busViewModel,
+                                 followBus: $followBus,
+                                 onDetails: { showDetail = true },
+                                 onRecenter: recenter,
+                                 onClose: { selectedBusId = nil })
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else {
+                        Button(action: recenter) {
+                            Image(systemName: "location.fill")
+                        }
+                        .buttonStyle(MapRoundButtonStyle())
+                        .accessibilityLabel("Recenter map")
+                        .padding(.trailing, 16)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                    .buttonStyle(MapRoundButtonStyle())
-                    .accessibilityLabel("Recenter map")
-                    .padding(.trailing, 16)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                if let bus = selectedBus {
-                    TripCard(bus: bus,
-                             busViewModel: busViewModel,
-                             followBus: $followBus,
-                             onDetails: { showDetail = true },
-                             onClose: { selectedBusId = nil })
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
                 }
                 .padding(.bottom, selectedBus == nil ? 12 : 0)
             }

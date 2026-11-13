@@ -1672,6 +1672,16 @@
         }
       }
     },
+    "I'm waiting": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি অপেক্ষায়"
+          }
+        }
+      }
+    },
     "I'm waiting here": {
       "localizations": {
         "bn": {
@@ -1798,6 +1808,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ভাষা ও চেহারা"
+          }
+        }
+      }
+    },
+    "Last seen %@ · position may be old": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ দেখা %@ · অবস্থান পুরোনো হতে পারে"
           }
         }
       }
@@ -2432,6 +2452,16 @@
         }
       }
     },
+    "No report": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রিপোর্ট নেই"
+          }
+        }
+      }
+    },
     "No report yet": {
       "localizations": {
         "bn": {
@@ -2598,6 +2628,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "ঠিক আছে"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বন্ধ"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালু"
           }
         }
       }
@@ -2872,6 +2922,16 @@
         }
       }
     },
+    "Recenter": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মাঝে আনুন"
+          }
+        }
+      }
+    },
     "Recenter map": {
       "localizations": {
         "bn": {
@@ -2998,6 +3058,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সমস্যা জানান"
+          }
+        }
+      }
+    },
+    "Report crowd": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিড় জানান"
           }
         }
       }
@@ -3222,6 +3292,16 @@
         }
       }
     },
+    "Seats free": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সিট খালি"
+          }
+        }
+      }
+    },
     "Security": {
       "localizations": {
         "bn": {
@@ -3318,6 +3398,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "লুকানোগুলো দেখান (%lld)"
+          }
+        }
+      }
+    },
+    "Show less": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কম দেখান"
+          }
+        }
+      }
+    },
+    "Show more": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আরও দেখান"
           }
         }
       }
@@ -3422,6 +3522,16 @@
         }
       }
     },
+    "Speed": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গতি"
+          }
+        }
+      }
+    },
     "Staff ID": {
       "localizations": {
         "bn": {
@@ -3508,6 +3618,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "স্টপের নাম"
+          }
+        }
+      }
+    },
+    "Stop waiting": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অপেক্ষা বন্ধ"
           }
         }
       }
@@ -4228,6 +4348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "পর্যন্ত"
+          }
+        }
+      }
+    },
+    "Updated": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপডেট"
           }
         }
       }

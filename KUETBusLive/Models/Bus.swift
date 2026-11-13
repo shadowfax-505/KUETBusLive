@@ -25,6 +25,18 @@ enum CrowdLevel: String, Codable, CaseIterable {
         }
     }
 
+    // One or two words, for small spaces like the trip card's tiles.
+    var shortLabel: String {
+        switch self {
+        case .unknown:
+            return String(localized: "No report")
+        case .seats:
+            return String(localized: "Seats free")
+        case .full:
+            return String(localized: "Full")
+        }
+    }
+
     var color: Color {
         switch self {
         case .unknown:
