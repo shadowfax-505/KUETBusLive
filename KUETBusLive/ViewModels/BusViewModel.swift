@@ -287,14 +287,40 @@ class BusViewModel: ObservableObject {
     // Add: tells this bus's driver where the rider is waiting, for 15 minutes.
     // Any earlier wave (on another bus) is removed first: one wave per rider.
     func wave(at bus: Bus, uid: String) {
-        guard let busId = bus.id, let point = boardingPoint(for: bus) else { return }
+        guard let point = boardingPoint(for: bus) else { return }
+        wave(at: bus, uid: uid, label: point.name, point: point.coordinate)
+    }
+
+    // MARK: - "Please stop here"
+
+    // Tells the driver where this rider wants to get off (buses/{busId}/dropoffs/{uid}).
+    static let dropoffLifetime: TimeInterval = 90 * 60
+
+    func requestDropoff(at bus: Bus, uid: String, label: String, point: CLLocationCoordinate2D) {
+        guard let busId = bus.id else { return }
+        let now = Date()
+        let request = Wave(uid: uid, label: String(label.prefix(60)), lat: point.latitude, lng: point.longitude,
+                           createdAt: now, expiresAt: now.addingTimeInterval(Self.dropoffLifetime))
+        do {
+            try db.collection("buses").document(busId).collection("dropoffs").document(uid).setData(from: request)
+        } catch {
+            print("Could not send drop-off request: \(error)")
+        }
+    }
+
+    func cancelDropoff(busId: String, uid: String) {
+        db.collection("buses").document(busId).collection("dropoffs").document(uid).delete()
+    }
+
+    // Waves from a chosen point (best place to wait) instead of the usual boarding point.
+    func wave(at bus: Bus, uid: String, label: String, point: CLLocationCoordinate2D) {
+        guard let busId = bus.id else { return }
         if let old = wavingAtBusId, old != busId {
             db.collection("buses").document(old).collection("waves").document(uid).delete()
         }
         let now = Date()
-        let wave = Wave(uid: uid, label: point.name, lat: point.coordinate.latitude,
-                        lng: point.coordinate.longitude, createdAt: now,
-                        expiresAt: now.addingTimeInterval(Wave.lifetime))
+        let wave = Wave(uid: uid, label: String(label.prefix(60)), lat: point.latitude, lng: point.longitude,
+                        createdAt: now, expiresAt: now.addingTimeInterval(Wave.lifetime))
         do {
             try db.collection("buses").document(busId).collection("waves").document(uid).setData(from: wave)
             wavingAtBusId = busId
