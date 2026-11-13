@@ -212,20 +212,30 @@ class BusViewModel: ObservableObject {
     }
 
     // Shows this bus's ETA on the Lock Screen and in the Dynamic Island.
-    func follow(_ bus: Bus) {
+    // `remember`: false when it starts by itself on selecting a bus, so smart
+    // suggestions only learn from buses the rider really cared about.
+    func follow(_ bus: Bus, remember rememberIt: Bool = true) {
         guard let point = boardingPoint(for: bus) else { return }
         let info = bus.id.flatMap { etaInfo[$0] }
         LiveActivityManager.shared.start(bus: bus, stopName: point.name,
                                          etaMinutes: info?.minutes, distanceKm: info?.kilometres,
                                          progress: tripProgress(for: bus) ?? .empty)
         refreshETA(for: bus, force: true)
-        remember(.followed, bus: bus)
+        if rememberIt {
+            remember(.followed, bus: bus)
+        }
     }
 
-    // Update: anyone allowed on the bus can report how crowded it is.
-    func report(_ crowd: CrowdLevel, for bus: Bus) {
+    // Update: a rider the app found on board marks the bus overcrowded. Their own
+    // position goes with it, and the rules check it is next to the bus.
+    func reportCrowded(_ bus: Bus, from rider: CLLocationCoordinate2D) {
         guard let id = bus.id else { return }
-        db.collection("buses").document(id).updateData(["crowd": crowd.rawValue])
+        db.collection("buses").document(id).updateData([
+            "crowd": CrowdLevel.full.rawValue,
+            "crowdAt": FieldValue.serverTimestamp(),
+            "reportLat": rider.latitude,
+            "reportLng": rider.longitude
+        ])
     }
 
     func refreshETA(for bus: Bus, force: Bool = false) {
@@ -252,7 +262,7 @@ class BusViewModel: ObservableObject {
             // Share it with the home screen widget too.
             WidgetSync.saveLive(LiveTripSnapshot(busNumber: bus.number, stopName: point.name,
                                                  etaMinutes: info.minutes, distanceKm: info.kilometres,
-                                                 crowd: bus.crowd.rawValue, progress: progress,
+                                                 crowd: bus.isCrowded() ? "full" : "unknown", progress: progress,
                                                  busLat: bus.lat, busLng: bus.lng, updatedAt: Date()))
             self.checkArrivalAlert(bus: bus, minutes: info.minutes)
             self.checkBoarded(bus: bus, info: info, at: point.coordinate)

@@ -23,6 +23,9 @@ class LiveActivityManager: ObservableObject {
     private var activity: Activity<BusTripAttributes>?
     private var lastState: BusTripAttributes.ContentState?
 
+    // Starts by itself when a rider selects a bus on the map (Settings > Notifications).
+    static let autoKey = "autoLiveActivity"
+
     // Within this distance (in km) the bus counts as "at your stop".
     static let arrivalDistanceKm = 0.15
 
@@ -44,7 +47,7 @@ class LiveActivityManager: ObservableObject {
         let attributes = BusTripAttributes(busNumber: bus.number, stopName: stopName)
         let state = BusTripAttributes.ContentState(etaMinutes: etaMinutes ?? 0,
                                                    distanceKm: distanceKm ?? 0,
-                                                   crowd: bus.crowd.rawValue,
+                                                   crowd: bus.isCrowded() ? "full" : "unknown",
                                                    isStale: bus.isStale,
                                                    progress: progress)
         do {
@@ -64,7 +67,7 @@ class LiveActivityManager: ObservableObject {
         guard isFollowing(bus), activity != nil else { return }
         var state = BusTripAttributes.ContentState(etaMinutes: etaMinutes,
                                                    distanceKm: distanceKm,
-                                                   crowd: bus.crowd.rawValue,
+                                                   crowd: bus.isCrowded() ? "full" : "unknown",
                                                    isStale: bus.isStale,
                                                    progress: progress)
         if distanceKm <= Self.arrivalDistanceKm {
@@ -80,7 +83,7 @@ class LiveActivityManager: ObservableObject {
     // The bus moved or got a crowd report, but no new ETA yet.
     func refresh(bus: Bus) {
         guard isFollowing(bus), var state = lastState else { return }
-        state.crowd = bus.crowd.rawValue
+        state.crowd = bus.isCrowded() ? "full" : "unknown"
         state.isStale = bus.isStale
         guard state != lastState else { return }
         send(state)

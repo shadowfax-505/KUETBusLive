@@ -6,17 +6,19 @@
 //
 //  The sheet at the bottom of the map for the selected bus, like the trip sheet
 //  in a ride-hailing app:
-//  - a compact header: the route, the bus, and the ETA and distance on the right
+//  - a compact header: the route, the bus (with a small "Crowded" tag only when
+//    riders on board said so), and the ETA and distance on the right
 //  - a thin track from KUET to my stop, with the stops as dots
-//  - three small tiles: speed, crowd and the last update
-//  - a one-line banner only when the bus has gone quiet
+//  - one small grey line only when the bus has gone quiet
 //  - the best place to wait and to get off (PlanCard)
-//  - one main button, then a row of round buttons with captions
+//  - a row of round buttons with captions
+//
+//  Selecting a bus also shows it on the Lock Screen and in the Dynamic Island
+//  (LiveMapView starts the Live Activity), so there is no button for that.
 //
 //  It has two heights, like a sheet's detents: drag the handle (or tap it) to
-//  show less or more. Showing less keeps the header, the track and the main
-//  button, so more of the map is visible. TimelineView redraws it every second,
-//  so "updated" times count up live between GPS updates.
+//  show less or more. TimelineView redraws it every second, so "last seen"
+//  times count up live between GPS updates.
 //
 
 import SwiftUI
@@ -32,7 +34,6 @@ struct TripCard: View {
     let onCompare: () -> Void
     let onClose: () -> Void
     @EnvironmentObject var authViewModel: AuthViewModel
-    @ObservedObject private var liveActivity = LiveActivityManager.shared
 
     // Remembered between buses, like a sheet left at its smaller height.
     @AppStorage("tripCardExpanded") private var expanded = true
@@ -69,16 +70,11 @@ struct TripCard: View {
                     header
                     progress
                     if bus.isStale {
-                        staleBanner
+                        staleLine
                     }
                     // Kept at the smaller height too: where to wait and get off is the main answer.
                     PlanCard(bus: bus, planner: planner, busViewModel: busViewModel, canBoard: canBoard,
                              onWhereTo: onWhereTo, onCompare: onCompare)
-                    if expanded {
-                        statTiles
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    }
-                    primaryAction
                     if expanded {
                         secondaryActions
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -101,8 +97,7 @@ struct TripCard: View {
             .animation(.spring(response: 0.4, dampingFraction: 0.86), value: expanded)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Trip card for \(PlaceNames.display(bus.number))")
-            // A small tap on the phone when a crowd report lands, and when the card changes height.
-            .sensoryFeedback(.success, trigger: bus.crowd)
+            // A small tap on the phone when the card changes height.
             .sensoryFeedback(.selection, trigger: expanded)
         }
     }
@@ -160,7 +155,7 @@ struct TripCard: View {
 
     var header: some View {
         HStack(alignment: .center, spacing: 12) {
-            TopDownBus(crowd: MapTheme.crowd(bus.crowd))
+            TopDownBus(crowd: bus.isCrowded() ? MapTheme.terracotta : MapTheme.sage)
                 .frame(width: 14, height: 28)
                 .rotationEffect(.degrees(90))
                 .frame(width: 48, height: 48)
@@ -176,6 +171,9 @@ struct TripCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
+                if bus.isCrowded() {
+                    CrowdedTag()
+                }
             }
             .layoutPriority(1)
 
@@ -240,58 +238,23 @@ struct TripCard: View {
         }
     }
 
-    // MARK: Live facts
+    // MARK: Signal
 
-    var statTiles: some View {
-        let layout = bigText ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            StatTile(icon: "speedometer", value: bus.speedText, caption: String(localized: "Speed"))
-            StatTile(icon: "person.3.fill", value: bus.crowd.shortLabel, caption: String(localized: "Crowd"),
-                     iconColor: MapTheme.crowd(bus.crowd))
-                .symbolEffect(.bounce, value: bus.crowd)
-            StatTile(icon: bus.isStale ? "wifi.exclamationmark" : "dot.radiowaves.left.and.right",
-                     value: bus.lastUpdateText, caption: String(localized: "Updated"),
-                     iconColor: bus.isStale ? MapTheme.terracotta : MapTheme.sage)
-        }
-    }
-
-    // One short line, only when the bus has gone quiet.
-    var staleBanner: some View {
+    // One small grey line, only when the bus has gone quiet.
+    var staleLine: some View {
         Label {
             Text("Last seen \(bus.lastUpdateText) · position may be old")
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(MapTheme.primary)
         } icon: {
             Image(systemName: "wifi.exclamationmark")
-                .foregroundStyle(MapTheme.terracotta)
+                .foregroundStyle(.orange)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(MapTheme.terracotta.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.top, -6)
         .accessibilityElement(children: .combine)
     }
 
     // MARK: Actions
-
-    // Follow on Lock Screen: a Live Activity with the ETA, also in the Dynamic Island.
-    @ViewBuilder
-    var primaryAction: some View {
-        if boardingName != nil && liveActivity.isAvailable {
-            let following = liveActivity.isFollowing(bus)
-            Button {
-                if following {
-                    liveActivity.stop()
-                } else {
-                    busViewModel.follow(bus)
-                }
-            } label: {
-                Label(following ? "Stop following" : "Follow on Lock Screen",
-                      systemImage: following ? "lock.slash" : "lock.iphone")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-        }
-    }
 
     var secondaryActions: some View {
         let layout = bigText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
@@ -313,27 +276,6 @@ struct TripCard: View {
                 }
             }
 
-            // Tell other riders how full the bus is.
-            if canBoard {
-                Menu {
-                    Button {
-                        busViewModel.report(.seats, for: bus)
-                    } label: {
-                        Label("Seats available", systemImage: "chair")
-                    }
-                    Button {
-                        busViewModel.report(.full, for: bus)
-                    } label: {
-                        Label("Full", systemImage: "person.3.fill")
-                    }
-                } label: {
-                    RoundActionLabel(icon: "person.3", caption: String(localized: "Report crowd"))
-                }
-                .buttonStyle(.plain)
-                .frame(maxWidth: .infinity)
-                .accessibilityLabel("Report crowd")
-            }
-
             RoundAction(icon: "info", caption: String(localized: "Details"), action: onDetails)
 
             RoundAction(icon: "location.north.line.fill", caption: String(localized: "Recenter"),
@@ -344,33 +286,16 @@ struct TripCard: View {
     }
 }
 
-// A small tile: icon on top, the value, and a grey caption.
-struct StatTile: View {
-    let icon: String
-    let value: String
-    let caption: String
-    var iconColor: Color = MapTheme.primary
-
+// A small muted "Crowded" tag, shown only while a rider on board says so.
+struct CrowdedTag: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: icon)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(iconColor)
-                .frame(height: 18)
-            Text(value)
-                .font(.subheadline.weight(.semibold).monospacedDigit())
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(caption)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(MapTheme.raised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(caption): \(value)")
+        Label("Crowded", systemImage: "person.3.fill")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(MapTheme.terracotta)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(MapTheme.terracotta.opacity(0.12), in: Capsule())
+            .accessibilityLabel("Crowded")
     }
 }
 

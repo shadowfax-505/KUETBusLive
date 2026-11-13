@@ -289,6 +289,7 @@ struct NotificationSettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @AppStorage("arrivalAlertOn") private var arrivalAlertOn = false
     @AppStorage(AnnouncementViewModel.showNewsKey) private var showNews = true
+    @AppStorage(LiveActivityManager.autoKey) private var autoLiveActivity = true
 
     var isRider: Bool {
         authViewModel.profile?.role == .student || authViewModel.profile?.role == .teacher
@@ -300,6 +301,10 @@ struct NotificationSettingsView: View {
                 Section(header: Text("Arrival alerts"),
                         footer: Text("A notification when the bus is this many minutes from your stop.")) {
                     ArrivalAlertToggle(isOn: $arrivalAlertOn)
+                }
+                Section(footer: Text("The bus you pick on the map shows on the Lock Screen and in the Dynamic Island until it arrives, the trip ends or you close it.")) {
+                    Toggle("Show on Lock Screen automatically", isOn: $autoLiveActivity)
+                        .disabled(!LiveActivityManager.shared.isAvailable)
                 }
             }
             Section(header: Text("News"),

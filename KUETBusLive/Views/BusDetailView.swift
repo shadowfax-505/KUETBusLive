@@ -34,7 +34,9 @@ struct BusDetailView: View {
                         }
                         LabeledContent("Route", value: PlaceNames.display(bus.routeName))
                         LabeledContent("Last update", value: bus.lastUpdateText)
-                        LabeledContent("Crowd", value: bus.crowd.label)
+                        if bus.isCrowded() {
+                            LabeledContent("Crowd", value: String(localized: "Crowded"))
+                        }
                     }
 
                     Section(header: Text("Arrival")) {
@@ -49,25 +51,7 @@ struct BusDetailView: View {
                         }
                     }
 
-                    if canBoard(bus) {
-                    Section(header: Text("How crowded is it?")) {
-                        HStack {
-                            Button("Seats available") {
-                                busViewModel.report(.seats, for: bus)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.green)
-
-                            Spacer()
-
-                            Button("Full") {
-                                busViewModel.report(.full, for: bus)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.red)
-                        }
-                    }
-                    } else {
+                    if !canBoard(bus) {
                         Section {
                             Label("Students can't ride a \(bus.allocation.title.lowercased()).",
                                   systemImage: "exclamationmark.triangle")
