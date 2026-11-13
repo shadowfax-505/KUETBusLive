@@ -652,6 +652,16 @@
         }
       }
     },
+    "Back": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পেছনে"
+          }
+        }
+      }
+    },
     "Bangla name (optional)": {
       "localizations": {
         "bn": {
@@ -2842,6 +2852,16 @@
         }
       }
     },
+    "Recenter map": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপ মাঝখানে আনুন"
+          }
+        }
+      }
+    },
     "Regular driver": {
       "localizations": {
         "bn": {
@@ -3398,6 +3418,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ট্রিপ শুরু করুন"
+          }
+        }
+      }
+    },
+    "Start: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শুরু: %@"
           }
         }
       }
@@ -4568,6 +4598,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আগে আপনার চলমান ট্রিপ শেষ করা হবে।"
+          }
+        }
+      }
+    },
+    "Your stop: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার স্টপ: %@"
           }
         }
       }

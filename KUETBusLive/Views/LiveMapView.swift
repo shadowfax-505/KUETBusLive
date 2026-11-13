@@ -71,54 +71,85 @@ struct LiveMapView: View {
                     UserAnnotation()
 
                     if let bus = selectedBus {
-                        // Whole route: a thin ink line under everything.
+                        // Whole route: the same line, faded, under everything.
                         if let path = busViewModel.routePaths[bus.routeId], !path.isEmpty {
                             MapPolyline(coordinates: path)
                                 .stroke(MapTheme.route,
-                                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                                        style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
                         }
-                        // The road from the bus to my stop in brass, with a soft glow:
-                        // a wide faint line under a narrow bright one.
+                        // The road from the bus to my stop: one solid line, black (white in dark mode).
                         let toMyStop = busViewModel.remainingPath(for: bus)
                         if !toMyStop.isEmpty {
                             MapPolyline(coordinates: toMyStop)
-                                .stroke(MapTheme.brassGlow,
-                                        style: StrokeStyle(lineWidth: 14, lineCap: .round, lineJoin: .round))
-                            MapPolyline(coordinates: toMyStop)
-                                .stroke(MapTheme.routeGradient,
-                                        style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                                .stroke(MapTheme.routeLine,
+                                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
                         }
-                        // Every stop on the route: an ivory dot with an ink ring.
+                        // Every stop on the route: a small dot with a ring. The first stop,
+                        // where the route starts, is a square.
                         if let stops = busViewModel.routeStops[bus.routeId] {
-                            ForEach(stops, id: \.self) { stop in
+                            ForEach(Array(stops.enumerated()), id: \.element) { index, stop in
                                 Annotation(stop.displayName, coordinate: stop.coordinate) {
-                                    Circle()
-                                        .fill(MapTheme.stopFill)
-                                        .stroke(MapTheme.primary, lineWidth: 2.5)
-                                        .frame(width: 11, height: 11)
-                                        .shadow(color: .black.opacity(0.2), radius: 1.5, y: 1)
-                                        .accessibilityLabel("Stop: \(stop.displayName)")
+                                    if index == 0 {
+                                        Rectangle()
+                                            .fill(MapTheme.primary)
+                                            .overlay(Rectangle().fill(MapTheme.surface).padding(4))
+                                            .frame(width: 14, height: 14)
+                                            .shadow(color: .black.opacity(0.2), radius: 1.5, y: 1)
+                                            .accessibilityLabel("Start: \(stop.displayName)")
+                                    } else {
+                                        Circle()
+                                            .fill(MapTheme.stopFill)
+                                            .stroke(MapTheme.primary, lineWidth: 2)
+                                            .frame(width: 9, height: 9)
+                                            .accessibilityLabel("Stop: \(stop.displayName)")
+                                    }
                                 }
+                                .annotationTitles(.hidden)
                             }
+                        }
+                        // My stop: a ring, with a pill showing how long until the bus gets there.
+                        if let point = busViewModel.boardingPoint(for: bus) {
+                            Annotation(PlaceNames.display(point.name), coordinate: point.coordinate, anchor: .center) {
+                                Circle()
+                                    .strokeBorder(MapTheme.primary, lineWidth: 4)
+                                    .background(Circle().fill(MapTheme.surface))
+                                    .frame(width: 18, height: 18)
+                                    .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+                                    // The ring sits on the stop; the pill hangs off to its right.
+                                    .overlay(alignment: .leading) {
+                                        if let minutes = bus.id.flatMap({ busViewModel.etaInfo[$0]?.minutes }) {
+                                            Text("\(minutes) min")
+                                                .font(.subheadline.weight(.semibold).monospacedDigit())
+                                                .foregroundStyle(MapTheme.primary)
+                                                .contentTransition(.numericText())
+                                                .mapPill()
+                                                .fixedSize()
+                                                .offset(x: 26)
+                                        }
+                                    }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Your stop: \(PlaceNames.display(point.name))")
+                            }
+                            .annotationTitles(.hidden)
                         }
                     }
 
                     if let stop = authViewModel.profile?.favoriteStop {
                         Marker(stop.displayName, systemImage: "star.fill", coordinate: stop.coordinate)
-                            .tint(.orange)
+                            .tint(MapTheme.primary)
                     }
 
                     // My places, and where the selected bus would pick me up.
                     ForEach(placesViewModel.places) { place in
                         Marker(place.label, systemImage: place.kind.icon, coordinate: place.coordinate)
-                            .tint(place.id == boardingPlaceId ? .orange : .gray)
+                            .tint(place.id == boardingPlaceId ? MapTheme.primary : .gray)
                     }
                     if let bus = selectedBus, let place = busViewModel.boardingPlace,
                        let point = busViewModel.boardingPoint(for: bus)?.coordinate {
                         MapPolyline(coordinates: [place.coordinate, point])
-                            .stroke(.orange, style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
+                            .stroke(MapTheme.primary, style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
                         Annotation(String(localized: "Pick-up point"), coordinate: point) {
-                            Circle().fill(.orange).stroke(.white, lineWidth: 2).frame(width: 14, height: 14)
+                            Circle().fill(MapTheme.primary).stroke(MapTheme.surface, lineWidth: 2).frame(width: 14, height: 14)
                         }
                     }
 
@@ -149,16 +180,21 @@ struct LiveMapView: View {
                     }
                 }
                 // Muted colours with fewer shops and places, so the buses and the route stand out.
-                .mapStyle(.standard(elevation: .realistic, emphasis: .muted,
-                                    pointsOfInterest: .including([.university, .publicTransport, .hospital])))
+                .mapStyle(.standard(elevation: .flat, emphasis: .muted,
+                                    pointsOfInterest: .including([.university, .publicTransport])))
                 .mapControls {
-                    MapUserLocationButton()
                     MapCompass()
                     MapScaleView()
                 }
             }
             .overlay(alignment: .top) {
                 VStack(spacing: 8) {
+                    if let bus = selectedBus {
+                        SelectedPlaceBar(title: busViewModel.boardingPoint(for: bus).map { PlaceNames.display($0.name) }
+                                            ?? PlaceNames.display(bus.routeName),
+                                         onBack: { selectedBusId = nil })
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     if let announcement = bannerAnnouncement {
                         AnnouncementBanner(announcement: announcement,
                                            onOpen: { showAnnouncements = true },
@@ -179,9 +215,8 @@ struct LiveMapView: View {
                     }
                     if busViewModel.buses.isEmpty {
                         Text("No buses are running right now")
-                            .padding()
-                            .background(.thinMaterial)
-                            .cornerRadius(10)
+                            .font(.subheadline.weight(.medium))
+                            .mapPill()
                     }
                 }
                 .padding(.top, 8)
@@ -192,7 +227,15 @@ struct LiveMapView: View {
                     AnnouncementsView()
                 }
             }
-            .safeAreaInset(edge: .bottom) {
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(alignment: .trailing, spacing: 12) {
+                    Button(action: recenter) {
+                        Image(systemName: "location.fill")
+                    }
+                    .buttonStyle(MapRoundButtonStyle())
+                    .accessibilityLabel("Recenter map")
+                    .padding(.trailing, 16)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 if let bus = selectedBus {
                     TripCard(bus: bus,
                              busViewModel: busViewModel,
@@ -201,6 +244,8 @@ struct LiveMapView: View {
                              onClose: { selectedBusId = nil })
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+                }
+                .padding(.bottom, selectedBus == nil ? 12 : 0)
             }
             .animation(.spring(response: 0.45, dampingFraction: 0.85), value: selectedBusId)
             .navigationTitle("Live Buses")
@@ -326,6 +371,20 @@ struct LiveMapView: View {
         }
     }
 
+    // Back to the selected bus, or to me when no bus is selected.
+    func recenter() {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) {
+            if let bus = selectedBus {
+                followBus = true
+                camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
+            } else {
+                camera = .userLocation(fallback: .region(
+                    MKCoordinateRegion(center: LiveMapView.kuetCenter,
+                                       span: MKCoordinateSpan(latitudeDelta: 0.12, longitudeDelta: 0.12))))
+            }
+        }
+    }
+
     func select(_ bus: Bus) {
         selectedBusId = bus.id
         followBus = true
@@ -334,5 +393,40 @@ struct LiveMapView: View {
         withAnimation(.easeInOut(duration: 1)) {
             camera = .camera(MapCamera(centerCoordinate: bus.coordinate, distance: 4000))
         }
+    }
+}
+
+// The capsule at the top of the map while a bus is selected: a round back
+// button and the name of the stop or place the rider boards at.
+struct SelectedPlaceBar: View {
+    let title: String
+    let onBack: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+            }
+            .buttonStyle(MapRoundButtonStyle())
+            .accessibilityLabel("Back")
+
+            HStack(spacing: 8) {
+                Rectangle()
+                    .fill(MapTheme.primary)
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(MapTheme.primary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 44)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(MapTheme.surface, in: Capsule())
+            .shadow(color: .black.opacity(0.16), radius: 8, y: 3)
+            .accessibilityElement(children: .combine)
+        }
+        .padding(.horizontal, 16)
     }
 }
