@@ -71,10 +71,10 @@ struct TripCard: View {
                     if bus.isStale {
                         staleBanner
                     }
+                    // Kept at the smaller height too: where to wait and get off is the main answer.
+                    PlanCard(bus: bus, planner: planner, busViewModel: busViewModel, canBoard: canBoard,
+                             onWhereTo: onWhereTo, onCompare: onCompare)
                     if expanded {
-                        PlanCard(bus: bus, planner: planner, busViewModel: busViewModel, canBoard: canBoard,
-                                 onWhereTo: onWhereTo, onCompare: onCompare)
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                         statTiles
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
