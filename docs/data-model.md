@@ -191,16 +191,18 @@ Document IDs (built the same way on every platform; `bucket` is `{dayType}-{slot
 | `{routeId}_t{segment}_{bucket}` | the same stretch, any driver, this half-hour |
 | `{routeId}_t{segment}_all` | the same stretch, any time |
 | `{routeId}_d{stop}_all` | time standing at stop `stop` |
+| `{routeId}_late_{t or u}{scheduleId}` | how late that timetable trip leaves its first stop (seconds, never below 0) |
+| `{routeId}_calib_all` | prediction errors in spreads, to check the safety margin |
 
 | Field | Type | Notes |
 |---|---|---|
 | `routeId` | string | must match the start of the ID |
-| `kind` | string | `travel`, `travelBack` (the `u` documents) or `dwell` |
+| `kind` | string | `travel`, `travelBack` (the `u` documents), `dwell`, `late` or `calib` |
 | `index` | int | the segment or stop number |
-| `dayType`, `slot` | string, int | only on bucketed documents |
+| `dayType`, `slot` | string, int | only on bucketed documents; `dayType` is `sunToThu`, `saturday` or a special day's kind (`exam`, `holiday`, `event`) |
 | `driverId` | string | only on per-driver documents; must be the writer |
 | `n` | int | trips so far |
-| `mean`, `variance` | number | seconds and seconds²; weighted average with weight max(1/n, 0.1) |
+| `mean`, `variance` | number | seconds and seconds² (0–2 h); for `calib`, spreads (−20 to 20); weighted average with weight max(1/n, 0.1) |
 | `lastBusId` | string | the running bus that wrote last |
 | `updatedAt` | timestamp | |
 
@@ -220,6 +222,15 @@ Document IDs (built the same way on every platform; `bucket` is `{dayType}-{slot
 ### `driverStats/{uid}`: how often a driver stops for a wave
 
 `asks` (int, +1 per wave seen) and `stops` (int, +0 or +1 each time), plus `updatedAt`. Only that driver writes it.
+
+## `specialDays/{yyyy-MM-dd}`: exams, holidays and events
+
+| Field | Type | Notes |
+|---|---|---|
+| `kind` | string | `exam`, `holiday` or `event` |
+| `note` | string | up to 100 characters, may be empty |
+
+The admin writes and deletes; everyone signed in reads. Bus times on these days are learned separately (see catch-point.md).
 
 ## `driverAbsences/{id}`: "I can't drive"
 

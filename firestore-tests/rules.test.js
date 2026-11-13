@@ -627,6 +627,23 @@ test("only a driver adds to their own wave-stopping record", async () => {
   await assertSucceeds(getDoc(doc(db("student"), "driverStats", "driver")));
 });
 
+test("drivers add timetable lateness and prediction errors within sane bounds", async () => {
+  await assertSucceeds(setDoc(doc(db("driver"), "segmentStats", "r1_late_ts1"), stat({ kind: "late", mean: 240 })));
+  await assertSucceeds(setDoc(doc(db("driver"), "segmentStats", "r1_calib_all"), stat({ kind: "calib", mean: -1.4 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_calib_x"), stat({ kind: "calib", mean: -40 })));
+  await assertFails(setDoc(doc(db("driver"), "segmentStats", "r1_late_x"), stat({ kind: "late", mean: -60 })));
+  await assertFails(setDoc(doc(db("student"), "segmentStats", "r1_calib_all"), stat({ kind: "calib", mean: 0.5 })));
+});
+
+test("only the admin keeps the special-days calendar; everyone reads it", async () => {
+  await assertSucceeds(setDoc(doc(db("admin"), "specialDays", "2026-12-01"), { kind: "exam", note: "Term finals" }));
+  await assertSucceeds(getDoc(doc(db("student"), "specialDays", "2026-12-01")));
+  await assertFails(setDoc(doc(db("student"), "specialDays", "2026-12-02"), { kind: "holiday", note: "" }));
+  await assertFails(setDoc(doc(db("admin"), "specialDays", "next-monday"), { kind: "exam", note: "" }));
+  await assertFails(setDoc(doc(db("admin"), "specialDays", "2026-12-03"), { kind: "party", note: "" }));
+  await assertSucceeds(deleteDoc(doc(db("admin"), "specialDays", "2026-12-01")));
+});
+
 // ---------- Everything else ----------
 
 test("unknown collections are closed", async () => {

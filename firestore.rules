@@ -281,10 +281,14 @@ service cloud.firestore {
         && get(path).data.routeId == routeId;
     }
 
+    // Times are 0 to 2 hours. Calibration ("calib") values are prediction errors in
+    // spreads, -20 to 20.
     function isRunningStat(data) {
       return data.n is int && data.mean is number && data.variance is number
-        && data.mean >= 0 && data.mean <= 7200
-        && data.variance >= 0 && data.variance <= 51840000;
+        && (data.kind == 'calib'
+              ? (data.mean >= -20 && data.mean <= 20 && data.variance <= 400)
+              : (data.mean >= 0 && data.mean <= 7200 && data.variance <= 51840000))
+        && data.variance >= 0;
     }
 
     match /segmentStats/{id} {
@@ -301,7 +305,7 @@ service cloud.firestore {
 
       function validStat(data) {
         return data.keys().hasOnly(fields())
-          && data.kind in ['travel', 'travelBack', 'dwell']
+          && data.kind in ['travel', 'travelBack', 'dwell', 'late', 'calib']
           && data.index is int && data.index >= 0 && data.index < 100
           && id.split('_')[0] == data.routeId
           && ownDriverField(data)
@@ -375,6 +379,19 @@ service cloud.firestore {
         && request.resource.data.asks == resource.data.asks + 1
         && request.resource.data.stops >= resource.data.stops
         && request.resource.data.stops <= resource.data.stops + 1;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Special days: exams, holidays, events (the travel model learns them apart) ----------
+
+    match /specialDays/{day} {
+      allow read: if signedIn();
+      // The ID is the date, "2026-12-01".
+      allow create, update: if isAdmin()
+        && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['kind', 'note'])
+        && request.resource.data.kind in ['exam', 'holiday', 'event']
+        && request.resource.data.note is string && request.resource.data.note.size() <= 100;
       allow delete: if isAdmin();
     }
 
