@@ -182,6 +182,16 @@
         }
       }
     },
+    "%lld getting off ahead": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সামনে %lld জন নামবেন"
+          }
+        }
+      }
+    },
     "%lld h ago": {
       "localizations": {
         "bn": {

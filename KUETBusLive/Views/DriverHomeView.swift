@@ -95,6 +95,11 @@ struct DriverHomeView: View {
                             Marker(item.wave.label, systemImage: "hand.wave.fill", coordinate: item.wave.coordinate)
                                 .tint(.orange)
                         }
+                        // Riders who asked to get off further along.
+                        ForEach(driverViewModel.dropoffsAhead, id: \.wave.uid) { item in
+                            Marker(item.wave.label, systemImage: "flag.checkered", coordinate: item.wave.coordinate)
+                                .tint(.blue)
+                        }
                     }
                     .frame(height: 220)
                     .listRowInsets(EdgeInsets())
@@ -103,6 +108,10 @@ struct DriverHomeView: View {
                 // Big and simple, so it can be read at a glance while driving.
                 if driverViewModel.isOnTrip && !driverViewModel.waitingAhead.isEmpty {
                     WaitingAheadBanner(waiting: driverViewModel.waitingAhead)
+                        .listRowInsets(EdgeInsets())
+                }
+                if driverViewModel.isOnTrip && !driverViewModel.dropoffsAhead.isEmpty {
+                    WaitingAheadBanner(waiting: driverViewModel.dropoffsAhead, isDropoff: true)
                         .listRowInsets(EdgeInsets())
                 }
 
@@ -288,6 +297,8 @@ struct SchedulePicker: View {
 // "3 waiting ahead · next in 400 m", large enough to read from the driver's seat.
 struct WaitingAheadBanner: View {
     let waiting: [(wave: Wave, metres: Double)]
+    // Riders asking to get off instead of riders waiting to get on.
+    var isDropoff = false
 
     var nextText: String {
         guard let next = waiting.first else { return "" }
@@ -304,11 +315,16 @@ struct WaitingAheadBanner: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "hand.wave.fill")
+            Image(systemName: isDropoff ? "flag.checkered" : "hand.wave.fill")
                 .font(.system(size: 44))
             VStack(alignment: .leading) {
-                Text("\(waiting.count) waiting ahead")
+                Text(isDropoff ? "\(waiting.count) getting off ahead" : "\(waiting.count) waiting ahead")
                     .font(.largeTitle.bold())
+                if isDropoff, let next = waiting.first {
+                    Text(next.wave.label)
+                        .font(.title3.weight(.semibold))
+                        .lineLimit(1)
+                }
                 Text(nextText)
                     .font(.title2)
             }
@@ -316,7 +332,7 @@ struct WaitingAheadBanner: View {
         }
         .padding()
         .foregroundColor(.white)
-        .background(Color.orange)
+        .background(isDropoff ? Color.blue : Color.orange)
         .accessibilityElement(children: .combine)
     }
 }
