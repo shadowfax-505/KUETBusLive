@@ -32,6 +32,11 @@ struct LiveMapView: View {
     @EnvironmentObject var announcementsForAsk: AnnouncementViewModel
     @State private var showAsk = false
     @StateObject private var glider = BusGlider()
+    // Best place to wait and to get off, and where the rider is.
+    @StateObject private var planner = TripPlanner()
+    @StateObject private var rider = RiderLocation()
+    @State private var showWhereTo = false
+    @State private var showCompare = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static let kuetCenter = CLLocationCoordinate2D(latitude: 22.8700, longitude: 89.5250)
@@ -155,6 +160,29 @@ struct LiveMapView: View {
                         }
                     }
 
+                    // Best place to wait: the walk there, and a pin.
+                    if selectedBus != nil, let plan = planner.catchPlan {
+                        if planner.catchWalk.count >= 2 {
+                            MapPolyline(coordinates: planner.catchWalk)
+                                .stroke(MapTheme.primary, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [2, 6]))
+                        }
+                        Annotation(String(localized: "Wait here"), coordinate: plan.point.coordinate, anchor: .bottom) {
+                            PlanPin(icon: "figure.stand")
+                        }
+                    }
+                    // Best place to get off: a pin, and the walk to the destination.
+                    if selectedBus != nil, let plan = planner.dropPlan, let destination = planner.destination {
+                        if planner.dropWalk.count >= 2 {
+                            MapPolyline(coordinates: planner.dropWalk)
+                                .stroke(MapTheme.primary, style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [2, 6]))
+                        }
+                        Annotation(String(localized: "Get off here"), coordinate: plan.point.coordinate, anchor: .bottom) {
+                            PlanPin(icon: "flag.checkered")
+                        }
+                        Marker(destination.name, systemImage: "mappin", coordinate: destination.coordinate)
+                            .tint(MapTheme.primary)
+                    }
+
                     ForEach(busViewModel.buses) { bus in
                         Annotation(PlaceNames.display(bus.number),
                                    coordinate: glider.position(of: bus, at: timeline.date,
@@ -239,8 +267,11 @@ struct LiveMapView: View {
                         TripCard(bus: bus,
                                  busViewModel: busViewModel,
                                  followBus: $followBus,
+                                 planner: planner,
                                  onDetails: { showDetail = true },
                                  onRecenter: recenter,
+                                 onWhereTo: { showWhereTo = true },
+                                 onCompare: { compareBuses() },
                                  onClose: { selectedBusId = nil })
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else {
@@ -268,6 +299,17 @@ struct LiveMapView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showWhereTo) {
+                DestinationSearchView(places: placesViewModel.places) { destination in
+                    planner.destination = destination
+                    updatePlan()
+                }
+            }
+            .sheet(isPresented: $showCompare) {
+                if let destination = planner.destination {
+                    TripOptionsView(destination: destination, options: planner.options)
+                }
+            }
             .sheet(isPresented: $showAsk) {
                 AskView(makePrompt: askPrompt, fallback: timetableAnswer)
             }
@@ -289,8 +331,10 @@ struct LiveMapView: View {
                 placesViewModel.startListening(uid: uid)
             }
             locationPermission.requestWhenInUseAuthorization()
+            rider.start()
         }
         .onDisappear {
+            rider.stop()
             busViewModel.stopListening()
             placesViewModel.stopListening()
             scheduleViewModel.stopListening()
@@ -308,6 +352,15 @@ struct LiveMapView: View {
                 busViewModel.refreshETA(for: bus, force: true)
             }
         }
+        // The best places to wait and to get off move with the bus and the rider.
+        .onChange(of: selectedBus?.updatedAt) { updatePlan() }
+        .onChange(of: selectedBusId) {
+            planner.clear()
+            updatePlan()
+        }
+        .onReceive(rider.$location) { _ in updatePlan() }
+        .onReceive(StatsStore.shared.$routes) { _ in updatePlan() }
+        .onChange(of: busViewModel.routePaths.count) { updatePlan() }
         // Follow mode: keep the camera on the selected bus as it moves.
         // The camera moves at the same steady pace as the bus glides, so the bus stays centred.
         .onChange(of: selectedBus?.lat) {
@@ -393,6 +446,20 @@ struct LiveMapView: View {
         }
     }
 
+    func updatePlan() {
+        guard let bus = selectedBus else { return }
+        planner.update(bus: bus, busViewModel: busViewModel, rider: rider.location)
+    }
+
+    func compareBuses() {
+        guard let destination = planner.destination else { return }
+        planner.compare(destination: destination, buses: busViewModel.buses, busViewModel: busViewModel,
+                        routes: placesViewModel.routes, schedules: scheduleViewModel.schedules.filter {
+                            $0.audience.canBoard(authViewModel.profile?.role ?? .student)
+                        }, rider: rider.location)
+        showCompare = true
+    }
+
     func select(_ bus: Bus) {
         selectedBusId = bus.id
         followBus = true
@@ -436,5 +503,21 @@ struct SelectedPlaceBar: View {
             .accessibilityElement(children: .combine)
         }
         .padding(.horizontal, 16)
+    }
+}
+
+// A small black pin with a white symbol, for the best places to wait and to get off.
+struct PlanPin: View {
+    let icon: String
+
+    var body: some View {
+        Image(systemName: icon)
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(MapTheme.buttonText)
+            .frame(width: 32, height: 32)
+            .background(MapTheme.buttonFill, in: Circle())
+            .overlay(Circle().strokeBorder(MapTheme.surface, lineWidth: 2))
+            .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
+            .accessibilityHidden(true)
     }
 }

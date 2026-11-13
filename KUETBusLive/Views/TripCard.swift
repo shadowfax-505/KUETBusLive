@@ -10,6 +10,7 @@
 //  - a thin track from KUET to my stop, with the stops as dots
 //  - three small tiles: speed, crowd and the last update
 //  - a one-line banner only when the bus has gone quiet
+//  - the best place to wait and to get off (PlanCard)
 //  - one main button, then a row of round buttons with captions
 //
 //  It has two heights, like a sheet's detents: drag the handle (or tap it) to
@@ -24,8 +25,11 @@ struct TripCard: View {
     let bus: Bus
     @ObservedObject var busViewModel: BusViewModel
     @Binding var followBus: Bool
+    @ObservedObject var planner: TripPlanner
     let onDetails: () -> Void
     let onRecenter: () -> Void
+    let onWhereTo: () -> Void
+    let onCompare: () -> Void
     let onClose: () -> Void
     @EnvironmentObject var authViewModel: AuthViewModel
     @ObservedObject private var liveActivity = LiveActivityManager.shared
@@ -68,6 +72,9 @@ struct TripCard: View {
                         staleBanner
                     }
                     if expanded {
+                        PlanCard(bus: bus, planner: planner, busViewModel: busViewModel, canBoard: canBoard,
+                                 onWhereTo: onWhereTo, onCompare: onCompare)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                         statTiles
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }

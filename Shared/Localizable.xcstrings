@@ -252,6 +252,36 @@
         }
       }
     },
+    "%lld min walk": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট হাঁটা"
+          }
+        }
+      }
+    },
+    "%lld min walk · Leave in %lld min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld মিনিট হাঁটা · %2$lld মিনিট পরে বের হন"
+          }
+        }
+      }
+    },
+    "%lld min walk · Leave now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট হাঁটা · এখনই বের হন"
+          }
+        }
+      }
+    },
     "%lld min, %@ km": {
       "localizations": {
         "bn": {
@@ -682,6 +712,16 @@
         }
       }
     },
+    "Arrive ~%@ · %lld min walk": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছাবেন ~%1$@ · %2$lld মিনিট হাঁটা"
+          }
+        }
+      }
+    },
     "Arriving in": {
       "localizations": {
         "bn": {
@@ -698,6 +738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "জিজ্ঞেস করুন"
+          }
+        }
+      }
+    },
+    "Ask to stop here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে থামতে বলুন"
           }
         }
       }
@@ -882,6 +932,16 @@
         }
       }
     },
+    "Cancel stop": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "থামার অনুরোধ বাতিল"
+          }
+        }
+      }
+    },
     "Cancelled": {
       "localizations": {
         "bn": {
@@ -1002,6 +1062,16 @@
         }
       }
     },
+    "Clear destination": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গন্তব্য মুছুন"
+          }
+        }
+      }
+    },
     "Clear the cache?": {
       "localizations": {
         "bn": {
@@ -1038,6 +1108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ট্রিপ কার্ড বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Compare": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "তুলনা"
           }
         }
       }
@@ -1372,6 +1452,16 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সম্পন্ন"
+          }
+        }
+      }
+    },
     "Draft": {
       "localizations": {
         "bn": {
@@ -1612,6 +1702,26 @@
         }
       }
     },
+    "Fastest": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দ্রুততম"
+          }
+        }
+      }
+    },
+    "Find the best place to get off": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নামার সেরা জায়গা খুঁজুন"
+          }
+        }
+      }
+    },
     "Follow": {
       "localizations": {
         "bn": {
@@ -1662,6 +1772,16 @@
         }
       }
     },
+    "From %lld past trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আগের %lld যাত্রা থেকে"
+          }
+        }
+      }
+    },
     "From the timetable": {
       "localizations": {
         "bn": {
@@ -1688,6 +1808,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "ভরা"
+          }
+        }
+      }
+    },
+    "Get off at %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ নামুন"
+          }
+        }
+      }
+    },
+    "Get off here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে নামুন"
+          }
+        }
+      }
+    },
+    "Get off near %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর কাছে নামুন"
           }
         }
       }
@@ -1988,6 +2138,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "শেষ আপডেট %@"
+          }
+        }
+      }
+    },
+    "Leave at %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ বের হন"
+          }
+        }
+      }
+    },
+    "Leave in %lld min": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট পরে বের হন"
+          }
+        }
+      }
+    },
+    "Leave now": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনই বের হন"
           }
         }
       }
@@ -2498,6 +2678,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "আজ আপনার কোনো বাস নেই। পরিবহন দপ্তরে যোগাযোগ করুন।"
+          }
+        }
+      }
+    },
+    "No bus gets you there today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ কোনো বাস সেখানে নেবে না"
           }
         }
       }
@@ -3372,6 +3562,16 @@
         }
       }
     },
+    "Road-distance estimate": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রাস্তার দূরত্ব থেকে আনুমানিক"
+          }
+        }
+      }
+    },
     "Role": {
       "localizations": {
         "bn": {
@@ -3448,6 +3648,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "রুট ও স্টপ"
+          }
+        }
+      }
+    },
+    "Running buses you can reach, and trips later today, are compared.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যে চলমান বাস ধরতে পারবেন এবং আজকের পরের যাত্রাগুলো তুলনা করা হয়।"
           }
         }
       }
@@ -3548,6 +3758,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সময়সূচি"
+          }
+        }
+      }
+    },
+    "Search a place in Khulna": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খুলনায় কোনো জায়গা খুঁজুন"
           }
         }
       }
@@ -4088,6 +4308,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "পরিবহন দপ্তরকে জানান কী হয়েছিল"
+          }
+        }
+      }
+    },
+    "Tells the driver to stop at this point": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালককে এখানে থামতে বলে"
+          }
+        }
+      }
+    },
+    "Tells the driver you wait at this point": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চালককে জানায় আপনি এখানে অপেক্ষা করছেন"
           }
         }
       }
@@ -4892,6 +5132,46 @@
         }
       }
     },
+    "Wait at %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ অপেক্ষা করুন"
+          }
+        }
+      }
+    },
+    "Wait at the usual spot near %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর কাছে পরিচিত জায়গায় অপেক্ষা করুন"
+          }
+        }
+      }
+    },
+    "Wait by the road near %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর কাছে রাস্তার পাশে অপেক্ষা করুন"
+          }
+        }
+      }
+    },
+    "Wait here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে অপেক্ষা করুন"
+          }
+        }
+      }
+    },
     "Waiting at %@ · Cancel": {
       "localizations": {
         "bn": {
@@ -4932,6 +5212,26 @@
         }
       }
     },
+    "Wave here": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখানে হাত তুলুন"
+          }
+        }
+      }
+    },
+    "Waving": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "হাত তোলা হয়েছে"
+          }
+        }
+      }
+    },
     "We sent a link to %@. Open it, then come back and tap the button below.": {
       "localizations": {
         "bn": {
@@ -4958,6 +5258,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "কখন"
+          }
+        }
+      }
+    },
+    "Where to?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোথায় যাবেন?"
           }
         }
       }
