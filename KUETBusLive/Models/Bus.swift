@@ -65,6 +65,11 @@ struct Bus: Identifiable, Codable {
     var fleetBusId: String?   // which fleet bus is driving this trip, e.g. "normal-2"
     var heading: Double?   // degrees from north, from the driver's GPS
     var speed: Double?     // metres per second
+    // The last "overcrowded" report, from a rider the app found on board, and where
+    // that rider was (the rules check it is near the bus).
+    var crowdAt: Date?
+    var reportLat: Double?
+    var reportLng: Double?
 
     // Older trips saved before allocation existed count as student buses.
     var allocation: BusAudience {
@@ -78,6 +83,15 @@ struct Bus: Identifiable, Codable {
     var speedText: String {
         guard let speed = speed, speed >= 0 else { return "--" }
         return String(localized: "\(Int(speed * 3.6)) km/h")
+    }
+
+    // A crowd report fades after ten minutes: people get off.
+    static let crowdLifetime: TimeInterval = 10 * 60
+
+    // Overcrowded, reported by a rider on board in the last ten minutes.
+    func isCrowded(at date: Date = Date()) -> Bool {
+        guard crowd == .full, let crowdAt else { return false }
+        return date.timeIntervalSince(crowdAt) < Self.crowdLifetime
     }
 
     // No position for a minute usually means the driver lost signal.
