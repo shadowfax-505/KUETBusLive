@@ -149,7 +149,7 @@ Exists only while a trip runs. The ID is `bus-<fleetBusId>`, so a fleet bus can 
 | `driverId` | string | |
 | `fleetBusId` | string | |
 | `scheduleId` | string | |
-| `audience` | string | |
+| `audience` | string | `student` or `teacher`, required |
 | `lat`, `lng` | number | |
 | `heading` | number, optional | degrees from north |
 | `speed` | number, optional | metres per second |
@@ -159,6 +159,8 @@ Exists only while a trip runs. The ID is `bus-<fleetBusId>`, so a fleet bus can 
 | `reportLat`, `reportLng` | number, optional | where the reporting rider was; must be within 0.001° of the bus |
 
 Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip, but a move changes only `lat`, `lng`, `heading`, `speed` and `updatedAt`; changing the route, trip or audience means starting the trip again, which is checked like a new trip. Riders allowed on the bus may only report it overcrowded: `crowd` = `full`, `crowdAt` = the server time, and `reportLat`/`reportLng` within 0.001° (about 100 m) of the bus. The app only offers this when it finds the rider on board (within 30 m of the moving bus for a minute). The driver or the admin deletes it (end of trip).
+
+Who reads it: the admin, approved active drivers, the bus's own driver, and approved riders allowed on it. Students see only student buses, so a student's app must query `buses` with `audience == "student"`; an unfiltered query is refused. Teachers see every bus. Unapproved or deactivated accounts see no buses.
 
 ### `buses/{busId}/waves/{uid}`: "I'm waiting here"
 

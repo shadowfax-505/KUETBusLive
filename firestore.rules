@@ -175,11 +175,18 @@ service cloud.firestore {
       function isValidBus(bus) {
         return bus.keys().hasOnly(busFields())
           && bus.driverId == request.auth.uid
+          && bus.audience in ['student', 'teacher']
           && bus.lat is number && bus.lng is number
           && isCrowdLevel(bus.crowd);
       }
 
-      allow read: if signedIn();
+      // Live buses are seen only by approved staff and by approved riders allowed on them:
+      // students see student buses (their app asks only for audience == 'student'),
+      // teachers see every bus. Unapproved or deactivated accounts see none. A driver
+      // always sees their own bus, so they can end a trip after being deactivated.
+      allow read: if isAdmin() || isApprovedDriver()
+        || (signedIn() && resource.data.driverId == request.auth.uid)
+        || (isApprovedRider() && (me().role == 'teacher' || resource.data.audience == 'student'));
 
       // An approved driver starts a trip, as themselves, only on a fleet bus trip
       // they drive. The document ID is "bus-" + the fleet bus, so two drivers can

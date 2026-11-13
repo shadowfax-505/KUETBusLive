@@ -87,6 +87,42 @@ test("signed-out people can read nothing", async () => {
   await assertFails(getDoc(doc(db(), "buses", "student-bus")));
 });
 
+// ---------- Who sees live buses ----------
+
+test("students see only student buses, and must ask only for those", async () => {
+  await assertSucceeds(getDoc(doc(db("student"), "buses", "student-bus")));
+  await assertFails(getDoc(doc(db("student"), "buses", "teacher-bus")));
+  await assertSucceeds(getDocs(query(collection(db("student"), "buses"), where("audience", "==", "student"))));
+  await assertFails(getDocs(collection(db("student"), "buses")));
+});
+
+test("teachers, drivers and the admin see every bus", async () => {
+  await assertSucceeds(getDocs(collection(db("teacher"), "buses")));
+  await assertSucceeds(getDocs(collection(db("driver"), "buses")));
+  await assertSucceeds(getDocs(collection(db("admin"), "buses")));
+});
+
+test("unapproved accounts see no buses", async () => {
+  await assertFails(getDoc(doc(db("newTeacher"), "buses", "teacher-bus")));
+  await assertFails(getDoc(doc(db("newTeacher"), "buses", "student-bus")));
+  await assertFails(getDocs(collection(db("newDriver"), "buses")));
+  await assertFails(getDoc(doc(db("stranger"), "buses", "student-bus")));
+});
+
+test("a driver can still read their own bus after being deactivated", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "users", "driver"), { active: false });
+  });
+  await assertSucceeds(getDoc(doc(db("driver"), "buses", "student-bus")));
+  await assertSucceeds(getDocs(query(collection(db("driver"), "buses"), where("driverId", "==", "driver"))));
+});
+
+test("a trip must say who may ride it", async () => {
+  const { audience, ...noAudience } = bus("driver");
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), noAudience));
+  await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { audience: "everyone" })));
+});
+
 test("you read your own profile, not someone else's", async () => {
   await assertSucceeds(getDoc(doc(db("student"), "users", "student")));
   await assertFails(getDoc(doc(db("student"), "users", "teacher")));

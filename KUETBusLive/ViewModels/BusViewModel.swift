@@ -55,7 +55,12 @@ class BusViewModel: ObservableObject {
     // Read: real-time updates whenever a driver moves.
     func startListening() {
         guard listener == nil else { return }
-        listener = db.collection("buses").addSnapshotListener { snapshot, error in
+        // Students may only read student buses (the rules check it), so they ask only for those.
+        var query: Query = db.collection("buses")
+        if viewerRole == .student {
+            query = query.whereField("audience", isEqualTo: BusAudience.student.rawValue)
+        }
+        listener = query.addSnapshotListener { snapshot, error in
             if let error = error {
                 print("Error getting buses: \(error)")
                 return
