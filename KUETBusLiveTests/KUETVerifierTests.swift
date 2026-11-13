@@ -120,19 +120,19 @@ final class KUETVerifierTests: XCTestCase {
         #endif
     }
 
-    // MARK: - Demo accounts skip the email link (every build)
+    // MARK: - Who skips the email link
 
-    func testDemoAccountsSkipTheEmailLinkInEveryBuild() {
-        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .student, email: "Student2@Test.com"))
-        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .teacher, email: "teacher@test.com"))
-        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .student, email: "appreview.student@kuetbuslive.app"))
+    func testReleaseBuildsMakeTestComAccountsVerify() {
+        #if !DEBUG
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "student2@test.com"))
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .teacher, email: "teacher@test.com"))
+        #endif
     }
 
-    func testOnlyTheDemoListSkipsTheEmailLink() {
+    func testLookalikeAddressesMustVerify() {
         XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "x@test.com.evil.com"))
         XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "x@nottest.com"))
-        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "2207001@stud.kuet.ac.bd"))
-        XCTAssertEqual(DemoAccounts.addresses, KUETVerifier.appReviewEmails)
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "someone@kuetbuslive.app"))
     }
 
     // MARK: - App Review accounts (every build)

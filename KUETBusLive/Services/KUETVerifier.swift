@@ -104,8 +104,10 @@ struct KUETVerifier {
         }
     }
 
-    // Demo accounts (DemoAccounts) never need the link, in any build.
+    // Students and teachers open the emailed link. Only the debug @test.com accounts and
+    // the two App Review accounts (no mailbox to open it in) skip it; release builds never
+    // skip it for @test.com.
     static func needsEmailVerification(role: UserRole, email: String) -> Bool {
-        (role == .student || role == .teacher) && !DemoAccounts.contains(email)
+        (role == .student || role == .teacher) && !isDemoEmail(email) && !isAppReviewEmail(email)
     }
 }

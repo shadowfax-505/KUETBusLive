@@ -50,7 +50,7 @@ The tightened `firestore.rules` is written and covered by 43 emulator tests (`fi
 
 **Still to do, after the viva:** follow [scripts/cleanup-test-data.md](../scripts/cleanup-test-data.md), then `firebase deploy --only firestore:rules`.
 
-**Must do before the final release:** remove the demo email bypass. Delete `KUETBusLive/Services/DemoAccounts.swift`, change `KUETVerifier.needsEmailVerification` back to skipping only the debug `@test.com` domain and the App Review addresses, and delete the two `DemoAccounts` tests in `KUETVerifierTests`. Until then, existing `@test.com` accounts skip the email link in every build.
+Done: the demo email bypass is removed. In release builds only the two App Review addresses skip the email link; `@test.com` accounts skip it in debug builds only.
 
 These features only work on the live project after the rules are deployed: Delete account, complaints, My places, "I'm waiting here", ride-history backup, bus assignment (fleet, driver absences, trip history), and the assigned-bus check when a driver starts a trip. Before deploying, an admin must also create the fleet and give each driver a bus in **Drivers & buses**, or no driver can start a trip.
 
