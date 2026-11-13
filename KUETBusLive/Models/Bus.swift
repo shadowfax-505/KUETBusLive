@@ -74,10 +74,22 @@ struct Bus: Identifiable, Codable {
     }
 
     var lastUpdateText: String {
-        let seconds = Int(Date().timeIntervalSince(updatedAt))
+        Bus.ageText(seconds: Int(Date().timeIntervalSince(updatedAt)))
+    }
+
+    // "12 s ago", "5 min ago", "2 h ago", "1 d ago": long gaps read in hours or
+    // days instead of "157 min ago".
+    static func ageText(seconds: Int) -> String {
+        let seconds = max(seconds, 0)
         if seconds < 60 {
-            return String(localized: "\(max(seconds, 0)) s ago")
+            return String(localized: "\(seconds) s ago")
         }
-        return String(localized: "\(seconds / 60) min ago")
+        if seconds < 3600 {
+            return String(localized: "\(seconds / 60) min ago")
+        }
+        if seconds < 86_400 {
+            return String(localized: "\(seconds / 3600) h ago")
+        }
+        return String(localized: "\(seconds / 86_400) d ago")
     }
 }

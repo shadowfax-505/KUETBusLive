@@ -172,6 +172,26 @@
         }
       }
     },
+    "%lld d ago": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld দিন আগে"
+          }
+        }
+      }
+    },
+    "%lld h ago": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ঘণ্টা আগে"
+          }
+        }
+      }
+    },
     "%lld km/h": {
       "localizations": {
         "bn": {
