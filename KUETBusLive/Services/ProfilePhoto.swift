@@ -71,7 +71,7 @@ final class ProfilePhotoStore: ObservableObject {
     }
 }
 
-// The round photo, or the person's initials on brass when there is none.
+// The round photo, or the person's initials on black (light grey in dark mode) when there is none.
 struct ProfileAvatar: View {
     let image: UIImage?
     let name: String
@@ -88,10 +88,10 @@ struct ProfileAvatar: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Circle().fill(MapTheme.accent.gradient)
+                Circle().fill(MapTheme.buttonFill)
                 Text(initials.isEmpty ? "?" : initials)
                     .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundStyle(MapTheme.buttonText)
             }
         }
         .frame(width: size, height: size)

@@ -69,7 +69,7 @@ struct TripProgressView: View {
                             .frame(width: 7, height: 7)
                             .offset(x: width * fraction - 3.5)
                     }
-                    // My stop: a filled brass dot at the end.
+                    // My stop: a filled dot at the end.
                     Circle()
                         .fill(tint)
                         .frame(width: 9, height: 9)

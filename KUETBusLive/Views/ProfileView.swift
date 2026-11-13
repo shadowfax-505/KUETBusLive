@@ -283,7 +283,7 @@ extension ProfileView {
                         .overlay(alignment: .bottomTrailing) {
                             Image(systemName: "camera.circle.fill")
                                 .symbolRenderingMode(.palette)
-                                .foregroundStyle(.white, MapTheme.accent)
+                                .foregroundStyle(MapTheme.buttonText, MapTheme.buttonFill)
                                 .font(.title3)
                         }
                 }
@@ -294,7 +294,7 @@ extension ProfileView {
                         .font(.title3.weight(.semibold))
                     Text(authViewModel.profile?.role.title ?? "")
                         .font(.subheadline)
-                        .foregroundColor(MapTheme.accent)
+                        .foregroundColor(.secondary)
                     Text(authViewModel.profile?.email ?? "")
                         .font(.footnote)
                         .foregroundColor(.secondary)

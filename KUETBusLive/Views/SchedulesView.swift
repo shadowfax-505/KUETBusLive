@@ -172,8 +172,8 @@ struct RouteChips: View {
                 .font(.subheadline.weight(isOn ? .semibold : .regular))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .foregroundColor(isOn ? .white : .primary)
-                .background(isOn ? AnyShapeStyle(MapTheme.accent) : AnyShapeStyle(.thinMaterial), in: Capsule())
+                .foregroundStyle(isOn ? MapTheme.buttonText : MapTheme.primary)
+                .background(isOn ? AnyShapeStyle(MapTheme.buttonFill) : AnyShapeStyle(.thinMaterial), in: Capsule())
                 .overlay(Capsule().stroke(.primary.opacity(isOn ? 0 : 0.1)))
         }
         .buttonStyle(.plain)

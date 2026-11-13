@@ -699,11 +699,11 @@ A **WidgetKit** extension (`KUETBusWidget`) shows the next bus without opening t
 
 | | Dark | Light |
 | --- | --- | --- |
-| Background | ink navy gradient `#0B1622` to `#13263A` | warm ivory `#F6F1E7` to `#EFE7D8` |
-| Text | ivory `#F3EEE4` (60% for small text) | ink `#14202C` (55% for small text) |
-| Accent (ring, track, bus) | brass `#C8A45D` | deeper brass `#A8823A` |
+| Background | `#1C1C1E` | white to `#F2F2F7` |
+| Text | white (60% for small text) | near-black `#111111` (55% for small text) |
+| Ring, track, bus | white | near-black `#111111` |
 
-Crowd and signal use muted colours instead of traffic-light ones: sage for seats free and terracotta for full or no signal, with amber kept in the theme for a "filling up" level. Bus names and big numbers are set in the serif New York face with even-width digits, and the small labels ("ARRIVING IN", "NEXT BUS") are uppercase with wide letter spacing. The large widget's map is a muted, mostly grey snapshot with the route drawn in brass, fading into the background. The accent parts are marked `widgetAccentable()`, so they take the tint colour on a tinted home screen. The Live Activity always uses the ink background with ivory text and brass, and the Dynamic Island keylines are brass.
+Everything is black and white, like the live map. Colour is kept for status only: green for seats free, red for full or no signal, with amber kept in the theme for a "filling up" level. Bus names and big numbers are set in the serif New York face with even-width digits, and the small labels ("ARRIVING IN", "NEXT BUS") are uppercase with wide letter spacing. The large widget's map is a muted, mostly grey snapshot with the route drawn as one solid line (black, or white on the dark map), a square at the first stop and a ring at my stop. The accent parts are marked `widgetAccentable()`, so they take the tint colour on a tinted home screen. The Live Activity always uses a near-black background with white text, and the Dynamic Island keylines are white.
 
 The widget is a separate small program, so it can't read the app's memory or Firestore. The app and the widget share data through an **App Group**: a `UserDefaults` that both can open (`group.KUETBusLive`).
 
@@ -855,7 +855,7 @@ flowchart LR
   <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla with the language note" width="30%">
 </p>
 
-**Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widgets switch between ink navy and warm ivory, the Live Activity stays ink in both modes, and the large widget's map picture has a dark version.
+**Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widgets switch between white and `#1C1C1E`, the Live Activity stays near-black in both modes, and the large widget's map picture has a dark version.
 
 **VoiceOver.** Bus markers read as "Normal-1 · Rupsha, Student bus, Seats available", the passcode dots read "2 of 4 digits entered", the delete key and every icon-only button have names, and the progress track reads "45 percent of the way from KUET to Shibbari More".
 

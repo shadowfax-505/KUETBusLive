@@ -5,10 +5,9 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  The colours and type of the widgets and the Live Activity, in one place.
-//  Dark: deep ink navy with ivory text and a brushed brass accent.
-//  Light: warm ivory paper with ink text and a deeper brass.
-//  Status colours are muted on purpose (sage, amber, terracotta) so they
-//  sit quietly next to the brass instead of shouting like traffic lights.
+//  Black and white, like the app: white with near-black text in light mode,
+//  #1C1C1E with white text in dark mode. Colour is kept for status only
+//  (green for seats and on time, amber filling up, red full or late).
 //
 
 import SwiftUI
@@ -18,34 +17,31 @@ enum WidgetTheme {
 
     // MARK: Raw colours
 
-    static let inkNavy = UIColor(hex: 0x0B1622)
-    static let inkNavyLight = UIColor(hex: 0x13263A)
-    static let ivory = UIColor(hex: 0xF3EEE4)
-    static let paper = UIColor(hex: 0xF6F1E7)
-    static let paperDeep = UIColor(hex: 0xEFE7D8)
-    static let ink = UIColor(hex: 0x14202C)
-    static let brass = UIColor(hex: 0xC8A45D)
-    static let brassDeep = UIColor(hex: 0xA8823A)
+    static let nearBlack = UIColor(hex: 0x111111)
+    static let darkSurface = UIColor(hex: 0x1C1C1E)
+    static let darkRaised = UIColor(hex: 0x2C2C2E)
+    static let lightRaised = UIColor(hex: 0xF2F2F7)
 
     // MARK: Colours that follow light and dark mode
 
-    static let backgroundTop = Color(light: paper, dark: inkNavy)
-    static let backgroundBottom = Color(light: paperDeep, dark: inkNavyLight)
-    static let primary = Color(light: ink, dark: ivory)
-    static let secondary = Color(light: ink.withAlphaComponent(0.55), dark: ivory.withAlphaComponent(0.6))
-    static let accent = Color(light: brassDeep, dark: brass)
-    static let track = Color(light: ink.withAlphaComponent(0.10), dark: UIColor.white.withAlphaComponent(0.12))
-    static let hairline = Color(light: ink.withAlphaComponent(0.08), dark: UIColor.white.withAlphaComponent(0.08))
-    // Small rings for the stops along the track: ivory on ink, soft ink on paper.
-    static let stopRing = Color(light: ink.withAlphaComponent(0.45), dark: ivory)
-    // The bus symbol inside the brass circle.
-    static let busGlyph = Color(inkNavy)
+    static let backgroundTop = Color(light: .white, dark: darkSurface)
+    static let backgroundBottom = Color(light: lightRaised, dark: darkSurface)
+    static let primary = Color(light: nearBlack, dark: .white)
+    static let secondary = Color(light: nearBlack.withAlphaComponent(0.55), dark: UIColor.white.withAlphaComponent(0.6))
+    // Emphasis is black (white in dark mode): there is no separate accent colour.
+    static let accent = primary
+    static let track = Color(light: nearBlack.withAlphaComponent(0.10), dark: UIColor.white.withAlphaComponent(0.14))
+    static let hairline = Color(light: nearBlack.withAlphaComponent(0.08), dark: UIColor.white.withAlphaComponent(0.08))
+    // Small rings for the stops along the track.
+    static let stopRing = Color(light: nearBlack.withAlphaComponent(0.45), dark: .white)
+    // The bus symbol inside the accent circle: the opposite of the circle.
+    static let busGlyph = Color(light: .white, dark: nearBlack)
 
     // MARK: Status
 
-    static let sage = Color(UIColor(hex: 0x7FA88A))         // on time, seats free
-    static let amber = Color(UIColor(hex: 0xD9A55B))        // filling up
-    static let terracotta = Color(UIColor(hex: 0xC46A5A))   // full, late, no signal
+    static let sage = Color(UIColor(hex: 0x30A46C))         // on time, seats free
+    static let amber = Color(UIColor(hex: 0xF5A524))        // filling up
+    static let terracotta = Color(UIColor(hex: 0xE5484D))   // full, late, no signal
 
     static func crowdColor(_ crowd: String) -> Color {
         switch crowd {
@@ -61,14 +57,15 @@ enum WidgetTheme {
         LinearGradient(colors: [backgroundTop, backgroundBottom], startPoint: .top, endPoint: .bottom)
     }
 
-    // The Live Activity is always ink, whatever the phone's appearance.
+    // The Live Activity is always dark, whatever the phone's appearance.
     enum Night {
-        static let background = Color(inkNavy)
-        static let primary = Color(ivory)
-        static let secondary = Color(ivory.withAlphaComponent(0.6))
-        static let accent = Color(brass)
-        static let track = Color.white.opacity(0.12)
-        static let stopRing = Color(ivory)
+        static let background = Color(nearBlack)
+        static let primary = Color.white
+        static let secondary = Color.white.opacity(0.6)
+        static let accent = Color.white
+        static let track = Color.white.opacity(0.14)
+        static let stopRing = Color.white
+        static let busGlyph = Color(nearBlack)
     }
 }
 

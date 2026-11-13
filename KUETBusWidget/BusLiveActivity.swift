@@ -57,7 +57,7 @@ struct BusLiveActivity: Widget {
                                          thin: true,
                                          refined: true,
                                          stopColor: Night.stopRing,
-                                         busGlyphColor: WidgetTheme.busGlyph)
+                                         busGlyphColor: Night.busGlyph)
                         StatusLine(state: context.state)
                     }
                     .padding(.horizontal, 4)
@@ -173,7 +173,7 @@ struct LockScreenTripView: View {
                              trackColor: Night.track,
                              refined: true,
                              stopColor: Night.stopRing,
-                             busGlyphColor: WidgetTheme.busGlyph,
+                             busGlyphColor: Night.busGlyph,
                              labelColor: Night.secondary)
 
             StatusLine(state: state)
