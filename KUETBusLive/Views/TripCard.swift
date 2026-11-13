@@ -71,6 +71,14 @@ struct TripCard: View {
                     progress
                     if bus.isStale {
                         staleLine
+                    } else if let pace = bus.id.flatMap({ planner.entryFactor[$0] }), abs(pace - 1) >= 0.15 {
+                        // Today's pace against the usual, once it clearly differs.
+                        Label(pace > 1 ? String(localized: "Slower than usual today")
+                                       : String(localized: "Faster than usual today"),
+                              systemImage: pace > 1 ? "tortoise" : "hare")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, -6)
                     }
                     // Kept at the smaller height too: where to wait and get off is the main answer.
                     PlanCard(bus: bus, planner: planner, busViewModel: busViewModel, canBoard: canBoard,

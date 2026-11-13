@@ -131,13 +131,31 @@ final class TripPlanner: ObservableObject {
         }
     }
 
+    // Today's pace of each bus against the usual, from the positions seen while the
+    // map is open (LiveCorrection). Started again if the bus turns round.
+    private var corrections: [String: (reversed: Bool, correction: LiveCorrection)] = [:]
+
     private func timing(for bus: Bus, line: RouteLine, at date: Date = Date(), busViewModel: BusViewModel) -> RouteTiming {
         let stats = StatsStore.shared.routes[bus.routeId]?.profile ?? SegmentProfile(stats: [:])
         // The router's own speed for this bus, when it has answered, calibrates the fallback.
         let routerSpeed = bus.id.flatMap { busViewModel.etaInfo[$0] }.map { $0.distance / max($0.duration, 1) }
-        return RouteTiming(line: line, profile: stats, bucket: TimeBucket(date), driver: bus.driverId,
-                           routerSpeed: routerSpeed)
+        var timing = RouteTiming(line: line, profile: stats,
+                                 bucket: TimeBucket(date, special: SpecialDays.shared.kind(on: date)),
+                                 driver: bus.driverId, routerSpeed: routerSpeed)
+        if let busId = bus.id {
+            var entry = corrections[busId]
+            if entry == nil || entry?.reversed != line.reversed {
+                entry = (line.reversed, LiveCorrection())
+            }
+            entry?.correction.add(date: bus.updatedAt, along: line.along(bus.coordinate))
+            corrections[busId] = entry
+            timing.liveFactor = entry?.correction.factor(timing: timing) ?? 1
+        }
+        return timing
     }
+
+    // How much slower (above 1) or faster (below 1) than usual each bus is today.
+    @Published private(set) var entryFactor: [String: Double] = [:]
 
     // MARK: Updating
 
@@ -149,6 +167,9 @@ final class TripPlanner: ObservableObject {
         let stops = ordered(routeStops, line)
         let busAlong = line.along(bus.coordinate)
         let timing = timing(for: bus, line: line, busViewModel: busViewModel)
+        if let busId = bus.id {
+            entryFactor[busId] = timing.liveFactor
+        }
         let names = stops.map(\.displayName)
         let nameFor = stopName(stops, line: line)
         let spots = StatsStore.shared.routes[bus.routeId]?.spots ?? []
@@ -270,7 +291,14 @@ final class TripPlanner: ObservableObject {
             StatsStore.shared.load(route: routeId, driver: nil)
             for (time, line) in [(schedule.campusTime, forward), (schedule.spotTime, forward.flipped())] {
                 guard let departure = BusSchedule.minutes(from: time), departure > nowMinutes else { continue }
-                let startsIn = Double(departure - nowMinutes) * 60
+                // Timetable trips often leave late: add the usual delay learned from real trips,
+                // or what this phone has seen of this trip.
+                let profile = StatsStore.shared.routes[routeId]?.profile ?? SegmentProfile(stats: [:])
+                var late = schedule.id.map { profile.lateness(route: routeId, schedule: StatKey.letter(line.reversed) + $0) } ?? 0
+                if late == 0, let seen = RideHistory.shared.usualDelay(trip: schedule.title) {
+                    late = Double(max(seen, 0)) * 60
+                }
+                let startsIn = Double(departure - nowMinutes) * 60 + late
                 if let option = option(title: schedule.displayTitle + " · " + BusSchedule.display(time),
                                        routeId: routeId, driver: nil, line: line,
                                        stops: ordered(route.stops, line), busAlong: 0, startsIn: startsIn,
@@ -290,8 +318,14 @@ final class TripPlanner: ObservableObject {
         // Same calibration as the trip card, so both show the same times.
         let routerSpeed = routerBus.flatMap { $0.id }.flatMap { busViewModel.etaInfo[$0] }
             .map { $0.distance / max($0.duration, 1) }
-        let timing = RouteTiming(line: line, profile: stats, bucket: TimeBucket(now.addingTimeInterval(startsIn)),
+        let leaves = now.addingTimeInterval(startsIn)
+        var timing = RouteTiming(line: line, profile: stats,
+                                 bucket: TimeBucket(leaves, special: SpecialDays.shared.kind(on: leaves)),
                                  driver: driver, routerSpeed: routerSpeed)
+        // A running bus: today's pace so far, as on the trip card.
+        if let busId = routerBus?.id {
+            timing.liveFactor = entryFactor[busId] ?? 1
+        }
         let names = stops.map(\.displayName)
         let rate = driver.map { StatsStore.shared.waveRate(driver: $0) } ?? 0.5
         var catchPlan: CatchPlan?

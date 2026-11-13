@@ -345,6 +345,7 @@ struct LiveMapView: View {
             }
             locationPermission.requestWhenInUseAuthorization()
             rider.start()
+            SpecialDays.shared.startListening()
         }
         .onDisappear {
             rider.stop()

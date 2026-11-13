@@ -432,6 +432,26 @@
         }
       }
     },
+    "Add": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যোগ করুন"
+          }
+        }
+      }
+    },
+    "Add a day": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দিন যোগ করুন"
+          }
+        }
+      }
+    },
     "Add a place": {
       "localizations": {
         "bn": {
@@ -862,6 +882,16 @@
         }
       }
     },
+    "Bus times on these days are learned on their own. Until there are a few trips, an ordinary day's times are used.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই দিনগুলোর বাসের সময় আলাদাভাবে শেখা হয়। কয়েকটি যাত্রা হওয়া পর্যন্ত সাধারণ দিনের সময় ব্যবহার হয়।"
+          }
+        }
+      }
+    },
     "Bus, crowded": {
       "localizations": {
         "bn": {
@@ -1132,6 +1162,16 @@
         }
       }
     },
+    "Coming up": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সামনে"
+          }
+        }
+      }
+    },
     "Compare": {
       "localizations": {
         "bn": {
@@ -1358,6 +1398,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ডেটা ও স্টোরেজ"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "তারিখ"
           }
         }
       }
@@ -1722,12 +1772,42 @@
         }
       }
     },
+    "Event": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুষ্ঠান"
+          }
+        }
+      }
+    },
+    "Exams": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরীক্ষা"
+          }
+        }
+      }
+    },
     "Face ID, app passcode": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
             "value": "Face ID, অ্যাপ পাসকোড"
+          }
+        }
+      }
+    },
+    "Faster than usual today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ স্বাভাবিকের চেয়ে দ্রুত"
           }
         }
       }
@@ -1932,6 +2012,16 @@
         }
       }
     },
+    "Holiday": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ছুটি"
+          }
+        }
+      }
+    },
     "Home": {
       "localizations": {
         "bn": {
@@ -2118,6 +2208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ম্যাপ এই বাসের ওপর রাখুন"
+          }
+        }
+      }
+    },
+    "Kind": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ধরন"
           }
         }
       }
@@ -2922,6 +3022,16 @@
         }
       }
     },
+    "No special days": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো বিশেষ দিন নেই"
+          }
+        }
+      }
+    },
     "No stops yet": {
       "localizations": {
         "bn": {
@@ -3018,6 +3128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এখনো যাচাই হয়নি। আগে আপনার KUET ইমেইলের লিংকটা খুলুন।"
+          }
+        }
+      }
+    },
+    "Note (optional)": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নোট (ঐচ্ছিক)"
           }
         }
       }
@@ -4062,6 +4182,16 @@
         }
       }
     },
+    "Slower than usual today": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজ স্বাভাবিকের চেয়ে ধীরে"
+          }
+        }
+      }
+    },
     "Smart assistant": {
       "localizations": {
         "bn": {
@@ -4088,6 +4218,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "স্মার্ট পরামর্শ"
+          }
+        }
+      }
+    },
+    "Special days": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বিশেষ দিন"
           }
         }
       }

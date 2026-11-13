@@ -57,6 +57,11 @@ struct AdminTabView: View {
                         Label("News", systemImage: "megaphone")
                     }
                     NavigationLink {
+                        SpecialDaysView()
+                    } label: {
+                        Label("Special days", systemImage: "calendar.badge.exclamationmark")
+                    }
+                    NavigationLink {
                         ProfileView()
                     } label: {
                         Label("Profile", systemImage: "person.circle")
