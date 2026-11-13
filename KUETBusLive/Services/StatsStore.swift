@@ -109,15 +109,18 @@ final class StatsStore: ObservableObject {
     // MARK: Writing (driver, at the end of a trip)
 
     // Adds one finished trip. Calls `done` when every write has finished or failed.
+    // `late`: seconds this timetable trip left late. `errors`: how far the real
+    // arrivals fell from the prediction, in spreads (for the margin).
     func upload(_ observations: TripObservations, routeId: String, busId: String, driverId: String,
+                schedule: (id: String, late: Double)? = nil, errors: [Double] = [],
                 done: @escaping () -> Void) {
         let group = DispatchGroup()
         for stretch in observations.stretches {
-            let bucket = TimeBucket(stretch.startedAt)
+            let bucket = TimeBucket(stretch.startedAt, special: SpecialDays.shared.kind(on: stretch.startedAt))
             let base: [String: Any] = ["routeId": routeId, "kind": observations.reversed ? "travelBack" : "travel",
                                        "index": stretch.segment]
             var slotted = base
-            slotted["dayType"] = bucket.dayType.rawValue
+            slotted["dayType"] = bucket.special ?? bucket.dayType.rawValue
             slotted["slot"] = bucket.slot
             var mine = slotted
             mine["driverId"] = driverId
@@ -134,11 +137,32 @@ final class StatsStore: ObservableObject {
             add(stop.seconds, to: StatKey.dwell(route: routeId, stop: stop.stop),
                 fields: ["routeId": routeId, "kind": "dwell", "index": stop.stop], busId: busId, group: group)
         }
+        if let schedule {
+            add(schedule.late, to: StatKey.late(route: routeId, schedule: schedule.id),
+                fields: ["routeId": routeId, "kind": "late", "index": 0], busId: busId, group: group)
+        }
+        // Errors one after another: each is +1 on the same document.
+        group.enter()
+        addInTurn(errors[...], to: StatKey.calibration(route: routeId),
+                  fields: ["routeId": routeId, "kind": "calib", "index": 0], busId: busId) { group.leave() }
         // Waves one after another: each is +1 on the same driver record.
         let waves = observations.waves
         group.enter()
         recordWaves(waves[...], routeId: routeId, busId: busId, driverId: driverId) { group.leave() }
         group.notify(queue: .main, execute: done)
+    }
+
+    private func addInTurn(_ values: ArraySlice<Double>, to id: String, fields: [String: Any], busId: String,
+                           done: @escaping () -> Void) {
+        guard let value = values.first else {
+            done()
+            return
+        }
+        let group = DispatchGroup()
+        add(value, to: id, fields: fields, busId: busId, group: group)
+        group.notify(queue: .main) {
+            self.addInTurn(values.dropFirst(), to: id, fields: fields, busId: busId, done: done)
+        }
     }
 
     private func add(_ value: Double, to id: String, fields: [String: Any], busId: String, group: DispatchGroup) {

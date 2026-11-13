@@ -48,6 +48,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
 
     // This trip's own track and the waves seen on it, for the travel model.
     private var tripRoute: BusRoute?
+    private var tripSchedule: BusSchedule?
     private var tripDriverId: String?
     private var samples: [GPSSample] = []
     private var seenWaves: [String: SeenWave] = [:]
@@ -83,7 +84,11 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         bus.fleetBusId = fleetBusId
         pendingBus = bus
         tripRoute = route
+        tripSchedule = schedule
         tripDriverId = driverId
+        // The numbers as they are before this trip, to check this trip's predictions later.
+        StatsStore.shared.load(route: routeId, driver: driverId)
+        SpecialDays.shared.startListening()
         samples = []
         seenWaves = [:]
         recordTripStart(driverId: driverId, fleetBusId: fleetBusId, scheduleId: scheduleId, routeId: routeId)
@@ -358,6 +363,20 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         }
         let line = RouteLine(routeId: routeId, path: routePath, stops: route.stops.map { $0.coordinate })
         let observations = TripLearner.learn(samples: samples, line: line, waves: Array(seenWaves.values))
+        // What the model would have said when the bus left, against what really happened.
+        let started = observations.departedAt ?? Date()
+        let timing = RouteTiming(line: observations.reversed ? line.flipped() : line,
+                                 profile: StatsStore.shared.routes[routeId]?.profile ?? SegmentProfile(stats: [:]),
+                                 bucket: TimeBucket(started, special: SpecialDays.shared.kind(on: started)),
+                                 driver: driverId)
+        let errors = TripLearner.predictionErrors(observations, timing: timing)
+        // Trips from KUET follow the campus time; trips back follow the city spot's time.
+        var late: (id: String, late: Double)?
+        if let schedule = tripSchedule, let scheduleId = schedule.id,
+           let seconds = TripLearner.lateness(departedAt: observations.departedAt,
+                                              scheduled: observations.reversed ? schedule.spotTime : schedule.campusTime) {
+            late = (StatKey.letter(observations.reversed) + scheduleId, seconds)
+        }
         samples = []
         seenWaves = [:]
         var finished = false
@@ -367,6 +386,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             done()
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.uploadTimeout, execute: finish)
-        StatsStore.shared.upload(observations, routeId: routeId, busId: busId, driverId: driverId, done: finish)
+        StatsStore.shared.upload(observations, routeId: routeId, busId: busId, driverId: driverId,
+                                 schedule: late, errors: errors, done: finish)
     }
 }
