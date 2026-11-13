@@ -11,6 +11,7 @@
 #    firebase emulators:start --only auth,firestore
 #    python3 scripts/demo-bus.py seed     # a rider account and the Sonadanga route
 #    python3 scripts/demo-bus.py drive    # the bus drives the route, round and round
+#    python3 scripts/demo-bus.py drive crowded   # the same, reported overcrowded by a rider on board
 #
 #  Then run the app from Xcode with the environment variable USE_FIREBASE_EMULATORS=1
 #  and sign in as demo-rider@test.com / busride2026.
@@ -133,7 +134,7 @@ def point_along(path, distance):
     return b, bearing(a, b)
 
 
-def drive():
+def drive(crowded=False):
     path = road()
     total = sum(metres(a, b) for a, b in zip(path, path[1:]))
     print(f"Road path: {len(path)} points, {total / 1000:.1f} km. Driving at 25 km/h (Ctrl-C to stop).")
@@ -141,11 +142,15 @@ def drive():
     while True:
         position, heading = point_along(path, along)
         now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        put("buses/bus-normal-1", {"number": "Normal-1 · Sonadanga", "routeId": "r-sonadanga",
-                                   "routeName": "KUET to Sonadanga", "driverId": "driver-demo",
-                                   "lat": position[0], "lng": position[1], "updatedAt": "TS:" + now,
-                                   "crowd": "seats", "audience": "student", "fleetBusId": "normal-1",
-                                   "heading": heading, "speed": SPEED})
+        bus = {"number": "Normal-1 · Sonadanga", "routeId": "r-sonadanga",
+               "routeName": "KUET to Sonadanga", "driverId": "driver-demo",
+               "lat": position[0], "lng": position[1], "updatedAt": "TS:" + now,
+               "crowd": "unknown", "audience": "student", "fleetBusId": "normal-1",
+               "heading": heading, "speed": SPEED}
+        if crowded:
+            bus.update({"crowd": "full", "crowdAt": "TS:" + now,
+                        "reportLat": position[0], "reportLng": position[1]})
+        put("buses/bus-normal-1", bus)
         along += SPEED * STEP
         if along > total:
             along = 0.0   # back to KUET and round again
@@ -157,6 +162,6 @@ if __name__ == "__main__":
     if command == "seed":
         seed()
     elif command == "drive":
-        drive()
+        drive(crowded=len(sys.argv) > 2 and sys.argv[2] == "crowded")
     else:
-        print("Usage: demo-bus.py seed | drive")
+        print("Usage: demo-bus.py seed | drive [crowded]")
