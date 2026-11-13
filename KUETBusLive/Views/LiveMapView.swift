@@ -36,6 +36,7 @@ struct LiveMapView: View {
     @StateObject private var planner = TripPlanner()
     @StateObject private var rider = RiderLocation()
     @State private var showWhereTo = false
+    @AppStorage(LiveActivityManager.autoKey) private var autoLiveActivity = true
     @State private var showCompare = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -197,7 +198,9 @@ struct LiveMapView: View {
                                 }
                                 // VoiceOver: "Normal-1 · Rupsha, Student bus, Seats available"
                                 .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("\(PlaceNames.display(bus.number)), \(bus.allocation.title), \(bus.crowd.label)")
+                                .accessibilityLabel(bus.isCrowded()
+                                    ? "\(PlaceNames.display(bus.number)), \(bus.allocation.title), crowded"
+                                    : "\(PlaceNames.display(bus.number)), \(bus.allocation.title)")
                                 .accessibilityHint("Shows the trip card with the ETA")
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityAction {
@@ -245,6 +248,16 @@ struct LiveMapView: View {
                                      onFollow: { followUsual(usual) },
                                      onClose: { withAnimation { hideSuggestion = true } })
                             .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    // On a bus (the phone has been riding with it for a minute): offer the one
+                    // crowd report there is. It goes away once the bus is marked crowded.
+                    if let ridingId = planner.ridingBusId, let riding = busViewModel.bus(withId: ridingId),
+                       !riding.isCrowded(), riding.allocation.canBoard(authViewModel.profile?.role ?? .student),
+                       let me = rider.location {
+                        OnBoardPrompt(busName: PlaceNames.display(riding.number)) {
+                            busViewModel.reportCrowded(riding, from: me.coordinate)
+                        }
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     if busViewModel.buses.isEmpty {
                         Text("No buses are running right now")
@@ -354,11 +367,18 @@ struct LiveMapView: View {
         }
         // The best places to wait and to get off move with the bus and the rider.
         .onChange(of: selectedBus?.updatedAt) { updatePlan() }
-        .onChange(of: selectedBusId) {
+        .onChange(of: selectedBusId) { old, new in
             planner.clear()
             updatePlan()
+            // The Live Activity follows the selected bus, and ends when it is closed.
+            if new == nil, old != nil, let old, LiveActivityManager.shared.followedBusId == old {
+                LiveActivityManager.shared.stop()
+            }
         }
-        .onReceive(rider.$location) { _ in updatePlan() }
+        .onReceive(rider.$location) { location in
+            planner.trackRides(buses: busViewModel.buses, rider: location, busViewModel: busViewModel)
+            updatePlan()
+        }
         .onReceive(StatsStore.shared.$routes) { _ in updatePlan() }
         .onChange(of: busViewModel.routePaths.count) { updatePlan() }
         // Follow mode: keep the camera on the selected bus as it moves.
@@ -463,6 +483,10 @@ struct LiveMapView: View {
     func select(_ bus: Bus) {
         selectedBusId = bus.id
         followBus = true
+        if autoLiveActivity, busViewModel.boardingPoint(for: bus) != nil,
+           !LiveActivityManager.shared.isFollowing(bus) {
+            busViewModel.follow(bus, remember: false)
+        }
         busViewModel.loadRoute(for: bus)
         busViewModel.refreshETA(for: bus, force: true)
         withAnimation(.easeInOut(duration: 1)) {
@@ -519,5 +543,35 @@ struct PlanPin: View {
             .overlay(Circle().strokeBorder(MapTheme.surface, lineWidth: 2))
             .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
             .accessibilityHidden(true)
+    }
+}
+
+// "On Normal-1? Report overcrowded": one small pill, only while riding a bus.
+struct OnBoardPrompt: View {
+    let busName: String
+    let onReport: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "person.3.fill")
+                .foregroundStyle(MapTheme.terracotta)
+                .accessibilityHidden(true)
+            Text("On \(busName)?")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(MapTheme.primary)
+                .lineLimit(1)
+            Button("Report overcrowded", action: onReport)
+                .font(.subheadline.weight(.semibold))
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+                .tint(MapTheme.terracotta)
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 6)
+        .padding(.vertical, 6)
+        .background(MapTheme.surface, in: Capsule())
+        .shadow(color: .black.opacity(0.16), radius: 8, y: 3)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(named: Text("Report overcrowded"), onReport)
     }
 }

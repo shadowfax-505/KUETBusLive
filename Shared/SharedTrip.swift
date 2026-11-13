@@ -73,7 +73,7 @@ struct LiveTripSnapshot: Codable {
     var crowdText: String {
         switch crowd {
         case "seats": return String(localized: "Seats available")
-        case "full": return String(localized: "Full")
+        case "full": return String(localized: "Crowded")
         default: return String(localized: "No crowd report")
         }
     }

@@ -30,7 +30,7 @@ struct BusLiveActivity: Widget {
                     Image(systemName: "bus.fill")
                         .font(.title3)
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(Night.accent)
+                        .foregroundStyle(context.state.busTint)
                         .padding(.leading, 4)
                         .accessibilityHidden(true)
                 }
@@ -65,7 +65,8 @@ struct BusLiveActivity: Widget {
             } compactLeading: {
                 Image(systemName: "bus.fill")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Night.accent)
+                    .foregroundStyle(context.state.busTint)
+                    .accessibilityLabel(context.state.crowd == "full" ? "Bus, crowded" : "Bus")
             } compactTrailing: {
                 Text(context.state.etaText)
                     .font(.system(.footnote, design: .serif).weight(.semibold))
@@ -75,7 +76,7 @@ struct BusLiveActivity: Widget {
             } minimal: {
                 Image(systemName: "bus.fill")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Night.accent)
+                    .foregroundStyle(context.state.busTint)
             }
             .keylineTint(Night.accent)
         }
@@ -105,16 +106,18 @@ private struct MinutesText: View {
     }
 }
 
-// Crowd with a small status dot, and a warning when the bus stops sending GPS.
+// "Crowded" only while riders on board said so, and a warning when the bus stops sending GPS.
 private struct StatusLine: View {
     let state: BusTripAttributes.ContentState
 
     var body: some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(crowdColor)
-                .frame(width: 6, height: 6)
-            Text(state.crowdText)
+            if state.crowd == "full" {
+                Circle()
+                    .fill(crowdColor)
+                    .frame(width: 6, height: 6)
+                Text(state.crowdText)
+            }
             Spacer()
             if state.isStale {
                 Label("No signal", systemImage: "wifi.exclamationmark")
@@ -134,6 +137,13 @@ private struct StatusLine: View {
     }
 }
 
+extension BusTripAttributes.ContentState {
+    // The bus symbol takes a soft red tint while the bus is crowded.
+    var busTint: Color {
+        crowd == "full" ? WidgetTheme.terracotta.opacity(0.9) : WidgetTheme.Night.accent
+    }
+}
+
 struct LockScreenTripView: View {
     let attributes: BusTripAttributes
     let state: BusTripAttributes.ContentState
@@ -146,7 +156,7 @@ struct LockScreenTripView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "bus.fill")
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(Night.accent)
+                            .foregroundStyle(state.busTint)
                         Text(state.hasArrived ? "At your stop" : "Arriving in")
                             .widgetLabel(Night.secondary)
                     }

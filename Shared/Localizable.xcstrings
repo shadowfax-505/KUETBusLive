@@ -142,6 +142,16 @@
         }
       }
     },
+    "%@, %@, crowded": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, ভিড়"
+          }
+        }
+      }
+    },
     "%@: %@": {
       "localizations": {
         "bn": {
@@ -852,6 +862,16 @@
         }
       }
     },
+    "Bus, crowded": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস, ভিড়"
+          }
+        }
+      }
+    },
     "Bus, e.g. Normal-2": {
       "localizations": {
         "bn": {
@@ -1303,6 +1323,16 @@
       }
     },
     "Crowd": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ভিড়"
+          }
+        }
+      }
+    },
+    "Crowded": {
       "localizations": {
         "bn": {
           "stringUnit": {
@@ -3052,6 +3082,16 @@
         }
       }
     },
+    "On %@?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এ আছেন?"
+          }
+        }
+      }
+    },
     "Only drivers who aren't driving another bus and aren't off on the first day are listed.": {
       "localizations": {
         "bn": {
@@ -3512,6 +3552,16 @@
         }
       }
     },
+    "Report overcrowded": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অতিরিক্ত ভিড় জানান"
+          }
+        }
+      }
+    },
     "Reserve (no regular bus)": {
       "localizations": {
         "bn": {
@@ -3958,6 +4008,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "খবর ও ঘোষণা দেখান"
+          }
+        }
+      }
+    },
+    "Show on Lock Screen automatically": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিজে থেকে লক স্ক্রিনে দেখান"
           }
         }
       }
@@ -4498,6 +4558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "বাসটির কোনো নিয়মিত চালক থাকবে না।"
+          }
+        }
+      }
+    },
+    "The bus you pick on the map shows on the Lock Screen and in the Dynamic Island until it arrives, the trip ends or you close it.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপে বেছে নেওয়া বাস পৌঁছানো, যাত্রা শেষ বা আপনি বন্ধ না করা পর্যন্ত লক স্ক্রিন ও ডায়নামিক আইল্যান্ডে দেখাবে।"
           }
         }
       }

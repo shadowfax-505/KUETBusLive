@@ -149,13 +149,16 @@ struct NextBusWidgetView: View {
                         .font(.widgetSerif(.title3))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(WidgetTheme.crowdColor(live.crowd))
-                            .frame(width: 6, height: 6)
-                        Text(live.crowdText)
-                            .font(.caption2)
-                            .foregroundStyle(WidgetTheme.secondary)
+                    // Only when riders on board said it is crowded.
+                    if live.crowd == "full" {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(WidgetTheme.crowdColor(live.crowd))
+                                .frame(width: 6, height: 6)
+                            Text(live.crowdText)
+                                .font(.caption2)
+                                .foregroundStyle(WidgetTheme.secondary)
+                        }
                     }
                 }
                 Spacer()

@@ -155,7 +155,6 @@ final class TripPlanner: ObservableObject {
         let waveRate = StatsStore.shared.waveRate(driver: bus.driverId)
         let walking = WalkingSpeed.load()
 
-        trackRide(bus: bus, line: line, rider: rider)
         let onBoard = ridingBusId == bus.id
 
         // Best place to wait.
@@ -315,41 +314,43 @@ final class TripPlanner: ObservableObject {
         return TripOption(title: title, startsIn: startsIn, catchPlan: catchPlan, dropPlan: drop)
     }
 
-    // MARK: Learning where riders get off
+    // MARK: Riding, and learning where riders get off
 
-    private var nearBusSince: [String: Date] = [:]
+    private var detectors: [String: OnBoardDetector] = [:]
     private var lastOnBoard: CLLocationCoordinate2D?
-    // On the bus: within this distance of it for a minute while it moves.
-    static let onBoardMetres = 40.0
-    static let onBoardSeconds: TimeInterval = 60
-    // Got off: this far from the bus.
-    static let leftMetres = 150.0
+    private var ridingRouteId: String?
 
-    private func trackRide(bus: Bus, line: RouteLine, rider: CLLocation?) {
-        guard let busId = bus.id, let rider, !bus.isStale else { return }
-        let gap = CatchPlanner.distance(rider.coordinate, bus.coordinate)
-        if ridingBusId == busId {
-            if gap < Self.onBoardMetres {
-                lastOnBoard = bus.coordinate
-            } else if gap > Self.leftMetres, let point = lastOnBoard {
-                // Got off where the phone last travelled with the bus.
-                let onRoute = PathMath.snap(point, to: line.path)?.point ?? point
-                StatsStore.shared.addDropoff(route: bus.routeId, at: onRoute)
-                ridingBusId = nil
-                lastOnBoard = nil
-                nearBusSince[busId] = nil
-            }
-            return
-        }
-        if gap < Self.onBoardMetres, (bus.speed ?? 0) > 2 {
-            let since = nearBusSince[busId] ?? Date()
-            nearBusSince[busId] = since
-            if Date().timeIntervalSince(since) >= Self.onBoardSeconds {
+    // Called on every rider position, for every running bus. The rider counts as on
+    // a bus after a minute alongside it (OnBoardDetector); leaving it again records
+    // one anonymous drop-off where the phone last travelled with the bus.
+    func trackRides(buses: [Bus], rider: CLLocation?, busViewModel: BusViewModel, now: Date = Date()) {
+        guard let rider else { return }
+        let riderSpeed = rider.speed >= 0 ? rider.speed : nil
+        for bus in buses where !bus.isStale {
+            guard let busId = bus.id else { continue }
+            var detector = detectors[busId] ?? OnBoardDetector()
+            let onBoard = detector.update(rider: rider.coordinate, riderSpeed: riderSpeed, bus: bus.coordinate,
+                                          busHeading: bus.heading, busSpeed: bus.speed,
+                                          busUpdatedAt: bus.updatedAt, at: now)
+            detectors[busId] = detector
+            if onBoard {
                 ridingBusId = busId
-                lastOnBoard = bus.coordinate
+                ridingRouteId = bus.routeId
+                lastOnBoard = rider.coordinate
+            } else if ridingBusId == busId {
+                if let point = lastOnBoard, let routeId = ridingRouteId {
+                    let path = busViewModel.routePaths[routeId] ?? []
+                    let onRoute = PathMath.snap(point, to: path)?.point ?? point
+                    StatsStore.shared.addDropoff(route: routeId, at: onRoute)
+                }
+                ridingBusId = nil
+                ridingRouteId = nil
+                lastOnBoard = nil
             }
-        } else if gap > Self.onBoardMetres {
-            nearBusSince[busId] = nil
+        }
+        // The bus I was on finished its trip.
+        if let riding = ridingBusId, !buses.contains(where: { $0.id == riding }) {
+            ridingBusId = nil
         }
     }
 

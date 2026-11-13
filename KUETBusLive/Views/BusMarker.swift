@@ -6,8 +6,8 @@
 //
 //  The bus on the live map: a small glossy white bus seen from above that points
 //  the way it drives. The soft halo shows who may ride it (blue for students, purple for
-//  teachers), the dot on its roof shows the crowd, and a faded bus has sent no
-//  position for over a minute.
+//  teachers), a soft red glow (and a red roof dot) means riders on board said it
+//  is crowded, and a faded bus has sent no position for over a minute.
 //
 
 import SwiftUI
@@ -18,6 +18,7 @@ struct BusMarker: View {
     let isSelected: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse = false
+    @State private var glow = false
 
     var body: some View {
         ZStack {
@@ -38,7 +39,25 @@ struct BusMarker: View {
                     }
             }
 
-            TopDownBus(crowd: MapTheme.crowd(bus.crowd))
+            // Crowded (riders on board said so in the last ten minutes): a soft red glow
+            // that breathes slowly. Nothing at all when it isn't crowded.
+            if bus.isCrowded() {
+                Circle()
+                    .fill(RadialGradient(colors: [MapTheme.terracotta.opacity(0.45), MapTheme.terracotta.opacity(0)],
+                                         center: .center, startRadius: 6, endRadius: 30))
+                    .frame(width: 60, height: 60)
+                    .scaleEffect(glow ? 1.12 : 0.92)
+                    .opacity(glow ? 1 : 0.7)
+                    .onAppear {
+                        guard !reduceMotion else { return }
+                        withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                            glow = true
+                        }
+                    }
+                    .accessibilityHidden(true)
+            }
+
+            TopDownBus(crowd: bus.isCrowded() ? MapTheme.terracotta : MapTheme.sage)
                 .frame(width: 20, height: 40)
                 // No heading yet (the bus hasn't moved): it stands facing north.
                 .rotationEffect(.degrees(heading ?? 0))
