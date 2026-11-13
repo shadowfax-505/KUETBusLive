@@ -4,8 +4,9 @@
 //
 //  Created by Muttakin Rahman Shoscho.
 //
-//  The card at the bottom of the map for the selected bus, like the trip card
-//  in a ride-hailing app. TimelineView redraws it every second, so "updated"
+//  The sheet at the bottom of the map for the selected bus, like the trip sheet
+//  in a ride-hailing app: a title, the bus in an outlined card, and one solid
+//  main button. TimelineView redraws it every second, so "updated"
 //  times count up live between GPS updates.
 //
 
@@ -48,43 +49,58 @@ struct TripCard: View {
                     .frame(width: 36, height: 5)
                     .frame(maxWidth: .infinity)
                     .accessibilityHidden(true)
-                // Title row
-                HStack(alignment: .top) {
-                    rowOrColumn {
-                        VStack(alignment: .leading) {
-                            Text(PlaceNames.display(bus.number))
-                                .font(.system(.title3, design: .serif).weight(.semibold))
-                            Text(PlaceNames.display(bus.routeName))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        if !bigText {
-                            Spacer()
-                        }
-                        AudienceBadge(audience: bus.allocation)
-                    }
+                // Sheet title, with the close button.
+                HStack(alignment: .firstTextBaseline) {
+                    Text(PlaceNames.display(bus.routeName))
+                        .font(.title3.weight(.bold))
+                        .accessibilityAddTraits(.isHeader)
                     Spacer()
                     Button(action: onClose) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
+                        Image(systemName: "xmark")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(MapTheme.primary)
+                            .frame(width: 32, height: 32)
+                            .background(MapTheme.raised, in: Circle())
                     }
                     .accessibilityLabel("Close trip card")
                 }
 
-                // ETA, the big number riders care about: to my stop, or to the place I board at.
-                if let point = busViewModel.boardingPoint(for: bus) {
-                    rowOrColumn {
-                        Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
-                            .font(.system(.title, design: .rounded).weight(.bold))
-                            .foregroundStyle(MapTheme.accent)
-                            // Digits roll to the new value instead of jumping.
-                            .contentTransition(.numericText())
-                            .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
-                        Text("to \(PlaceNames.display(point.name))")
-                            .foregroundColor(.secondary)
+                // The selected bus in a card with a solid outline, and its ETA on the right.
+                rowOrColumn {
+                    HStack(spacing: 12) {
+                        TopDownBus(crowd: MapTheme.crowd(bus.crowd))
+                            .frame(width: 18, height: 36)
+                            .rotationEffect(.degrees(90))
+                            .frame(width: 40, height: 36)
+                            .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(PlaceNames.display(bus.number))
+                                .font(.headline)
+                            AudienceBadge(audience: bus.allocation)
+                        }
                     }
-                } else {
+                    if !bigText {
+                        Spacer()
+                    }
+                    if let point = busViewModel.boardingPoint(for: bus) {
+                        VStack(alignment: bigText ? .leading : .trailing, spacing: 2) {
+                            Text(busViewModel.etaText[bus.id ?? ""] ?? String(localized: "Calculating..."))
+                                .font(.headline.monospacedDigit())
+                                // Digits roll to the new value instead of jumping.
+                                .contentTransition(.numericText())
+                                .animation(.default, value: busViewModel.etaText[bus.id ?? ""])
+                            Text("to \(PlaceNames.display(point.name))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(12)
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(MapTheme.primary, lineWidth: 2))
+                .accessibilityElement(children: .combine)
+
+                if busViewModel.boardingPoint(for: bus) == nil {
                     Text("Set your stop in Routes to see the ETA.")
                         .foregroundColor(.secondary)
                 }
@@ -92,7 +108,8 @@ struct TripCard: View {
                 // Where the bus is between KUET and my stop, like a parcel tracker.
                 if let track = busViewModel.tripProgress(for: bus),
                    let stopName = busViewModel.boardingPoint(for: bus)?.name {
-                    TripProgressView(progress: track, endLabel: PlaceNames.display(stopName), tint: bus.allocation.color)
+                    TripProgressView(progress: track, endLabel: PlaceNames.display(stopName), tint: MapTheme.primary,
+                                     busGlyphColor: MapTheme.buttonText)
                         .animation(.easeInOut, value: track.fraction)
                 } else if let progress = busViewModel.nearestStop(for: bus) {
                     // My stop isn't on this route: show the nearest stop instead.
@@ -101,7 +118,7 @@ struct TripCard: View {
                             .font(.footnote)
                         ProgressView(value: Double(progress.index),
                                      total: Double(max(progress.count - 1, 1)))
-                            .tint(bus.allocation.color)
+                            .tint(MapTheme.primary)
                             .animation(.easeInOut, value: progress.index)
                     }
                 }
@@ -122,7 +139,7 @@ struct TripCard: View {
                 .font(.caption.weight(.medium))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(MapTheme.raised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 if bus.isStale {
                     Text("No signal from this bus for over a minute. Its position may be out of date.")
@@ -141,10 +158,8 @@ struct TripCard: View {
                     } label: {
                         Label(liveActivity.isFollowing(bus) ? "Stop following" : "Follow on Lock Screen",
                               systemImage: liveActivity.isFollowing(bus) ? "lock.slash" : "lock.iphone")
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(bus.allocation.color)
+                    .buttonStyle(PrimaryButtonStyle())
                 }
 
                 // "I'm waiting here": the driver sees where you stand, without a phone call.
@@ -166,8 +181,8 @@ struct TripCard: View {
                             Label("I'm waiting here", systemImage: "hand.wave.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.orange)
+                        .buttonStyle(.bordered)
+                        .tint(MapTheme.primary)
                     }
                 }
 
@@ -195,27 +210,28 @@ struct TripCard: View {
                         Image(systemName: "location.north.line.fill")
                     }
                     .toggleStyle(.button)
+                    .tint(MapTheme.primary)
                     .accessibilityLabel("Keep the map on this bus")
 
                     Button("Details", action: onDetails)
-                        .buttonStyle(.borderedProminent)
-                        .tint(MapTheme.inkButton)
+                        .buttonStyle(.bordered)
+                        .tint(MapTheme.primary)
                 }
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
             }
             .scrollBounceBehavior(.basedOnSize)
             .frame(maxHeight: bigText ? 420 : nil)
             .fixedSize(horizontal: false, vertical: !bigText)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-            // A hairline edge and a soft, wide shadow lift the card off the map.
-            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .strokeBorder(.white.opacity(0.18), lineWidth: 1))
-            .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
+            // Rounded at the top only, and flush with the bottom of the screen, like a sheet.
+            .background(MapTheme.surface,
+                        in: UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
+            .background(MapTheme.surface.ignoresSafeArea(edges: .bottom).padding(.top, 40))
+            .shadow(color: .black.opacity(0.15), radius: 16, y: -2)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Trip card for \(PlaceNames.display(bus.number))")
-            .padding(.horizontal)
-            .padding(.bottom, 8)
             // A small tap on the phone when a crowd report lands.
             .sensoryFeedback(.success, trigger: bus.crowd)
         }
