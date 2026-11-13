@@ -104,7 +104,8 @@ struct KUETVerifier {
         }
     }
 
+    // Demo accounts (DemoAccounts) never need the link, in any build.
     static func needsEmailVerification(role: UserRole, email: String) -> Bool {
-        (role == .student || role == .teacher) && !isDemoEmail(email) && !isAppReviewEmail(email)
+        (role == .student || role == .teacher) && !DemoAccounts.contains(email)
     }
 }

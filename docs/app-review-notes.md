@@ -7,7 +7,9 @@ Apple's reviewers have no KUET email, so they cannot sign up like a real student
 | Student | `appreview.student@kuetbuslive.app` | student |
 | Driver | `appreview.driver@kuetbuslive.app` | driver |
 
-The addresses live in one place: `KUETVerifier.appReviewEmails` in `KUETBusLive/Services/KUETVerifier.swift`. No other address on that domain is allowed, and release builds reject `@test.com`.
+The addresses live in one place: `KUETVerifier.appReviewEmails` in `KUETBusLive/Services/KUETVerifier.swift`. No other address on that domain is allowed, and release builds reject new `@test.com` sign-ups.
+
+Demo only: these two accounts and existing `@test.com` accounts never see the "verify your KUET email" screen, in any build (`DemoAccounts`). Remove `DemoAccounts.swift` before a public release.
 
 **Passwords never go in this repository.** They are typed only into the Firebase console and into App Store Connect's review notes.
 

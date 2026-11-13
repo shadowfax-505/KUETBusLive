@@ -314,7 +314,7 @@ stateDiagram-v2
     RoleScreens --> SignedOut: Sign Out
 ```
 
-> **Demo accounts:** debug builds also accept `@test.com` emails and skip the email link, so the app can be shown in the lab without real KUET mailboxes. Release builds never accept them.
+> **Demo accounts (demo only):** the accounts in `DemoAccounts` (`KUETBusLive/Services/DemoAccounts.swift`): any `@test.com` address and the two App Review addresses, skip the email link in every build, because they have no mailbox to open it in. Only debug builds let you *sign up* with a new `@test.com` address; release builds refuse that, so the skip only helps accounts that already exist. Delete `DemoAccounts.swift` and its one use in `KUETVerifier.needsEmailVerification` before a public release.
 
 ---
 

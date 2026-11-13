@@ -120,6 +120,21 @@ final class KUETVerifierTests: XCTestCase {
         #endif
     }
 
+    // MARK: - Demo accounts skip the email link (every build)
+
+    func testDemoAccountsSkipTheEmailLinkInEveryBuild() {
+        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .student, email: "Student2@Test.com"))
+        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .teacher, email: "teacher@test.com"))
+        XCTAssertFalse(KUETVerifier.needsEmailVerification(role: .student, email: "appreview.student@kuetbuslive.app"))
+    }
+
+    func testOnlyTheDemoListSkipsTheEmailLink() {
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "x@test.com.evil.com"))
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "x@nottest.com"))
+        XCTAssertTrue(KUETVerifier.needsEmailVerification(role: .student, email: "2207001@stud.kuet.ac.bd"))
+        XCTAssertEqual(DemoAccounts.addresses, KUETVerifier.appReviewEmails)
+    }
+
     // MARK: - App Review accounts (every build)
 
     func testAppReviewAccountsSkipKUETEmailChecks() {
