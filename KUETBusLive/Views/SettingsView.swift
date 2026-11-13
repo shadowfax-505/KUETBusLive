@@ -109,7 +109,9 @@ struct SettingsView: View {
                 if !shown.isEmpty {
                     Section {
                         ForEach(shown) { page in
-                            NavigationLink(value: page) {
+                            NavigationLink {
+                                destination(for: page)
+                            } label: {
                                 SettingsRow(icon: page.icon, title: page.title, subtitle: page.subtitle)
                             }
                         }
@@ -122,17 +124,20 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .searchable(text: $query, prompt: Text("Search settings"))
-        .navigationDestination(for: SettingsPage.self) { page in
-            switch page {
-            case .account: AccountSettingsView(endActiveTrip: endActiveTrip)
-            case .notifications: NotificationSettingsView()
-            case .privacy: SecuritySettingsView()
-            case .appearance: AppearanceSettingsView()
-            case .language: LanguageSettingsView()
-            case .assistant: Form { AssistantSettingsSection() }.navigationTitle(page.title)
-            case .storage: StorageSettingsView()
-            case .help: HelpSettingsView()
-            }
+    }
+
+    // Plain links rather than value-based ones, so this works in any parent navigation stack.
+    @ViewBuilder
+    func destination(for page: SettingsPage) -> some View {
+        switch page {
+        case .account: AccountSettingsView(endActiveTrip: endActiveTrip)
+        case .notifications: NotificationSettingsView()
+        case .privacy: SecuritySettingsView()
+        case .appearance: AppearanceSettingsView()
+        case .language: LanguageSettingsView()
+        case .assistant: Form { AssistantSettingsSection() }.navigationTitle(page.title)
+        case .storage: StorageSettingsView()
+        case .help: HelpSettingsView()
         }
     }
 }

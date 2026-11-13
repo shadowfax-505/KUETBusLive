@@ -55,7 +55,7 @@ struct ProfileView: View {
                         MyPlacesView()
                     } label: {
                         SettingsRow(icon: "mappin.and.ellipse", title: String(localized: "My places"),
-                                    subtitle: String(localized: "Home, tuition and other places you wait"))
+                                    subtitle: String(localized: "Home, tuition and more"))
                     }
                     NavigationLink {
                         MyTripsView()
@@ -73,7 +73,7 @@ struct ProfileView: View {
                         AnnouncementsView()
                     } label: {
                         SettingsRow(icon: "megaphone", title: String(localized: "News"),
-                                    subtitle: String(localized: "Announcements from the transport office"))
+                                    subtitle: String(localized: "From the transport office"))
                     }
                     .badge(showNews ? announcementViewModel.unreadCount : 0)
                 }
@@ -88,6 +88,8 @@ struct ProfileView: View {
                 }
             }
         }
+        .listSectionSpacing(.compact)
+        .contentMargins(.top, 0, for: .scrollContent)
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { photoStore.load(uid: authViewModel.user?.uid) }
@@ -134,14 +136,14 @@ struct ProfileView: View {
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(MapTheme.raised, in: Capsule())
+                            .background(MapTheme.surface, in: Capsule())
                             .padding(.top, 4)
                     }
                 }
                 .accessibilityElement(children: .combine)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.bottom, 8)
             .listRowBackground(Color.clear)
         }
     }

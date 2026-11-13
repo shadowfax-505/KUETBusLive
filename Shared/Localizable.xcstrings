@@ -512,16 +512,6 @@
         }
       }
     },
-    "Announcements from the transport office": {
-      "localizations": {
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পরিবহন দপ্তরের ঘোষণা"
-          }
-        }
-      }
-    },
     "Answered on this iPhone": {
       "localizations": {
         "bn": {
@@ -1672,6 +1662,16 @@
         }
       }
     },
+    "From the transport office": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন দপ্তর থেকে"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "bn": {
@@ -1752,12 +1752,12 @@
         }
       }
     },
-    "Home, tuition and other places you wait": {
+    "Home, tuition and more": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বাসা, টিউশন ও অন্য যেখানে অপেক্ষা করেন"
+            "value": "বাসা, টিউশন ও আরও"
           }
         }
       }
