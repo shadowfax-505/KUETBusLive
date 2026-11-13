@@ -154,9 +154,11 @@ Exists only while a trip runs. The ID is `bus-<fleetBusId>`, so a fleet bus can 
 | `heading` | number, optional | degrees from north |
 | `speed` | number, optional | metres per second |
 | `updatedAt` | timestamp | |
-| `crowd` | string | |
+| `crowd` | string | `full` while a rider on board reported it overcrowded |
+| `crowdAt` | timestamp, optional | server time of that report; shown as "Crowded" for 10 minutes |
+| `reportLat`, `reportLng` | number, optional | where the reporting rider was; must be within 0.001° of the bus |
 
-Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip, but a move changes only `lat`, `lng`, `heading`, `speed` and `updatedAt`; changing the route, trip or audience means starting the trip again, which is checked like a new trip. Riders allowed on the bus change only `crowd`. The driver or the admin deletes it (end of trip).
+Who can do what: an approved, active driver creates it, as themselves, only for a trip (`scheduleId`) of the fleet bus that they drive (see "Who drives one trip"). They may move it afterwards even if their cover ends during the trip, but a move changes only `lat`, `lng`, `heading`, `speed` and `updatedAt`; changing the route, trip or audience means starting the trip again, which is checked like a new trip. Riders allowed on the bus may only report it overcrowded: `crowd` = `full`, `crowdAt` = the server time, and `reportLat`/`reportLng` within 0.001° (about 100 m) of the bus. The app only offers this when it finds the rider on board (within 30 m of the moving bus for a minute). The driver or the admin deletes it (end of trip).
 
 ### `buses/{busId}/waves/{uid}`: "I'm waiting here"
 

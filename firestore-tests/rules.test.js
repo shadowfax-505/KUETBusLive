@@ -203,19 +203,33 @@ test("starting a trip again on a live bus is checked like a new trip", async () 
   await assertFails(setDoc(doc(db("driver"), "buses", "bus-normal-1"), bus("driver", { scheduleId: "s2" })));
 });
 
-test("riders report the crowd only on buses they may ride", async () => {
-  await assertSucceeds(updateDoc(doc(db("student"), "buses", "student-bus"), { crowd: "full" }));
-  await assertFails(updateDoc(doc(db("student"), "buses", "teacher-bus"), { crowd: "full" }));
-  await assertSucceeds(updateDoc(doc(db("teacher"), "buses", "teacher-bus"), { crowd: "seats" }));
+const { serverTimestamp } = require("firebase/firestore");
+
+// An "overcrowded" report from a rider standing 20 m from the bus (at 22.9, 89.5).
+function onBoard(extra = {}) {
+  return { crowd: "full", crowdAt: serverTimestamp(), reportLat: 22.9002, reportLng: 89.5001, ...extra };
+}
+
+test("riders report a bus overcrowded only on buses they may ride", async () => {
+  await assertSucceeds(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard()));
+  await assertFails(updateDoc(doc(db("student"), "buses", "teacher-bus"), onBoard()));
+  await assertSucceeds(updateDoc(doc(db("teacher"), "buses", "teacher-bus"), onBoard()));
 });
 
-test("crowd reports change only the crowd, to a known level", async () => {
-  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), { crowd: "packed" }));
-  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), { crowd: "full", lat: 0 }));
+test("a crowd report must come from on board: near the bus, with the server's time", async () => {
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard({ reportLat: 22.95 })));
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), { crowd: "full" }));
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard({ crowdAt: new Date(0) })));
+});
+
+test("crowd reports change only the crowd fields, and only to overcrowded", async () => {
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard({ crowd: "packed" })));
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard({ crowd: "seats" })));
+  await assertFails(updateDoc(doc(db("student"), "buses", "student-bus"), onBoard({ lat: 0 })));
 });
 
 test("a teacher waiting for approval cannot report the crowd", async () => {
-  await assertFails(updateDoc(doc(db("newTeacher"), "buses", "teacher-bus"), { crowd: "full" }));
+  await assertFails(updateDoc(doc(db("newTeacher"), "buses", "teacher-bus"), onBoard()));
 });
 
 test("ending a trip deletes the driver's own bus only", async () => {
