@@ -93,6 +93,26 @@ final class LanguageBundle: Bundle, @unchecked Sendable {
         return super.__localizedString(forKey: key, value: value, table: tableName, localizations: localizations)
     }
 
+    // Newer iOS versions look strings up through these two selectors instead, so
+    // String(localized:) would keep the old language until a restart without them.
+    @objc(_localizedStringForKey:value:table:localizations:)
+    func chosenString(forKey key: String, value: String?, table tableName: String?,
+                      localizations: [String]?) -> String {
+        if let chosen = Self.chosen {
+            return chosen.localizedString(forKey: key, value: value, table: tableName)
+        }
+        return super.localizedString(forKey: key, value: value, table: tableName)
+    }
+
+    @objc(localizedStringForKey:value:table:localization:)
+    func chosenString(forKey key: String, value: String?, table tableName: String?,
+                      localization: String?) -> String {
+        if let chosen = Self.chosen {
+            return chosen.localizedString(forKey: key, value: value, table: tableName)
+        }
+        return super.localizedString(forKey: key, value: value, table: tableName)
+    }
+
     override var preferredLocalizations: [String] {
         if let code = Self.chosen?.bundleURL.deletingPathExtension().lastPathComponent {
             return [code]
