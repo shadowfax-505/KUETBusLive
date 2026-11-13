@@ -88,7 +88,7 @@ struct AskView: View {
                 Section {
                     Text(assistant.isReady()
                          ? LocalizedStringKey("Answers come from this iPhone's own model, using only today's timetable, the buses running now and the latest news. They may be wrong, so check the timetable before you rely on them.")
-                         : LocalizedStringKey("Answers come straight from today's timetable. Turn on the smart assistant in Profile for answers in your own words, where the iPhone supports it."))
+                         : LocalizedStringKey("Answers come straight from today's timetable. Turn on the smart assistant in Settings for answers in your own words, where the iPhone supports it."))
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }

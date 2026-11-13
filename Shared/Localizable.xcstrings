@@ -312,6 +312,16 @@
         }
       }
     },
+    "A notification when the bus is this many minutes from your stop.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাস আপনার স্টপ থেকে এত মিনিট দূরে থাকলে একটি নোটিফিকেশন।"
+          }
+        }
+      }
+    },
     "A permanent change. A driver can be the regular driver of only one bus; choosing someone who already has a bus swaps the two buses' drivers.": {
       "localizations": {
         "bn": {
@@ -358,6 +368,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অ্যাকাউন্ট মোছা হয়নি"
+          }
+        }
+      }
+    },
+    "Account, notifications, privacy, appearance": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অ্যাকাউন্ট, নোটিফিকেশন, গোপনীয়তা, চেহারা"
           }
         }
       }
@@ -492,6 +512,16 @@
         }
       }
     },
+    "Announcements from the transport office": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরিবহন দপ্তরের ঘোষণা"
+          }
+        }
+      }
+    },
     "Answered on this iPhone": {
       "localizations": {
         "bn": {
@@ -512,12 +542,22 @@
         }
       }
     },
-    "Answers come straight from today's timetable. Turn on the smart assistant in Profile for answers in your own words, where the iPhone supports it.": {
+    "Answers come straight from today's timetable. Turn on the smart assistant in Settings for answers in your own words, where the iPhone supports it.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "উত্তর সরাসরি আজকের সময়সূচি থেকে আসে। আইফোন সমর্থন করলে নিজের ভাষায় উত্তরের জন্য প্রোফাইলে স্মার্ট সহকারী চালু করুন।"
+            "value": "উত্তর সরাসরি আজকের সময়সূচি থেকে আসে। আইফোন সমর্থন করলে নিজের ভাষায় উত্তরের জন্য সেটিংসে স্মার্ট সহকারী চালু করুন।"
+          }
+        }
+      }
+    },
+    "Answers on this iPhone": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই আইফোনেই উত্তর"
           }
         }
       }
@@ -618,6 +658,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "পৌঁছানো"
+          }
+        }
+      }
+    },
+    "Arrival alerts": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সতর্কতা"
+          }
+        }
+      }
+    },
+    "Arrival alerts, news": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পৌঁছানোর সতর্কতা, খবর"
           }
         }
       }
@@ -758,6 +818,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "আজকের বাস"
+          }
+        }
+      }
+    },
+    "Buses you follow or wait for show up here.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যে বাস ফলো করেন বা যার জন্য অপেক্ষা করেন, তা এখানে দেখাবে।"
+          }
+        }
+      }
+    },
+    "Cache": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্যাশ"
           }
         }
       }
@@ -912,6 +992,26 @@
         }
       }
     },
+    "Clear cache": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্যাশ মুছুন"
+          }
+        }
+      }
+    },
+    "Clear the cache?": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্যাশ মুছবেন?"
+          }
+        }
+      }
+    },
     "Close": {
       "localizations": {
         "bn": {
@@ -948,6 +1048,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "অভিযোগ"
+          }
+        }
+      }
+    },
+    "Complaints, privacy policy, version": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অভিযোগ, গোপনীয়তা নীতি, সংস্করণ"
           }
         }
       }
@@ -1128,6 +1238,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "গাঢ়"
+          }
+        }
+      }
+    },
+    "Data & storage": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডেটা ও স্টোরেজ"
           }
         }
       }
@@ -1482,6 +1602,16 @@
         }
       }
     },
+    "Face ID, app passcode": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID, অ্যাপ পাসকোড"
+          }
+        }
+      }
+    },
     "Follow": {
       "localizations": {
         "bn": {
@@ -1618,6 +1748,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "বাসা"
+          }
+        }
+      }
+    },
+    "Home, tuition and other places you wait": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাসা, টিউশন ও অন্য যেখানে অপেক্ষা করেন"
           }
         }
       }
@@ -1922,6 +2062,16 @@
         }
       }
     },
+    "Light or dark, map style": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইট বা ডার্ক, ম্যাপের ধরন"
+          }
+        }
+      }
+    },
     "Live Buses": {
       "localizations": {
         "bn": {
@@ -1938,6 +2088,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "লাইভ লোকেশন"
+          }
+        }
+      }
+    },
+    "Live map": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লাইভ ম্যাপ"
           }
         }
       }
@@ -2042,6 +2202,16 @@
         }
       }
     },
+    "Map style": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ম্যাপের ধরন"
+          }
+        }
+      }
+    },
     "Message": {
       "localizations": {
         "bn": {
@@ -2132,6 +2302,16 @@
         }
       }
     },
+    "My trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার যাত্রা"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "bn": {
@@ -2148,6 +2328,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "নাম, যেমন বাসা"
+          }
+        }
+      }
+    },
+    "Name, email, sign out, delete account": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নাম, ইমেইল, সাইন আউট, অ্যাকাউন্ট মুছুন"
           }
         }
       }
@@ -2622,6 +2812,16 @@
         }
       }
     },
+    "Notifications": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নোটিফিকেশন"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "bn": {
@@ -2688,6 +2888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "iOS সেটিংস খুলুন"
+          }
+        }
+      }
+    },
+    "Open iOS notification settings": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS নোটিফিকেশন সেটিংস খুলুন"
           }
         }
       }
@@ -2842,6 +3052,16 @@
         }
       }
     },
+    "Privacy & security": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গোপনীয়তা ও নিরাপত্তা"
+          }
+        }
+      }
+    },
     "Privacy policy": {
       "localizations": {
         "bn": {
@@ -2918,6 +3138,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "কারণ, যেমন নিয়মিত চালক অসুস্থ"
+          }
+        }
+      }
+    },
+    "Recent": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাম্প্রতিক"
+          }
+        }
+      }
+    },
+    "Recent buses and your usual bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাম্প্রতিক বাস ও আপনার নিয়মিত বাস"
           }
         }
       }
@@ -3232,6 +3472,26 @@
         }
       }
     },
+    "Satellite": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্যাটেলাইট"
+          }
+        }
+      }
+    },
+    "Satellite shows photos of the roads under the buses.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্যাটেলাইটে বাসের নিচের রাস্তার ছবি দেখায়।"
+          }
+        }
+      }
+    },
     "Saturday": {
       "localizations": {
         "bn": {
@@ -3252,6 +3512,16 @@
         }
       }
     },
+    "Saved road routes and map data. Your places, ride history and settings are kept.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংরক্ষিত রাস্তার রুট ও ম্যাপের ডেটা। আপনার জায়গা, যাত্রার ইতিহাস ও সেটিংস থেকে যাবে।"
+          }
+        }
+      }
+    },
     "Schedule": {
       "localizations": {
         "bn": {
@@ -3268,6 +3538,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "সময়সূচি"
+          }
+        }
+      }
+    },
+    "Search settings": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেটিংস খুঁজুন"
           }
         }
       }
@@ -3368,6 +3648,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "পৌঁছানোর সময় দেখতে রুট ট্যাব থেকে আপনার স্টপ ঠিক করুন।"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেটিংস"
           }
         }
       }
@@ -3538,6 +3828,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "স্টাফ আইডি"
+          }
+        }
+      }
+    },
+    "Standard": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাধারণ"
           }
         }
       }
@@ -3832,6 +4132,16 @@
         }
       }
     },
+    "The app learns which bus you usually take and suggests it on the map. Everything stays on this iPhone unless you keep it in your account.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি সাধারণত কোন বাসে যান অ্যাপ তা শিখে ম্যাপে প্রস্তাব করে। অ্যাকাউন্টে না রাখলে সবকিছু এই আইফোনেই থাকে।"
+          }
+        }
+      }
+    },
     "The app locks when you leave it. With both on, Face ID is tried first and the passcode is the backup.": {
       "localizations": {
         "bn": {
@@ -4068,6 +4378,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই দিনগুলোতে পরিবহন দপ্তর আপনার বাসের জন্য অন্য চালক ঠিক করবে।"
+          }
+        }
+      }
+    },
+    "Theme": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "থিম"
           }
         }
       }
@@ -4498,6 +4818,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "এই আইফোনের Apple মডেল ব্যবহার করে। আপনার প্রশ্ন ফোনের বাইরে যায় না। উত্তর ভুল হতে পারে, তাই সময়সূচি মিলিয়ে নিন।"
+          }
+        }
+      }
+    },
+    "Usual bus": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিয়মিত বাস"
           }
         }
       }
