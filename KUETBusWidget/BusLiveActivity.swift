@@ -27,9 +27,7 @@ struct BusLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: "bus.fill")
-                        .font(.title3)
-                        .symbolRenderingMode(.hierarchical)
+                    KUETMark(height: 22)
                         .foregroundStyle(context.state.busTint)
                         .padding(.leading, 4)
                         .accessibilityHidden(true)
@@ -63,8 +61,7 @@ struct BusLiveActivity: Widget {
                     .padding(.horizontal, 4)
                 }
             } compactLeading: {
-                Image(systemName: "bus.fill")
-                    .symbolRenderingMode(.hierarchical)
+                KUETMark()
                     .foregroundStyle(context.state.busTint)
                     .accessibilityLabel(context.state.crowd == "full" ? "Bus, crowded" : "Bus")
             } compactTrailing: {
@@ -74,8 +71,7 @@ struct BusLiveActivity: Widget {
                     .foregroundStyle(context.state.isStale ? WidgetTheme.terracotta : Night.primary)
                     .contentTransition(.numericText())
             } minimal: {
-                Image(systemName: "bus.fill")
-                    .symbolRenderingMode(.hierarchical)
+                KUETMark()
                     .foregroundStyle(context.state.busTint)
             }
             .keylineTint(Night.accent)
@@ -154,8 +150,7 @@ struct LockScreenTripView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 5) {
-                        Image(systemName: "bus.fill")
-                            .symbolRenderingMode(.hierarchical)
+                        KUETMark()
                             .foregroundStyle(state.busTint)
                         Text(state.hasArrived ? "At your stop" : "Arriving in")
                             .widgetLabel(Night.secondary)
