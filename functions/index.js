@@ -26,8 +26,9 @@ exports.notifyTripStarted = onDocumentCreated("buses/{busId}", async (event) => 
     return;
   }
 
-  // Must match PushManager.topic(forRouteId:) in the app.
-  const topic = `route-${bus.routeId}`;
+  // Must match PushManager.topics(forRouteId:role:) in the app. Students may ride only
+  // student buses, so a teachers' bus goes only to the teachers' topic of that route.
+  const topic = bus.audience === "teacher" ? `route-${bus.routeId}-teachers` : `route-${bus.routeId}`;
 
   const message = {
     topic: topic,

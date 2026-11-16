@@ -45,23 +45,36 @@ class PushManager: NSObject, MessagingDelegate {
         "route-\(routeId)"
     }
 
-    // Moves the rider to their route's topic, leaving the old one.
-    func subscribe(toRouteId routeId: String?) {
+    // Teachers' buses are announced on their own topic, which only teachers join,
+    // because students may not ride them (see functions/index.js).
+    static func topics(forRouteId routeId: String, role: UserRole) -> [String] {
+        let topic = topic(forRouteId: routeId)
+        return role == .teacher ? [topic, topic + "-teachers"] : [topic]
+    }
+
+    // Moves the rider to their route's topics, leaving the old ones. They are saved
+    // as one string, "route-r1" or "route-r1,route-r1-teachers".
+    func subscribe(toRouteId routeId: String?, role: UserRole = .student) {
         let old = UserDefaults.standard.string(forKey: Self.topicKey)
-        let new = routeId.map(Self.topic(forRouteId:))
+        let newTopics = routeId.map { Self.topics(forRouteId: $0, role: role) } ?? []
+        let new = newTopics.isEmpty ? nil : newTopics.joined(separator: ",")
         guard old != new else { return }
 
-        if let old = old {
-            Messaging.messaging().unsubscribe(fromTopic: old)
+        for topic in Self.split(old) {
+            Messaging.messaging().unsubscribe(fromTopic: topic)
         }
-        if let new = new {
-            Messaging.messaging().subscribe(toTopic: new) { error in
+        for topic in newTopics {
+            Messaging.messaging().subscribe(toTopic: topic) { error in
                 if let error = error {
-                    print("Could not subscribe to \(new): \(error)")
+                    print("Could not subscribe to \(topic): \(error)")
                 }
             }
         }
         UserDefaults.standard.set(new, forKey: Self.topicKey)
+    }
+
+    private static func split(_ saved: String?) -> [String] {
+        saved?.split(separator: ",").map(String.init) ?? []
     }
 
     // Update: saves the FCM token on the signed-in user's profile, so the
@@ -75,10 +88,23 @@ class PushManager: NSObject, MessagingDelegate {
         }
     }
 
+    // Before signing out: leave the route topic and take the token off the profile.
+    // The write goes first, while the account is still signed in; if the phone is
+    // offline it waits in Firestore's queue and is sent next time this account signs in.
+    func leaveAccount() {
+        for topic in Self.split(UserDefaults.standard.string(forKey: Self.topicKey)) {
+            Messaging.messaging().unsubscribe(fromTopic: topic)
+        }
+        UserDefaults.standard.removeObject(forKey: Self.topicKey)
+        guard let uid = Auth.auth().currentUser?.uid, fcmToken != nil else { return }
+        Firestore.firestore().collection("users").document(uid)
+            .updateData(["fcmToken": FieldValue.delete()])
+    }
+
     // After the account is deleted: leave the route topic and throw the push token away,
     // so this phone gets no more notifications for that account.
     func forgetDevice() {
-        if let topic = UserDefaults.standard.string(forKey: Self.topicKey) {
+        for topic in Self.split(UserDefaults.standard.string(forKey: Self.topicKey)) {
             Messaging.messaging().unsubscribe(fromTopic: topic)
         }
         UserDefaults.standard.removeObject(forKey: Self.topicKey)

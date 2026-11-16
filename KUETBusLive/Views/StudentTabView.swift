@@ -70,7 +70,7 @@ struct StudentTabView: View {
         let myRoute = routes.first { route in
             route.stops.contains { $0.name == stopName }
         }
-        PushManager.shared.subscribe(toRouteId: myRoute?.id)
+        PushManager.shared.subscribe(toRouteId: myRoute?.id, role: authViewModel.profile?.role ?? .student)
         PushManager.shared.saveTokenForCurrentUser()
     }
 
