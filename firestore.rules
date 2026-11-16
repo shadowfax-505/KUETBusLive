@@ -154,6 +154,23 @@ service cloud.firestore {
         && request.resource.data.lat is number && request.resource.data.lng is number;
     }
 
+    // ---------- My trips: timetable trips a rider pinned, with days and a reminder ----------
+
+    match /users/{uid}/myTrips/{scheduleId} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+
+      // Only your own, for a trip that is in the timetable, on real days of the week.
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && exists(/databases/$(database)/documents/schedules/$(scheduleId))
+        && request.resource.data.keys().hasOnly(['leg', 'days', 'remindMinutes', 'createdAt'])
+        && request.resource.data.leg in ['campus', 'spot']
+        && request.resource.data.days is list
+        && request.resource.data.days.size() > 0 && request.resource.data.days.size() <= 7
+        && request.resource.data.days.toSet().hasOnly(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'])
+        && request.resource.data.remindMinutes is int
+        && request.resource.data.remindMinutes >= 0 && request.resource.data.remindMinutes <= 120;
+    }
+
     // ---------- Ride history (smart suggestions), only if the rider turns on the backup ----------
 
     match /users/{uid}/rideHistory/{eventId} {
