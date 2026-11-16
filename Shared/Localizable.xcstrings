@@ -4922,12 +4922,12 @@
         }
       }
     },
-    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your places, your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
+    "This permanently deletes your profile (name, email, KUET ID and favourite stop), your places, your pinned trips, your complaints, your push token and your login, and clears the app's settings on this phone. It cannot be undone.": {
       "localizations": {
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), আপনার জায়গাগুলো, অভিযোগ, পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
+            "value": "এটি আপনার প্রোফাইল (নাম, ইমেইল, KUET আইডি ও প্রিয় স্টপ), আপনার জায়গাগুলো, পিন করা যাত্রা, অভিযোগ, পুশ টোকেন ও লগইন চিরতরে মুছে দেয় এবং এই ফোনে অ্যাপের সেটিংস মুছে ফেলে। এটি আর ফেরানো যাবে না।"
           }
         }
       }
@@ -5758,6 +5758,246 @@
           "stringUnit": {
             "state": "translated",
             "value": "লোকেশন বন্ধ। সেটিংসে গিয়ে চালু করুন।"
+          }
+        }
+      }
+    },
+    "Sun to Thu": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রবি থেকে বৃহস্পতি"
+          }
+        }
+      }
+    },
+    "Could not save the trip: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপটি সেভ করা যায়নি: %@"
+          }
+        }
+      }
+    },
+    "Leaves KUET at %@, in %lld min.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কুয়েট ছাড়বে %1$@-এ, %2$lld মিনিট পর।"
+          }
+        }
+      }
+    },
+    "Leaves %@ at %@, in %lld min.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ছাড়বে %2$@-এ, %3$lld মিনিট পর।"
+          }
+        }
+      }
+    },
+    "%@ · reminder %lld min before": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld মিনিট আগে মনে করাবে"
+          }
+        }
+      }
+    },
+    "%@ · no reminder": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · মনে করানো বন্ধ"
+          }
+        }
+      }
+    },
+    "I take it": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমি যেটায় উঠি"
+          }
+        }
+      }
+    },
+    "Departure": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ছাড়ার সময়"
+          }
+        }
+      }
+    },
+    "From KUET, %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কুয়েট থেকে, %@"
+          }
+        }
+      }
+    },
+    "From %@, %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ থেকে, %2$@"
+          }
+        }
+      }
+    },
+    "On these days": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই দিনগুলোতে"
+          }
+        }
+      }
+    },
+    "Remind me": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মনে করিয়ে দিন"
+          }
+        }
+      }
+    },
+    "%lld min before": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট আগে"
+          }
+        }
+      }
+    },
+    "Reminders come from this phone, every week on the days you picked.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মনে করানো আসে এই ফোন থেকে, প্রতি সপ্তাহে আপনার বেছে নেওয়া দিনগুলোতে।"
+          }
+        }
+      }
+    },
+    "Add to Calendar": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্যালেন্ডারে যোগ করুন"
+          }
+        }
+      }
+    },
+    "Remove from My trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার যাত্রা থেকে সরান"
+          }
+        }
+      }
+    },
+    "My trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার যাত্রা"
+          }
+        }
+      }
+    },
+    "Add to My trips": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার যাত্রায় যোগ করুন"
+          }
+        }
+      }
+    },
+    "Change my trip": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমার যাত্রা বদলান"
+          }
+        }
+      }
+    },
+    "Pin": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পিন"
+          }
+        }
+      }
+    },
+    "%@ from KUET": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কুয়েট থেকে %@"
+          }
+        }
+      }
+    },
+    "%@ from %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ থেকে %1$@"
+          }
+        }
+      }
+    },
+    "KUET Bus Live: %@": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KUET Bus Live: %@"
+          }
+        }
+      }
+    },
+    "Ride history": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যাত্রার ইতিহাস"
           }
         }
       }
