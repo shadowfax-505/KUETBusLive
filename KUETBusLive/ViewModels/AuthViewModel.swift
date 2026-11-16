@@ -119,6 +119,9 @@ class AuthViewModel: ObservableObject {
     }
 
     func signOut() {
+        // This phone stops getting the route's "bus left campus" pushes, and its push
+        // token comes off the profile, so the next person to sign in here doesn't share it.
+        PushManager.shared.leaveAccount()
         do {
             try Auth.auth().signOut()
             profileListener?.remove()
