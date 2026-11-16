@@ -186,10 +186,12 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             }
         } else {
             // Later positions: only update the moving fields, so crowd reports are kept.
+            // The server's time, like the Android app, so a phone with a wrong clock
+            // can't make the bus look fresh or stale on riders' maps.
             var fields: [String: Any] = [
                 "lat": location.coordinate.latitude,
                 "lng": location.coordinate.longitude,
-                "updatedAt": Date()
+                "updatedAt": FieldValue.serverTimestamp()
             ]
             // CoreLocation reports -1 when it doesn't know the direction or speed yet.
             if location.course >= 0 {
@@ -198,7 +200,16 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             if location.speed >= 0 {
                 fields["speed"] = location.speed
             }
-            busRef.updateData(fields)
+            busRef.updateData(fields) { error in
+                // The bus is gone (the admin ended the trip) or this driver may no longer
+                // move it (deactivated, or the trip went to someone else). Stop sharing
+                // instead of showing "Sharing live location" while nothing reaches riders.
+                guard let code = (error as NSError?).flatMap({ FirestoreErrorCode.Code(rawValue: $0.code) }),
+                      code == .notFound || code == .permissionDenied,
+                      self.isOnTrip, self.busDocId == docId else { return }
+                self.endTrip()
+                self.statusMessage = String(localized: "Trip stopped: this bus can no longer be updated from your phone.")
+            }
         }
 
         updatesSent += 1

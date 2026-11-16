@@ -97,7 +97,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .denied, .restricted:
-            delegate?.didFailWithLocationError("Location is off. Turn it on in Settings.")
+            delegate?.didFailWithLocationError(String(localized: "Location is off. Turn it on in Settings."))
         case .authorizedWhenInUse, .authorizedAlways, .notDetermined:
             break
         @unknown default:
