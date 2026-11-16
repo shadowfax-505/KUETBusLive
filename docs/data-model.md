@@ -54,6 +54,17 @@ Who can do what: you read and create your own profile; you may change only `name
 
 At most five: the document ID must be `p1` … `p5`. Only the owner reads or writes.
 
+### `users/{uid}/myTrips/{scheduleId}`: My trips
+
+| Field | Type | Notes |
+|---|---|---|
+| `leg` | string | `campus` (leaves KUET) or `spot` (leaves the city spot) |
+| `days` | array of strings | 1–7 of `sun`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat` |
+| `remindMinutes` | int | 0–120; 0 means no reminder |
+| `createdAt` | timestamp | |
+
+The document ID is the schedule's ID, and that schedule must exist. Only the owner reads or writes. Reminders are local notifications on each phone, rebuilt from these pins and the timetable.
+
 ### `users/{uid}/rideHistory/{eventId}`: optional backup of smart suggestions
 
 Only written when the rider turns on "Keep my ride history in my account". Same fields as the event kept on the phone:
