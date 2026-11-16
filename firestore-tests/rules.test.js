@@ -356,6 +356,24 @@ function rideEvent(extra = {}) {
            date: new Date(), ...extra };
 }
 
+test("riders pin timetable trips of their own, with days and a reminder", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "schedules", "s1"), { tripName: "Normal-1" });
+  });
+  const pin = { leg: "campus", days: ["sun", "tue"], remindMinutes: 10, createdAt: new Date() };
+  await assertSucceeds(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), pin));
+  await assertSucceeds(getDoc(doc(db("student"), "users", "student", "myTrips", "s1")));
+  await assertFails(getDoc(doc(db("teacher"), "users", "student", "myTrips", "s1")));
+  await assertFails(setDoc(doc(db("teacher"), "users", "student", "myTrips", "s1"), pin));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "gone"), pin));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), { ...pin, days: [] }));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), { ...pin, days: ["someday"] }));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), { ...pin, leg: "air" }));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), { ...pin, remindMinutes: 500 }));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "myTrips", "s1"), { ...pin, uid: "x" }));
+  await assertSucceeds(deleteDoc(doc(db("student"), "users", "student", "myTrips", "s1")));
+});
+
 test("ride history is private to the rider and well formed", async () => {
   await assertSucceeds(setDoc(doc(db("student"), "users", "student", "rideHistory", "e1"), rideEvent()));
   await assertFails(setDoc(doc(db("teacher"), "users", "student", "rideHistory", "e2"), rideEvent()));
