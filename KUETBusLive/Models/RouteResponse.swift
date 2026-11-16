@@ -30,6 +30,18 @@ struct RouteInfo: Codable {
         Int((duration / 60).rounded(.up))
     }
 
+    // When the routing server can't be reached: the distance along the route (or the
+    // straight line, a third longer for the roads) at a city bus's 18 km/h. Same
+    // numbers on Android. nil once the bus has passed the stop.
+    static let fallbackSpeed = 5.0          // metres per second
+    static let roadFactor = 1.35
+
+    static func estimate(alongRoute metres: Double?, straightLine: Double) -> RouteInfo? {
+        let distance = metres ?? straightLine * roadFactor
+        guard distance >= 0 else { return nil }
+        return RouteInfo(duration: distance / fallbackSpeed, distance: distance, geometry: nil)
+    }
+
     var kilometres: Double {
         distance / 1000
     }
