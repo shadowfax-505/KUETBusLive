@@ -36,7 +36,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .account: return String(localized: "Name, email, sign out, delete account")
         case .notifications: return String(localized: "Arrival alerts, news")
         case .privacy: return String(localized: "Face ID, app passcode")
-        case .appearance: return String(localized: "Light or dark, map style")
+        case .appearance: return String(localized: "App icon, light or dark, map style")
         case .language: return "English, বাংলা"
         case .assistant: return String(localized: "Answers on this iPhone")
         case .storage: return String(localized: "Clear cache")
@@ -63,7 +63,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .account: return ["profile", "photo", "logout", "log out", "role", "id"]
         case .notifications: return ["alert", "remind", "announcement", "badge", "banner"]
         case .privacy: return ["face id", "touch id", "passcode", "lock", "security", "biometric"]
-        case .appearance: return ["theme", "dark", "light", "map", "satellite"]
+        case .appearance: return ["theme", "dark", "light", "map", "satellite", "icon", "logo"]
         case .language: return ["bangla", "bengali", "english", "বাংলা"]
         case .assistant: return ["ai", "model", "ask", "on-device"]
         case .storage: return ["cache", "storage", "clear", "space"]
@@ -397,9 +397,44 @@ struct SecuritySettingsView: View {
 struct AppearanceSettingsView: View {
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
     @AppStorage(MapStyleChoice.storageKey) private var mapStyle = MapStyleChoice.standard.rawValue
+    @State private var appIcon = AppIconChoice.current
+    @State private var iconError: String?
 
     var body: some View {
         Form {
+            Section(header: Text("App icon")) {
+                HStack(spacing: 0) {
+                    ForEach(AppIconChoice.allCases) { choice in
+                        Button {
+                            pickIcon(choice)
+                        } label: {
+                            VStack(spacing: 6) {
+                                Image(choice.previewImage)
+                                    .resizable()
+                                    .frame(width: 58, height: 58)
+                                    .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                            .stroke(Color.primary.opacity(0.12), lineWidth: 0.5)
+                                    )
+                                    .padding(3)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(appIcon == choice ? Color.accentColor : .clear, lineWidth: 2.5)
+                                    )
+                                Text(choice.title)
+                                    .font(.caption)
+                                    .foregroundStyle(appIcon == choice ? .primary : .secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(choice.title))
+                        .accessibilityAddTraits(appIcon == choice ? .isSelected : [])
+                    }
+                }
+                .padding(.vertical, 6)
+            }
             Section(header: Text("Theme")) {
                 Picker("Theme", selection: $appearance) {
                     ForEach(AppAppearance.allCases) { option in
@@ -420,6 +455,24 @@ struct AppearanceSettingsView: View {
             }
         }
         .navigationTitle("Appearance")
+        .alert("Couldn't change the icon", isPresented: Binding(get: { iconError != nil }, set: { if !$0 { iconError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(iconError ?? "")
+        }
+    }
+
+    private func pickIcon(_ choice: AppIconChoice) {
+        let previous = appIcon
+        appIcon = choice
+        Task {
+            do {
+                try await choice.apply()
+            } catch {
+                appIcon = previous
+                iconError = error.localizedDescription
+            }
+        }
     }
 }
 
