@@ -60,7 +60,7 @@ struct ProfileView: View {
                     NavigationLink {
                         MyTripsView()
                     } label: {
-                        SettingsRow(icon: "clock.arrow.circlepath", title: String(localized: "My trips"),
+                        SettingsRow(icon: "clock.arrow.circlepath", title: String(localized: "Ride history"),
                                     subtitle: String(localized: "Recent buses and your usual bus"))
                     }
                 }
@@ -197,7 +197,7 @@ struct MyTripsView: View {
                 }
             }
         }
-        .navigationTitle("My trips")
+        .navigationTitle("Ride history")
         .confirmationDialog("Forget your ride history and usual buses?", isPresented: $confirmReset,
                             titleVisibility: .visible) {
             Button("Reset", role: .destructive) {

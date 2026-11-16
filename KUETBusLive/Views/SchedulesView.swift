@@ -14,6 +14,9 @@ import SwiftUI
 struct SchedulesView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var scheduleViewModel = ScheduleViewModel()
+    @StateObject private var myTrips = MyTripsViewModel()
+    // The trip being pinned or changed in "My trips".
+    @State private var pinning: BusSchedule?
     @State private var days: TripDays = TripDays.saturday.includes(Date()) ? .saturday : .sunToThu
     @State private var editingSchedule: BusSchedule?
     @State private var confirmReload = false
@@ -28,6 +31,20 @@ struct SchedulesView: View {
 
     var isAdmin: Bool {
         role == .admin
+    }
+
+    // Riders pin the trips they usually take.
+    var canPin: Bool {
+        role == .student || role == .teacher
+    }
+
+    // Pinned trips that are still in the timetable, in timetable order.
+    var pinned: [(trip: MyTrip, schedule: BusSchedule)] {
+        myTrips.trips.compactMap { trip in
+            scheduleViewModel.schedules.first { $0.id == trip.id }.map { (trip, $0) }
+        }
+        .sorted { (BusSchedule.minutes(from: $0.trip.time(in: $0.schedule)) ?? 0)
+                < (BusSchedule.minutes(from: $1.trip.time(in: $1.schedule)) ?? 0) }
     }
 
     // Every place this person's trips go to, with its name in the app's language.
@@ -57,6 +74,19 @@ struct SchedulesView: View {
                     }
                 }
 
+                if canPin && !pinned.isEmpty {
+                    Section(header: Text("My trips")) {
+                        ForEach(pinned, id: \.schedule.id) { item in
+                            Button {
+                                pinning = item.schedule
+                            } label: {
+                                MyTripRow(trip: item.trip, schedule: item.schedule)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+
                 if let next = nextTrip {
                     Section(header: Text("Next bus you can take today")) {
                         ScheduleRow(schedule: next)
@@ -70,6 +100,27 @@ struct SchedulesView: View {
                         Section(header: Text(period.title)) {
                             ForEach(trips) { trip in
                                 ScheduleRow(schedule: trip)
+                                    .swipeActions(edge: .leading) {
+                                        if canPin {
+                                            Button {
+                                                pinning = trip
+                                            } label: {
+                                                Label(myTrips.trip(for: trip) == nil ? "Pin" : "My trip",
+                                                      systemImage: "pin")
+                                            }
+                                            .tint(.indigo)
+                                        }
+                                    }
+                                    .contextMenu {
+                                        if canPin {
+                                            Button {
+                                                pinning = trip
+                                            } label: {
+                                                Label(myTrips.trip(for: trip) == nil ? "Add to My trips" : "Change my trip",
+                                                      systemImage: "pin")
+                                            }
+                                        }
+                                    }
                                     .swipeActions {
                                         if isAdmin {
                                             Button("Delete", role: .destructive) {
@@ -131,15 +182,29 @@ struct SchedulesView: View {
             .sheet(isPresented: $showImport) {
                 TimetableImportView(scheduleViewModel: scheduleViewModel)
             }
+            .sheet(item: $pinning) { schedule in
+                MyTripEditView(schedule: schedule, myTrips: myTrips)
+            }
             .sheet(item: $editingSchedule) { schedule in
                 ScheduleEditView(schedule: schedule, scheduleViewModel: scheduleViewModel)
             }
         }
         .onAppear {
             scheduleViewModel.startListening()
+            if canPin, let uid = authViewModel.user?.uid {
+                myTrips.startListening(uid: uid)
+            }
         }
         .onDisappear {
             scheduleViewModel.stopListening()
+            myTrips.stopListening()
+        }
+        // A pin, or the timetable, changed: the weekly reminders follow.
+        .onChange(of: myTrips.trips) { _, trips in
+            MyTripsViewModel.scheduleReminders(trips: trips, schedules: scheduleViewModel.schedules)
+        }
+        .onChange(of: scheduleViewModel.schedules.map(\.reminderKey)) { _, _ in
+            MyTripsViewModel.scheduleReminders(trips: myTrips.trips, schedules: scheduleViewModel.schedules)
         }
     }
 }

@@ -228,6 +228,10 @@ class AuthViewModel: ObservableObject {
                 for place in places.documents {
                     try await place.reference.delete()
                 }
+                let pinned = try await db.collection("users").document(uid).collection("myTrips").getDocuments()
+                for trip in pinned.documents {
+                    try await trip.reference.delete()
+                }
                 if let busId = UserDefaults.standard.string(forKey: BusViewModel.wavingAtKey) {
                     try? await db.collection("buses").document(busId).collection("waves").document(uid).delete()
                 }
