@@ -28,17 +28,18 @@ let env;
 // People in the test database. Their profiles are written with the rules switched off.
 const people = {
   admin: { name: "Admin", email: "admin@test.com", role: "admin", kuetId: "S-1", isApproved: true },
-  student: { name: "Student", email: "student@test.com", role: "student", kuetId: "2207001", isApproved: true },
-  teacher: { name: "Teacher", email: "teacher@test.com", role: "teacher", kuetId: "E-1", isApproved: true },
-  newTeacher: { name: "New Teacher", email: "new@test.com", role: "teacher", kuetId: "E-2", isApproved: false },
+  student: { name: "Student", email: "2207001@stud.kuet.ac.bd", role: "student", kuetId: "2207001", isApproved: true },
+  teacher: { name: "Teacher", email: "teacher@cse.kuet.ac.bd", role: "teacher", kuetId: "E-1", isApproved: true },
+  newTeacher: { name: "New Teacher", email: "new@kuet.ac.bd", role: "teacher", kuetId: "E-2", isApproved: false },
   driver: { name: "Driver", email: "driver@test.com", role: "driver", kuetId: "D-1", isApproved: true },
   newDriver: { name: "New Driver", email: "newdriver@test.com", role: "driver", kuetId: "D-2", isApproved: false },
 };
 
-function db(uid) {
+// Everyone has opened their verification link unless a test says otherwise.
+function db(uid, { email, verified = true } = {}) {
   if (!uid) return env.unauthenticatedContext().firestore();
-  const email = people[uid] ? people[uid].email : `${uid}@test.com`;
-  return env.authenticatedContext(uid, { email }).firestore();
+  const mail = email || (people[uid] ? people[uid].email : `${uid}@test.com`);
+  return env.authenticatedContext(uid, { email: mail, email_verified: verified }).firestore();
 }
 
 function bus(driverId, extra = {}) {
@@ -133,30 +134,74 @@ test("the admin reads every profile", async () => {
   await assertFails(getDocs(collection(db("student"), "users")));
 });
 
+const freshStudent = { name: "Fresh", email: "2207002@stud.kuet.ac.bd", role: "student", kuetId: "2207002", isApproved: true };
+
+function fresh(email) {
+  return db("fresh", { email, verified: false });
+}
+
 test("sign up as a student starts approved", async () => {
-  await assertSucceeds(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "fresh@test.com", role: "student", kuetId: "2207002", isApproved: true }));
+  await assertSucceeds(setDoc(doc(fresh(freshStudent.email), "users", "fresh"), freshStudent));
 });
 
 test("sign up cannot approve a teacher or driver, or make an admin", async () => {
-  await assertFails(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "fresh@test.com", role: "teacher", kuetId: "E-9", isApproved: true }));
-  await assertFails(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "fresh@test.com", role: "admin", kuetId: "S-9", isApproved: true }));
-  await assertSucceeds(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "fresh@test.com", role: "driver", kuetId: "D-9", isApproved: false }));
+  await assertFails(setDoc(doc(fresh("fresh@kuet.ac.bd"), "users", "fresh"),
+    { name: "Fresh", email: "fresh@kuet.ac.bd", role: "teacher", kuetId: "E-9", isApproved: true }));
+  await assertFails(setDoc(doc(fresh("fresh@kuet.ac.bd"), "users", "fresh"),
+    { name: "Fresh", email: "fresh@kuet.ac.bd", role: "admin", kuetId: "S-9", isApproved: true }));
+  await assertSucceeds(setDoc(doc(fresh("fresh@gmail.com"), "users", "fresh"),
+    { name: "Fresh", email: "fresh@gmail.com", role: "driver", kuetId: "D-9", isApproved: false }));
 });
 
 test("sign up must use your own uid and your own email", async () => {
-  await assertFails(setDoc(doc(db("fresh"), "users", "someoneElse"),
-    { name: "Fresh", email: "fresh@test.com", role: "student", kuetId: "2207002", isApproved: true }));
-  await assertFails(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "other@test.com", role: "student", kuetId: "2207002", isApproved: true }));
+  await assertFails(setDoc(doc(fresh(freshStudent.email), "users", "someoneElse"), freshStudent));
+  await assertFails(setDoc(doc(fresh("2207003@stud.kuet.ac.bd"), "users", "fresh"), freshStudent));
 });
 
 test("sign up cannot add unknown fields", async () => {
-  await assertFails(setDoc(doc(db("fresh"), "users", "fresh"),
-    { name: "Fresh", email: "fresh@test.com", role: "student", kuetId: "2207002", isApproved: true, isAdmin: true }));
+  await assertFails(setDoc(doc(fresh(freshStudent.email), "users", "fresh"), { ...freshStudent, isAdmin: true }));
+});
+
+test("a student signs up only with the KUET student email that holds their roll", async () => {
+  const as = (email, kuetId) => setDoc(doc(fresh(email), "users", "fresh"), { ...freshStudent, email, kuetId });
+  await assertFails(as("2207002@gmail.com", "2207002"));
+  await assertFails(as("fresh@test.com", "2207002"));
+  await assertFails(as("2207009@stud.kuet.ac.bd", "2207002"));
+  await assertFails(as("2207002@stud.kuet.ac.bd", "22070"));
+  await assertFails(as("2207002@stud.kuet.ac.bd.evil.com", "2207002"));
+  await assertSucceeds(as("shoscho2207002@stud.kuet.ac.bd", "2207002"));
+});
+
+test("a teacher signs up only with a KUET staff email", async () => {
+  const as = (email) => setDoc(doc(fresh(email), "users", "fresh"),
+    { name: "Fresh", email, role: "teacher", kuetId: "E-9", isApproved: false });
+  await assertFails(as("fresh@gmail.com"));
+  await assertFails(as("2207002@stud.kuet.ac.bd"));
+  await assertFails(as("fresh@notkuet.ac.bd"));
+  await assertSucceeds(as("fresh@cse.kuet.ac.bd"));
+});
+
+test("riders who haven't opened their verification link see no buses", async () => {
+  await assertFails(getDoc(doc(db("student", { verified: false }), "buses", "student-bus")));
+  await assertFails(getDocs(collection(db("teacher", { verified: false }), "buses")));
+  await assertFails(setDoc(doc(db("student", { verified: false }), "buses", "student-bus", "waves", "student"),
+    { uid: "student", label: "Gate", lat: 22.9, lng: 89.5, createdAt: new Date(), expiresAt: new Date() }));
+});
+
+test("the App Review student account needs no verification link", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "users", "review"),
+      { name: "Review", email: "appreview.student@kuetbuslive.app", role: "student", kuetId: "2207100", isApproved: true });
+  });
+  const review = db("review", { email: "appreview.student@kuetbuslive.app", verified: false });
+  await assertSucceeds(getDoc(doc(review, "buses", "student-bus")));
+});
+
+test("a rider the admin turned off sees no buses", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "users", "student"), { active: false });
+  });
+  await assertFails(getDoc(doc(db("student"), "buses", "student-bus")));
 });
 
 test("you can change your stop and push token, not your role or approval", async () => {

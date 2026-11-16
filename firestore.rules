@@ -24,9 +24,26 @@ service cloud.firestore {
       return hasProfile() && me().get('isApproved', false) == true;
     }
 
-    // Approved, and not deactivated by the admin (a driver who left the job).
+    // Not turned off by the admin (for example a driver who left the job).
+    function isActive() {
+      return me().get('active', true) == true;
+    }
+
+    // The two App Review accounts are made by hand in the Firebase console and have
+    // no mailbox to open a verification link in. No other address skips the link.
+    function appReviewEmails() {
+      return ['appreview.student@kuetbuslive.app', 'appreview.driver@kuetbuslive.app'];
+    }
+
+    // The login's email was proved by opening the link Firebase sent to it.
+    function emailVerified() {
+      return request.auth.token.get('email_verified', false) == true
+        || request.auth.token.get('email', '') in appReviewEmails();
+    }
+
+    // Approved, and not deactivated by the admin.
     function isApprovedDriver() {
-      return isApproved() && me().role == 'driver' && me().get('active', true) == true;
+      return isApproved() && me().role == 'driver' && isActive();
     }
 
     // ---------- Bus assignment ----------
@@ -57,8 +74,25 @@ service cloud.firestore {
     }
 
     // Students and teachers ride buses. Teachers must be approved first; students start approved.
+    // They must also have opened the link in their KUET email, so nobody can see the
+    // buses by signing up with someone else's roll number.
     function isApprovedRider() {
-      return isApproved() && me().role in ['student', 'teacher'];
+      return isApproved() && me().role in ['student', 'teacher'] && isActive() && emailVerified();
+    }
+
+    // Who may sign up as what, by email (the apps check the same before signing up):
+    //  - a student: a 7-digit roll and the KUET student email that contains it;
+    //  - a teacher: a KUET staff email (kuet.ac.bd or a department subdomain);
+    //  - a driver: any email, since the admin approves drivers by hand.
+    function isAllowedSignUp(data) {
+      return data.role == 'driver'
+        || data.email in appReviewEmails()
+        || (data.role == 'student'
+            && data.kuetId.matches('^[0-9]{7}$')
+            && data.email.matches('^[^@]*' + data.kuetId + '[^@]*@stud[.]kuet[.]ac[.]bd$'))
+        || (data.role == 'teacher'
+            && data.email.matches('^[^@]+@([a-z0-9-]+[.])*kuet[.]ac[.]bd$')
+            && !data.email.matches('^[^@]+@stud[.]kuet[.]ac[.]bd$'));
     }
 
     // Students may only touch student buses. Teachers may ride any bus.
@@ -91,6 +125,7 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.role in ['student', 'teacher', 'driver']
         && isShortText(request.resource.data.kuetId, 30)
+        && isAllowedSignUp(request.resource.data)
         && request.resource.data.isApproved == (request.resource.data.role == 'student');
 
       // The admin can change anything, including role and approval.
@@ -177,6 +212,8 @@ service cloud.firestore {
           && bus.driverId == request.auth.uid
           && bus.audience in ['student', 'teacher']
           && bus.lat is number && bus.lng is number
+          && bus.lat >= -90 && bus.lat <= 90 && bus.lng >= -180 && bus.lng <= 180
+          && bus.routeId is string && bus.fleetBusId is string
           && isCrowdLevel(bus.crowd);
       }
 
