@@ -5731,6 +5731,36 @@
           }
         }
       }
+    },
+    "Enter your name (up to 100 characters).": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার নাম লিখুন (১০০ অক্ষর পর্যন্ত)।"
+          }
+        }
+      }
+    },
+    "Trip stopped: this bus can no longer be updated from your phone.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ থেমে গেছে: এই বাসটি আর আপনার ফোন থেকে আপডেট করা যাচ্ছে না।"
+          }
+        }
+      }
+    },
+    "Location is off. Turn it on in Settings.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লোকেশন বন্ধ। সেটিংসে গিয়ে চালু করুন।"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
