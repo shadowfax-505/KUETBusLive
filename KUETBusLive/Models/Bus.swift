@@ -99,6 +99,14 @@ struct Bus: Identifiable, Codable {
         Date().timeIntervalSince(updatedAt) > 60
     }
 
+    // No position for half an hour: the driver's phone died or the app was closed
+    // without ending the trip. Such a bus is left off the map (same limit on Android).
+    static let abandonedAfter: TimeInterval = 30 * 60
+
+    func isAbandoned(at date: Date = Date()) -> Bool {
+        date.timeIntervalSince(updatedAt) > Self.abandonedAfter
+    }
+
     var lastUpdateText: String {
         Bus.ageText(seconds: Int(Date().timeIntervalSince(updatedAt)))
     }
