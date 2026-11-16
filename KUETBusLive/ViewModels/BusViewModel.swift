@@ -48,6 +48,9 @@ class BusViewModel: ObservableObject {
 
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
+    private var wantsBuses = false
+    // Waits 5 s before opening a failed listener again, then longer each time, up to a minute.
+    private var retryDelay: TimeInterval = 5
     private let etaService = ETAService()
     private var lastEtaFetch: [String: Date] = [:]
     private var alertedBusIds = Set<String>()
@@ -60,14 +63,27 @@ class BusViewModel: ObservableObject {
         if viewerRole == .student {
             query = query.whereField("audience", isEqualTo: BusAudience.student.rawValue)
         }
+        wantsBuses = true
         listener = query.addSnapshotListener { snapshot, error in
             if let error = error {
+                // A listener that fails is closed for good (for example "permission
+                // denied" while a fresh sign-in token is on its way), so open it again.
                 print("Error getting buses: \(error)")
+                self.listener?.remove()
+                self.listener = nil
+                let wait = self.retryDelay
+                self.retryDelay = min(self.retryDelay * 2, 60)
+                DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
+                    if self.wantsBuses { self.startListening() }
+                }
                 return
             }
+            self.retryDelay = 5
+            // A bus silent for half an hour was left behind by a phone that died or
+            // closed the app mid-trip; it isn't running, so it isn't shown.
             let allBuses = snapshot?.documents.compactMap { document in
                 try? document.data(as: Bus.self)
-            } ?? []
+            }.filter { !$0.isAbandoned() } ?? []
             // Keep only the buses this rider is allowed to get on.
             // The animation makes each bus glide to its new spot instead of jumping.
             withAnimation(.easeInOut(duration: 1)) {
@@ -97,6 +113,7 @@ class BusViewModel: ObservableObject {
     }
 
     func stopListening() {
+        wantsBuses = false
         listener?.remove()
         listener = nil
     }
