@@ -44,8 +44,7 @@ struct NextBusWidgetView: View {
 
     private var header: some View {
         HStack(spacing: 5) {
-            Image(systemName: "bus.fill")
-                .symbolRenderingMode(.hierarchical)
+            KUETMark()
                 .foregroundStyle(WidgetTheme.accent)
                 .widgetAccentable()
             Text(headline)

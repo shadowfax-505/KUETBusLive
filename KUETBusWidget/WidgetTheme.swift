@@ -69,6 +69,22 @@ enum WidgetTheme {
     }
 }
 
+// MARK: - Logo
+
+// The KUET bus and pin from the app icon, in one colour, so it takes the tint and
+// the accented and vibrant widget modes like an SF Symbol does.
+struct KUETMark: View {
+    var height: CGFloat = 13
+
+    var body: some View {
+        Image("LogoMark")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(height: height)
+    }
+}
+
 // MARK: - Type
 
 extension View {
