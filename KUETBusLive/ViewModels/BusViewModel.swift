@@ -270,8 +270,8 @@ class BusViewModel: ObservableObject {
         }
         lastEtaFetch[busId] = Date()
 
-        etaService.fetchETA(from: bus.coordinate, to: point.coordinate) { info in
-            guard let info = info else {
+        etaService.fetchETA(from: bus.coordinate, to: point.coordinate) { fetched in
+            guard let info = fetched ?? self.estimateETA(for: bus, to: point.coordinate) else {
                 self.etaText[busId] = String(localized: "ETA unavailable")
                 return
             }
@@ -289,6 +289,17 @@ class BusViewModel: ObservableObject {
             self.checkArrivalAlert(bus: bus, minutes: info.minutes)
             self.checkBoarded(bus: bus, info: info, at: point.coordinate)
         }
+    }
+
+    // The routing server is down or unreachable: estimate from the route instead of
+    // showing nothing.
+    private func estimateETA(for bus: Bus, to point: CLLocationCoordinate2D) -> RouteInfo? {
+        let along = routePaths[bus.routeId].flatMap { path in
+            path.count >= 2 ? PathMath.metresAhead(of: bus.coordinate, rider: point, path: path) : nil
+        }
+        let straight = CLLocation(latitude: bus.lat, longitude: bus.lng)
+            .distance(from: CLLocation(latitude: point.latitude, longitude: point.longitude))
+        return RouteInfo.estimate(alongRoute: along, straightLine: straight)
     }
 
     private func checkArrivalAlert(bus: Bus, minutes: Int) {
