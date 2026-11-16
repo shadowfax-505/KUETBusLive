@@ -45,6 +45,13 @@ class AuthViewModel: ObservableObject {
         errorMessage = ""
         let email = email.lowercased().trimmingCharacters(in: .whitespaces)
         let kuetId = kuetId.trimmingCharacters(in: .whitespaces)
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // The database keeps names of 1 to 100 characters.
+        guard !name.isEmpty, name.count <= 100 else {
+            errorMessage = String(localized: "Enter your name (up to 100 characters).")
+            return
+        }
 
         // Check the KUET ID and email before an account is created.
         if let problem = KUETVerifier.validate(role: role, email: email, kuetId: kuetId) {
@@ -65,26 +72,32 @@ class AuthViewModel: ObservableObject {
             var newProfile = AppUser(name: name, email: email, role: role)
             newProfile.kuetId = kuetId
             newProfile.isApproved = !newProfile.needsApproval
-            do {
-                // Add: the profile document uses the Auth uid as its ID.
-                try self.db.collection("users").document(firebaseUser.uid).setData(from: newProfile)
-            } catch {
-                self.errorMessage = String(localized: "Could not save profile: \(error.localizedDescription)")
-                return
-            }
-
-            if KUETVerifier.needsEmailVerification(role: role, email: email) {
-                firebaseUser.sendEmailVerification { error in
-                    if let error = error {
-                        self.errorMessage = String(localized: "Could not send verification email: \(error.localizedDescription)")
+            // Add: the profile document uses the Auth uid as its ID. If the server refuses
+            // it, the login is removed again, so the email can be used for a fresh try
+            // instead of leaving an account stuck on "Loading profile".
+            let saved: (Error?) -> Void = { error in
+                if let error = error {
+                    self.errorMessage = String(localized: "Could not save profile: \(error.localizedDescription)")
+                    firebaseUser.delete { _ in try? Auth.auth().signOut() }
+                    return
+                }
+                if KUETVerifier.needsEmailVerification(role: role, email: email) {
+                    firebaseUser.sendEmailVerification { error in
+                        if let error = error {
+                            self.errorMessage = String(localized: "Could not send verification email: \(error.localizedDescription)")
+                        }
                     }
                 }
+                self.user = firebaseUser
+                self.isEmailVerified = firebaseUser.isEmailVerified
+                self.isSignedIn = true
+                self.listenToProfile(uid: firebaseUser.uid)
             }
-
-            self.user = firebaseUser
-            self.isEmailVerified = firebaseUser.isEmailVerified
-            self.isSignedIn = true
-            self.listenToProfile(uid: firebaseUser.uid)
+            do {
+                try self.db.collection("users").document(firebaseUser.uid).setData(from: newProfile, completion: saved)
+            } catch {
+                saved(error)
+            }
         }
     }
 
@@ -132,7 +145,9 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    // Firebase only learns that the link was opened after the user is reloaded.
+    // Firebase only learns that the link was opened after the user is reloaded. The
+    // sign-in token is then fetched again, because the database rules read
+    // "email verified" from the token, and the old one still says no for up to an hour.
     func refreshVerification() {
         infoMessage = ""
         user?.reload { error in
@@ -140,10 +155,18 @@ class AuthViewModel: ObservableObject {
                 self.errorMessage = error.localizedDescription
                 return
             }
-            self.user = Auth.auth().currentUser
-            self.isEmailVerified = Auth.auth().currentUser?.isEmailVerified ?? false
-            if !self.isEmailVerified {
+            guard let current = Auth.auth().currentUser, current.isEmailVerified else {
+                self.isEmailVerified = false
                 self.infoMessage = String(localized: "Not verified yet. Open the link in your KUET email first.")
+                return
+            }
+            current.getIDTokenForcingRefresh(true) { _, error in
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+                self.user = current
+                self.isEmailVerified = true
             }
         }
     }
