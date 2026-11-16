@@ -36,4 +36,13 @@ final class BusAgeTextTests: XCTestCase {
         XCTAssertEqual(Bus.ageText(seconds: 86_400), "1 d ago")
         XCTAssertEqual(Bus.ageText(seconds: 3 * 86_400 + 10), "3 d ago")
     }
+
+    func testBusSilentForHalfAnHourIsAbandoned() {
+        let now = Date()
+        var bus = Bus(number: "Normal-1", routeId: "r1", routeName: "Rupsha", driverId: "d",
+                      lat: 22.9, lng: 89.5, updatedAt: now.addingTimeInterval(-29 * 60), crowd: .unknown)
+        XCTAssertFalse(bus.isAbandoned(at: now))
+        bus.updatedAt = now.addingTimeInterval(-31 * 60)
+        XCTAssertTrue(bus.isAbandoned(at: now))
+    }
 }
