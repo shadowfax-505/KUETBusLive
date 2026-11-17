@@ -82,6 +82,7 @@ KUET Bus Live answers those three questions:
 | ⏱️ ETA to your stop | "6 min, 5.3 km" to the stop you picked, refreshed as the bus moves. |
 | 🔔 Arrival alert | A notification when your bus is close. Each rider chooses how early, from 1 to 30 minutes (5 by default). |
 | 📅 Official timetable | All KUET trips (Sunday to Thursday and Saturday), with the next bus you can take today. |
+| 📌 My trips | Pin the buses you usually take, with the days, get a reminder before each, or add them to Calendar. |
 | 🎓 Bus allocation | Students see only *Normal* (student) buses. Teachers can ride any bus. |
 | 🪪 KUET ID verification | Roll number or employee ID, KUET email, email link and admin approval. |
 | 👥 Crowd reports | One tap to say "Seats available" or "Full", and everyone sees it instantly. |
@@ -94,8 +95,8 @@ KUET Bus Live answers those three questions:
 | 📍 Background location | The bus keeps moving on the map even when the driver locks the phone. |
 | 🇧🇩 Bangla | The whole app in Bangla when the phone (or just this app) is set to Bangla. |
 | ♿ Accessibility | VoiceOver labels, dark mode and large text that doesn't break the trip card. |
-| 🧪 Unit tests | 28 XCTest tests run on every push in CI. |
-| 📨 Server push (ready) | Cloud Function + FCM code for "Normal-2 just left campus", written but not deployed. |
+| 🧪 Unit tests | 182 XCTest tests and 73 security-rules tests run on every push in CI. |
+| 📨 Server push (ready) | Cloud Function + FCM for "Normal-2 just left campus" (teachers' buses go only to teachers), written but not deployed. |
 
 ---
 
@@ -621,6 +622,20 @@ There's no `audience` field in the file. The app works it out from the name: any
 
 The timetable screen also shows **"Next bus you can take today"**. It checks today's weekday (Sunday to Thursday, Saturday, or no buses on Friday), compares the times with the clock, and only looks at trips your role can ride.
 
+### My trips
+
+Riders pin the trips they usually take: swipe right or long-press a trip, pick which departure they take (from KUET or from the city spot), the days, and a reminder (off, or 5 to 60 minutes before). Pinned trips sit at the top of the timetable.
+
+<p align="center">
+  <img src="docs/my-trips-pin.png" alt="Pinning a trip" width="30%">
+  <img src="docs/my-trips-light.png" alt="My trips on the timetable, light" width="30%">
+  <img src="docs/my-trips-dark.png" alt="My trips on the timetable, dark" width="30%">
+</p>
+
+- Pins are saved in the account (`users/{uid}/myTrips/{scheduleId}`), so they follow the rider to another phone, the Android app included.
+- Reminders are local notifications: one weekly reminder per pinned day, in Bangladesh time, rebuilt whenever the pins or the timetable change.
+- **Add to Calendar** opens the system's own event screen with a weekly repeat on the picked days, so the app never asks for calendar access.
+
 ---
 
 ## Crowd reports
@@ -690,10 +705,13 @@ A **WidgetKit** extension (`KUETBusWidget`) shows the next bus without opening t
 | Large | A map of my route with the bus on it, then the same track, ETA and crowd |
 
 <p align="center">
-  <img src="docs/widget-home-screen.png" alt="Medium widget" width="30%">
-  <img src="docs/widget-large-light.png" alt="Large and small widgets, light" width="30%">
-  <img src="docs/widget-large-dark.png" alt="Large and small widgets, dark" width="30%">
+  <img src="docs/widget-small-light.png" alt="Small widget" width="24%">
+  <img src="docs/widget-home-screen.png" alt="Medium widget" width="24%">
+  <img src="docs/widget-large-light.png" alt="Large widget, light" width="24%">
+  <img src="docs/widget-large-dark.png" alt="Large widget, dark" width="24%">
 </p>
+
+The small header shows the KUET bus and pin from the app icon, in one colour (`KUETBusWidget/Assets.xcassets/LogoMark`), so it takes the widget tint like an SF Symbol. The Live Activity and the Dynamic Island use the same mark.
 
 **Look.** The colours live in one file, `KUETBusWidget/WidgetTheme.swift`, with a light and a dark version of each:
 
