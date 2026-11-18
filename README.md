@@ -329,6 +329,8 @@ stateDiagram-v2
 
 > **Who skips the email link:** only the two App Review accounts (they have no mailbox), and `@test.com` accounts in debug builds. Release builds refuse new `@test.com` sign-ups and ask existing ones to verify, so a demo account can't get past the link in the App Store build.
 
+**The server checks it too.** `firestore.rules` repeats the email checks when the profile is created, and only lets a student or teacher see live buses once their sign-in token says the email is verified. When "I've verified my email" finds the link opened, the app fetches a fresh token before showing the map, because the old token still says "not verified" for up to an hour. If the profile can't be saved after the login is created, the login is removed again, so the email can be used for another try. Once these rules are deployed, `@test.com` accounts (debug builds) only work against the local emulators.
+
 ---
 
 ## Which bus can I take?
@@ -927,15 +929,17 @@ sequenceDiagram
     participant CF as Cloud Function
     R->>FCM: APNs token → FCM token
     R->>FS: users/{uid}.fcmToken
-    R->>FCM: subscribe to topic "route-{routeId}"
-    D->>FS: create buses/{id} (Start trip)
-    FS->>CF: onDocumentCreated("buses/{busId}")
-    CF->>FCM: send to "route-{routeId}"
+    R->>FCM: subscribe to the route's topic
+    D->>FS: create the bus document (Start trip)
+    FS->>CF: a bus document was created
+    CF->>FCM: send to the route's topic
     FCM-->>R: "Normal-2 · Rupsha just left campus"
 ```
 
 - **App:** `PushManager` registers for remote notifications, saves the FCM token on the profile, and subscribes the rider to the topic of the route that has their stop. `AppDelegate` passes the APNs token to Firebase.
 - **Server:** `functions/index.js` has one function, `notifyTripStarted`.
+- **Topics:** a student bus goes to `route-<routeId>`. A teachers' bus goes only to `route-<routeId>-teachers`, which only teachers join, because students may not ride it. The Android app joins the same topics.
+- **Signing out** leaves the topics and takes the push token off the profile, so the next person to sign in on that phone doesn't get the last person's pushes.
 
 **To turn it on:**
 
@@ -1082,29 +1086,40 @@ The checks in the app are friendly, but the real protection is `firestore.rules`
 
 ```mermaid
 flowchart TB
-    REQ["Read / write request"] --> SIGNED{"Signed in?"}
-    SIGNED -->|no| DENY["🚫 Denied"]
+    REQ["A read or a write"] --> SIGNED{"Signed in?"}
+    SIGNED -->|no| DENY["Refused"]
     SIGNED -->|yes| WHAT{"Which collection?"}
 
-    WHAT -->|users| U{"Own profile?"}
-    U -->|"create"| UC["your own email, role must be<br/>student / teacher / driver,<br/>only students start approved"]
-    U -->|"update"| UU["only your stop, name and push token<br/>(admin can change anything)"]
-    U -->|"delete"| UD["your own profile, or admin"]
+    WHAT -->|users| U{"Whose profile?"}
+    U -->|create| UC["Own uid and login email.<br/>Students: KUET student email<br/>that holds the roll number.<br/>Teachers: KUET staff email.<br/>Only students start approved."]
+    U -->|update| UU["Own name, stop and push token.<br/>The admin can change anything."]
+    U -->|"My trips and My places"| UP["Only the owner"]
 
-    WHAT -->|"schedules / routes / announcements"| SR["everyone reads,<br/>only admin writes"]
+    WHAT -->|"timetable, routes, news"| SR["Everyone signed in reads.<br/>Only the admin writes."]
 
-    WHAT -->|buses| B{"What kind of write?"}
-    B -->|create| BC["only an approved driver,<br/>as themselves, known fields only"]
-    B -->|"update position"| BU["only the bus's own approved driver"]
-    B -->|"update crowd"| BCR["only the crowd field, a known level,<br/>approved riders allowed on that bus"]
+    WHAT -->|buses| B{"Who is asking?"}
+    B -->|rider| BR["Approved, not turned off,<br/>email verified, and allowed<br/>on that bus to see it"]
+    B -->|driver| BD["Only on the bus assigned<br/>to them for that trip"]
 
     WHAT -->|"anything else"| DENY
-    B -->|delete| BD["the bus's driver or admin"]
 ```
 
-In plain words: nobody can make themselves an admin, nobody can approve themselves, only approved drivers can put a bus on the map, a student can't touch a teacher bus, only the admin can change routes or post announcements, and any collection the app doesn't use is closed. Every one of these is checked by `firestore-tests/rules.test.js` in the Firestore emulator (see [Continuous integration](#continuous-integration)).
+In plain words:
 
-After changing `firestore.rules`, deploy them again with `firebase deploy --only firestore:rules` (or paste them into **Firestore > Rules** in the console). Until then, the News tab shows nothing.
+- Nobody can make themselves an admin or approve themselves.
+- Sign-up is checked on the server too: a student needs the KUET student email that contains their roll number, and a teacher needs a KUET staff email. The app's own checks can't be skipped by calling Firebase directly.
+- Riders see live buses only after they open the link in their KUET email (`email_verified` in the sign-in token). After the link is opened, the app fetches a fresh token so this takes effect straight away. Only the two App Review accounts are exempt.
+- A student never sees or touches a teacher bus, and an account the admin turned off sees no buses.
+- Only approved drivers can put a bus on the map, only on the bus they drive that day (or that trip), and the position must be a real coordinate.
+- Pinned trips (`users/{uid}/myTrips`) belong to their owner, must point at a trip in the timetable, and hold only days of the week, the departure and a reminder of up to two hours.
+- Only the admin changes routes, the timetable or the news, and any collection the app doesn't use is closed.
+
+Every one of these is checked by `firestore-tests/rules.test.js` (73 tests) in the Firestore emulator (see [Continuous integration](#continuous-integration)). The Android app uses the same rules.
+
+**Deploying.** After changing `firestore.rules`, deploy them with `firebase deploy --only firestore:rules` (or paste them into **Firestore > Rules** in the console). Two things to know first:
+
+1. Once the stricter sign-up and verified-email checks are live, `@test.com` demo accounts can't sign up or see buses any more. Deploy after any demo that needs them, and use the local emulators ([`scripts/demo-bus.py`](scripts/demo-bus.py)) for demos instead.
+2. An admin must have created the fleet and given each driver a bus in **Drivers & buses**, or no driver can start a trip.
 
 ---
 
@@ -1156,7 +1171,7 @@ flowchart LR
 
 The real `GoogleService-Info.plist` is never committed. CI only needs a placeholder to compile.
 
-A second, much faster job on Ubuntu starts the Firestore emulator and runs `firestore-tests/rules.test.js`: 43 checks that `firestore.rules` lets each person do exactly what they should (for example, a student can't approve themselves, a driver can't move someone else's bus, a student can't report the crowd on a teacher bus, a driver can't start a bus that isn't theirs today, and nobody reads someone else's complaints, places or waves).
+A second, much faster job on Ubuntu starts the Firestore emulator and runs `firestore-tests/rules.test.js`: 73 checks that `firestore.rules` lets each person do exactly what they should (for example, a student can't approve themselves, a driver can't move someone else's bus, a student can't report the crowd on a teacher bus, a driver can't start a bus that isn't theirs today, and nobody reads someone else's complaints, places, pinned trips or waves, and a rider who hasn't opened their verification link sees no buses).
 
 ### Unit tests
 
@@ -1187,10 +1202,11 @@ xcodebuild test -project KUETBusLive.xcodeproj -scheme KUETBusLive \
 
 1. **Clone and open.** Clone the repository and open `KUETBusLive.xcodeproj` in Xcode 26 or later. Xcode fetches the Firebase packages (**FirebaseAuth**, **FirebaseFirestore**, **FirebaseMessaging**) from `Package.resolved` the first time.
 2. **Add your Firebase config.** `GoogleService-Info.plist` isn't in the repository because it holds project keys. In the [Firebase console](https://console.firebase.google.com/), create a project, add an iOS app with the bundle ID `KUETBusLive` (or change the bundle ID to match yours), download `GoogleService-Info.plist`, and put it in the `KUETBusLive/` folder next to `KUETBusLiveApp.swift`.
-3. **Turn on Firebase features.** Enable **Authentication > Email/Password**, create a **Firestore** database, put your project ID in `.firebaserc`, then deploy the rules:
+3. **Turn on Firebase features.** Enable **Authentication > Email/Password**, create a **Firestore** database, put your project ID in `.firebaserc`, then deploy the rules (read [Deploying](#security-rules) first):
    ```
    firebase deploy --only firestore:rules
    ```
+   The "just left campus" push needs the Cloud Function too, which needs the Blaze plan: `firebase deploy --only functions` (see [Server push](#server-push-fcm)).
 4. **Signing.** In **Signing & Capabilities**, choose your team for both the **KUETBusLive** and **KUETBusWidget** targets. Keychain Sharing, the App Group, background location and the Live Activities setting are already in the project. Push Notifications is not; see [Server push](#server-push-fcm).
 5. **Make an admin.** Run the app and sign up. In the Firebase console, open **Firestore > users > (your uid)** and change `role` to `admin`.
 6. **Load the data.** As the admin, tap **Load official KUET timetable** in Schedule and **Add sample KUET routes** in Routes.
@@ -1436,7 +1452,7 @@ The app is being prepared for the App Store. The full list, with what is done an
 - **Delete account:** Profile > Delete account removes the profile, the login and the phone's saved settings after asking for the password. A driver's running trip is ended first, and the last admin can't delete themselves.
 - **App Review login:** two fixed demo accounts skip the KUET email check. How to set them up, and what to tell the reviewer, is in [docs/app-review-notes.md](docs/app-review-notes.md). No passwords are kept in this repository.
 - **Location text:** the permission pop-ups say exactly when location is used, in English and Bangla. Only drivers starting a trip are asked for "Always".
-- **Production rules:** `firestore.rules` is tightened and tested in the emulator (43 checks), but not deployed yet. The newer features (Delete account, complaints, My places, waves, bus assignment) need these rules deployed to work on the live project. The test accounts are still needed for the lab viva; [scripts/cleanup-test-data.md](scripts/cleanup-test-data.md) lists what to remove afterwards.
+- **Production rules:** `firestore.rules` is tightened and tested in the emulator (73 checks), but not deployed yet. The newer features (Delete account, complaints, My places, My trips, waves, bus assignment) need these rules deployed to work on the live project. The test accounts are still needed for the lab viva; [scripts/cleanup-test-data.md](scripts/cleanup-test-data.md) lists what to remove afterwards.
 
 Still to do by hand: a paid Apple Developer account, TestFlight on a real iPhone, store screenshots and description, and permission from the KUET transport office.
 

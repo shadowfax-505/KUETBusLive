@@ -1,5 +1,7 @@
 # Android plan
 
+> The Android app now exists: [shadowfax-505/KUETBusLive-Android](https://github.com/shadowfax-505/KUETBusLive-Android). This page is the original plan, kept for the reasoning behind it.
+
 How an Android version of KUET Bus Live would be built on the same backend. Nothing on the server changes: both apps read and write the documents described in [data-model.md](data-model.md), under the same [`firestore.rules`](../firestore.rules).
 
 ## Stack
