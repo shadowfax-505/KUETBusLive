@@ -558,7 +558,7 @@ Small touches that make the app feel alive without getting in the way:
 
 | Where | What moves |
 | --- | --- |
-| Opening the app | The logo springs in while a dotted route draws itself, then the app fades in (`SplashView`) |
+| Opening the app | The bus from the app icon drives in along a dotted road, the location pin drops onto it, "KUET" lights up on the sign, then the logo zooms forward and fades to show the app. With Reduce Motion on, the logo just fades (`IntroAnimationView`) |
 | Between screens | Login, waiting, verify and the main tabs cross-fade instead of snapping |
 | Map | Every running bus has a ring that keeps spreading out; buses glide between GPS updates; the selected bus springs up in size |
 | Trip card | The ETA digits roll to the new value (`.numericText()`), the live signal icon pulses, the crowd icon bounces on a new report, and the phone gives a light tap (`sensoryFeedback`) |
