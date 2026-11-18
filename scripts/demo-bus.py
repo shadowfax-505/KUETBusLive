@@ -96,7 +96,7 @@ def seed():
     put("routes/r-sonadanga", {"name": "KUET to Sonadanga", "nameBn": "কুয়েট থেকে সোনাডাঙ্গা",
                                "stops": [{"name": n, "nameBn": bn, "lat": lat, "lng": lng}
                                          for n, bn, lat, lng in STOPS]})
-    print(f"Seeded {EMAIL} (password {PASSWORD}) and the Sonadanga route.")
+    print(f"Seeded {EMAIL} and the Sonadanga route. The password is PASSWORD in this script.")
 
 
 def metres(a, b):
