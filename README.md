@@ -865,12 +865,18 @@ flowchart LR
 
 ## Bangla, dark mode and accessibility
 
-**Bangla.** All text in the app, the widget and the Live Activity lives in one **String Catalog** (`Shared/Localizable.xcstrings`) with English and Bangla (`bn`). Bus names like Normal-1 and place names like Rupsha stay as they are. The app follows the phone's language; **Profile > Language** explains how to switch, including picking Bangla for this app only in Settings.
+**Bangla.** All text in the app, the widget and the Live Activity lives in one **String Catalog** (`Shared/Localizable.xcstrings`) with English and Bangla (`bn`). Bus names like Normal-1 and place names like Rupsha stay as they are. By default the app follows the phone's language; **Settings > Language** switches it to English or Bangla at once.
 
 <p align="center">
   <img src="docs/bangla-dark-trip-card.png" alt="Trip card in Bangla, dark mode" width="30%">
   <img src="docs/bangla-dark-schedule.png" alt="Timetable in Bangla" width="30%">
-  <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla with the language note" width="30%">
+  <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla" width="30%">
+</p>
+
+**Appearance.** **Settings > Appearance** has the app icon picker (Black, White, Colour and Pin), the theme (same as iPhone, light or dark) and the live map style (standard or satellite).
+
+<p align="center">
+  <img src="docs/app-icon-picker.png" alt="Settings > Appearance with the app icon picker" width="30%">
 </p>
 
 **Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widgets switch between white and `#1C1C1E`, the Live Activity stays near-black in both modes, and the large widget's map picture has a dark version.
