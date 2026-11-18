@@ -852,6 +852,16 @@
         }
       }
     },
+    "Bus on the trip bar": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রিপ বারে বাস"
+          }
+        }
+      }
+    },
     "Bus Schedule": {
       "localizations": {
         "bn": {
@@ -1892,6 +1902,26 @@
         }
       }
     },
+    "From above": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উপর থেকে"
+          }
+        }
+      }
+    },
+    "From the side": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাশ থেকে"
+          }
+        }
+      }
+    },
     "From the timetable": {
       "localizations": {
         "bn": {
@@ -2058,6 +2088,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "কত আগে"
+          }
+        }
+      }
+    },
+    "How the bus looks as it drives towards your stop.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার স্টপের দিকে আসার সময় বাসটি দেখতে কেমন হবে।"
           }
         }
       }

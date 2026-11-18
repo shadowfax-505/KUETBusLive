@@ -37,6 +37,7 @@ struct TripCard: View {
 
     // Remembered between buses, like a sheet left at its smaller height.
     @AppStorage("tripCardExpanded") private var expanded = true
+    @AppStorage(BusStyle.storageKey, store: SharedStore.defaults) private var busStyle = BusStyle.above.rawValue
     @GestureState private var dragOffset: CGFloat = 0
 
     // With very large text (Settings > Accessibility > Larger Text), rows that sit
@@ -227,7 +228,8 @@ struct TripCard: View {
         if let track = busViewModel.tripProgress(for: bus), let boardingName {
             TripProgressView(progress: track, endLabel: boardingName, tint: MapTheme.primary,
                              trackColor: MapTheme.raised, refined: true,
-                             stopColor: .secondary.opacity(0.6), busGlyphColor: MapTheme.buttonText)
+                             stopColor: .secondary.opacity(0.6),
+                             busStyle: BusStyle(rawValue: busStyle) ?? .above)
                 .animation(.easeInOut, value: track.fraction)
         } else if let near = busViewModel.nearestStop(for: bus) {
             // My stop isn't on this route: show the nearest stop instead.

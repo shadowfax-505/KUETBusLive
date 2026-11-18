@@ -32,10 +32,8 @@ enum WidgetTheme {
     static let accent = primary
     static let track = Color(light: nearBlack.withAlphaComponent(0.10), dark: UIColor.white.withAlphaComponent(0.14))
     static let hairline = Color(light: nearBlack.withAlphaComponent(0.08), dark: UIColor.white.withAlphaComponent(0.08))
-    // Small rings for the stops along the track.
+    // Small dots for the stops along the track.
     static let stopRing = Color(light: nearBlack.withAlphaComponent(0.45), dark: .white)
-    // The bus symbol inside the accent circle: the opposite of the circle.
-    static let busGlyph = Color(light: .white, dark: nearBlack)
 
     // MARK: Status
 
@@ -65,7 +63,6 @@ enum WidgetTheme {
         static let accent = Color.white
         static let track = Color.white.opacity(0.14)
         static let stopRing = Color.white
-        static let busGlyph = Color(nearBlack)
     }
 }
 
