@@ -264,6 +264,8 @@ Shared/                         Compiled into both the app and the widget (no Fi
 ├── TripProgress.swift          Where the bus is between KUET and my stop (0...1)
 ├── TripProgressView.swift      The track and the ring
 ├── BusArt.swift                The bus on the track, from above or from the side
+├── WidgetFont.swift            The widget font picked in Settings
+├── Fonts/                      Widget fonts, trimmed to Latin (licence in docs/fonts)
 ├── BusTripAttributes.swift     Live Activity data
 ├── Localizable.xcstrings       English + Bangla text
 └── kuet_schedule.json          Official KUET timetable
@@ -717,6 +719,8 @@ A **WidgetKit** extension (`KUETBusWidget`) shows the next bus without opening t
 | Small | A progress ring with the minutes left in the middle, plus the bus name |
 | Medium | The bus, its ETA and crowd, and a track from KUET to my stop |
 | Large | A map of my route with the bus on it, then the same track, ETA and crowd |
+
+The widget and the Live Activity come in three fonts, picked in **Settings > Appearance**: Departure board (Barlow Condensed, the default), Grotesk (Space Grotesk) and Timetable (Fraunces with JetBrains Mono). All three are under the SIL Open Font License (see `docs/fonts`).
 
 <p align="center">
   <img src="docs/widget-small-light.png" alt="Small widget" width="24%">
