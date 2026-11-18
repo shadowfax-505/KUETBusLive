@@ -896,6 +896,7 @@ flowchart LR
 
 <p align="center">
   <img src="docs/app-icon-picker.png" alt="Settings > Appearance with the app icon picker" width="30%">
+  <img src="docs/bus-style-picker.png" alt="Settings > Appearance with the bus on the trip bar" width="30%">
 </p>
 
 **Dark mode.** The screens use system colours (`.primary`, `.secondary`, materials), so they adapt by themselves. I checked every main screen in dark mode. The widgets switch between white and `#1C1C1E`, the Live Activity stays near-black in both modes, and the large widget's map picture has a dark version.
