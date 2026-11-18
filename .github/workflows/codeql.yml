@@ -1,0 +1,98 @@
+name: CodeQL
+
+# CodeQL's automatic Swift build can't find the app's sources, because the
+# project uses Xcode's folder-synced groups. This workflow builds the app with
+# xcodebuild instead, and scans the other languages the same way default setup did.
+# Default setup must be switched off in Settings > Code security for these
+# results to be accepted.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '30 3 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'swift' && 'macos-26' || 'ubuntu-latest' }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+          - language: swift
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Select newest Xcode
+        if: matrix.language == 'swift'
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$XCODE" ] || XCODE=/Applications/Xcode.app
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      # Same placeholder as build.yml. Not a real key; it is put together at run
+      # time so secret scanners don't mistake it for one.
+      - name: Add placeholder Firebase config
+        if: matrix.language == 'swift'
+        run: |
+          API_KEY="AIza$(printf 'S%034d' 0)"
+          cat > KUETBusLive/GoogleService-Info.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key><string>${API_KEY}</string>
+            <key>GCM_SENDER_ID</key><string>000000000000</string>
+            <key>BUNDLE_ID</key><string>KUETBusLive</string>
+            <key>PROJECT_ID</key><string>placeholder</string>
+            <key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000</string>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Cache Swift packages
+        if: matrix.language == 'swift'
+        uses: actions/cache@v5
+        with:
+          path: build/SourcePackages
+          key: spm-${{ hashFiles('KUETBusLive.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Build the app for CodeQL
+        if: matrix.language == 'swift'
+        run: |
+          xcodebuild -project KUETBusLive.xcodeproj \
+            -scheme KUETBusLive \
+            -destination 'generic/platform=iOS Simulator' \
+            -clonedSourcePackagesDirPath build/SourcePackages \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SYMROOT=$PWD/build/Products \
+            clean build
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
