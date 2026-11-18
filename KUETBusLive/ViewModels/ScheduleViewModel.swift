@@ -13,6 +13,8 @@ import FirebaseFirestore
 
 class ScheduleViewModel: ObservableObject {
     @Published var schedules = [BusSchedule]()
+    // True once Firestore has answered, so an empty timetable is known to be really empty.
+    @Published var hasLoaded = false
 
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
@@ -29,6 +31,7 @@ class ScheduleViewModel: ObservableObject {
             self.schedules = snapshot?.documents.compactMap { document in
                 try? document.data(as: BusSchedule.self)
             } ?? []
+            self.hasLoaded = true
         }
     }
 

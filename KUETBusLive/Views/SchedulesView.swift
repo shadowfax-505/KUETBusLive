@@ -201,10 +201,16 @@ struct SchedulesView: View {
         }
         // A pin, or the timetable, changed: the weekly reminders follow.
         .onChange(of: myTrips.trips) { _, trips in
-            MyTripsViewModel.scheduleReminders(trips: trips, schedules: scheduleViewModel.schedules)
+            MyTripsViewModel.scheduleReminders(trips: trips, schedules: scheduleViewModel.schedules,
+                                               timetableLoaded: scheduleViewModel.hasLoaded)
         }
         .onChange(of: scheduleViewModel.schedules.map(\.reminderKey)) { _, _ in
-            MyTripsViewModel.scheduleReminders(trips: myTrips.trips, schedules: scheduleViewModel.schedules)
+            MyTripsViewModel.scheduleReminders(trips: myTrips.trips, schedules: scheduleViewModel.schedules,
+                                               timetableLoaded: scheduleViewModel.hasLoaded)
+        }
+        .onChange(of: scheduleViewModel.hasLoaded) { _, _ in
+            MyTripsViewModel.scheduleReminders(trips: myTrips.trips, schedules: scheduleViewModel.schedules,
+                                               timetableLoaded: scheduleViewModel.hasLoaded)
         }
     }
 }
