@@ -21,7 +21,9 @@ Use exactly these strings on every platform.
 | Ride event kind | `followed`, `alerted`, `waved`, `boarded` |
 | Day type (ride history) | `sunToThu`, `saturday`, `friday` |
 | Absence status | `open`, `covered`, `cancelled` |
-| Push topic for a route | `route-<routeId>` |
+| Push topic for a route | `route-<routeId>` for student buses, `route-<routeId>-teachers` for teachers' buses (only teachers join it) |
+| My trips leg (`myTrips.leg`) | `campus`, `spot` |
+| My trips days (`myTrips.days`) | `sun`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat` |
 
 **Dates for assignments** are days in Khulna (time zone `Asia/Dhaka`) written `yyyy-MM-dd`, e.g. `2026-11-10`. Text comparison of these strings gives the right order. **Times in the timetable** are 24-hour `HH:mm` strings, e.g. `06:30`. **Coordinates** are `lat` / `lng` numbers in degrees (WGS 84).
 
@@ -32,7 +34,7 @@ One profile per Firebase Auth account. The document ID is the Auth uid.
 | Field | Type | Notes |
 |---|---|---|
 | `name` | string | 1–100 characters |
-| `email` | string | must equal the login email when created |
+| `email` | string | must equal the login email when created. Students: a `@stud.kuet.ac.bd` address that contains the roll number. Teachers: `kuet.ac.bd` or a department subdomain. Drivers: any |
 | `role` | string | see Role |
 | `kuetId` | string | roll number (students), employee ID (teachers), driver ID (drivers) |
 | `isApproved` | boolean | students start `true`; teachers and drivers wait for the admin |
@@ -41,7 +43,7 @@ One profile per Firebase Auth account. The document ID is the Auth uid.
 | `favoriteStopLat`, `favoriteStopLng` | number, optional | |
 | `fcmToken` | string, optional | push token |
 
-Who can do what: you read and create your own profile; you may change only `name`, the favourite stop fields and `fcmToken`. The admin reads and changes every profile. You or the admin may delete it.
+Who can do what: you read and create your own profile (the rules check the email as above); you may change only `name`, the favourite stop fields and `fcmToken`. The admin reads and changes every profile. You or the admin may delete it. A student or teacher sees live buses only when approved, not turned off, and their sign-in token says the email is verified.
 
 ### `users/{uid}/places/{p1…p5}`: My places
 
