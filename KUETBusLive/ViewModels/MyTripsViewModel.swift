@@ -74,9 +74,10 @@ class MyTripsViewModel: ObservableObject {
 
     // Replaces every "My trips" reminder with one weekly reminder per pinned day.
     // A trip the admin removed from the timetable gets no reminder.
-    static func scheduleReminders(trips: [MyTrip], schedules: [BusSchedule]) {
-        // An empty timetable means Firestore hasn't answered yet; keep the reminders.
-        guard !schedules.isEmpty else { return }
+    // Until Firestore has sent the timetable, nothing is known yet, so the reminders stay.
+    // Once it has, an empty timetable clears them like any other trip that went away.
+    static func scheduleReminders(trips: [MyTrip], schedules: [BusSchedule], timetableLoaded: Bool) {
+        guard timetableLoaded else { return }
         let center = UNUserNotificationCenter.current()
         center.getPendingNotificationRequests { pending in
             let old = pending.map(\.identifier).filter { $0.hasPrefix(reminderPrefix) }
@@ -84,6 +85,16 @@ class MyTripsViewModel: ObservableObject {
             for request in reminderRequests(trips: trips, schedules: schedules) {
                 center.add(request)
             }
+        }
+    }
+
+    // Signing out takes this account's reminders off the phone, so the next person
+    // to use it isn't told about someone else's trips.
+    static func removeReminders() {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { pending in
+            let old = pending.map(\.identifier).filter { $0.hasPrefix(reminderPrefix) }
+            center.removePendingNotificationRequests(withIdentifiers: old)
         }
     }
 
