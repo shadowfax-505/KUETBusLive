@@ -6041,6 +6041,56 @@
           }
         }
       }
+    },
+    "Departure board": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিপারচার বোর্ড"
+          }
+        }
+      }
+    },
+    "Grotesk": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গ্রোটেস্ক"
+          }
+        }
+      }
+    },
+    "Timetable": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সময়সূচি"
+          }
+        }
+      }
+    },
+    "Widget font": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উইজেটের ফন্ট"
+          }
+        }
+      }
+    },
+    "The type on your home screen widget and Live Activity.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "হোম স্ক্রিনের উইজেট আর লাইভ অ্যাক্টিভিটির লেখার ধরন।"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
