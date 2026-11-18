@@ -25,6 +25,7 @@ struct KUETBusLiveApp: App {
         FirebaseApp.configure()
         Self.useLocalEmulatorsIfAsked()
         AppLanguage.current.apply()
+        WidgetFont.registerFonts()   // for the widget font picker in Settings
         // Creating the shared manager makes it the notification delegate from launch.
         _ = NotificationManager.shared
     }

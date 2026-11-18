@@ -96,7 +96,8 @@ struct NextBusWidgetView: View {
                 Spacer(minLength: 0)
                 TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                  caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24)
+                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24,
+                                 numberFont: .widgetNumber(size: 24))
                     .frame(width: 66, height: 66)
                 Spacer(minLength: 0)
             }
@@ -104,19 +105,19 @@ struct NextBusWidgetView: View {
             Group {
                 if let live = entry.live {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(PlaceNames.display(live.stopName))
                         .widgetLabel()
                         .padding(.top, 1)
                 } else if let next = entry.trips.first {
                     Text(next.trip.tripName)
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(next.leavesAt, style: .time)
                         .widgetLabel()
                         .padding(.top, 1)
                 } else {
                     Text("No buses this week")
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                 }
             }
             .lineLimit(1)
@@ -145,7 +146,7 @@ struct NextBusWidgetView: View {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     // Only when riders on board said it is crowded.
@@ -164,7 +165,7 @@ struct NextBusWidgetView: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
                         Text("\(live.etaMinutes)")
-                            .font(.widgetSerif(size: 34))
+                            .font(.widgetNumber(size: 34))
                             .monospacedDigit()
                         Text("min")
                             .widgetLabel()
@@ -179,7 +180,7 @@ struct NextBusWidgetView: View {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(next.trip.title))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     countdown(next)
@@ -188,12 +189,12 @@ struct NextBusWidgetView: View {
                 }
                 Spacer()
                 Text(next.leavesAt, style: .time)
-                    .font(.widgetSerif(size: 26))
+                    .font(.widgetNumber(size: 26))
                     .monospacedDigit()
             }
         } else {
             Text("No more buses this week")
-                .font(.widgetSerif(.title3))
+                .widgetTitle(.title3)
         }
     }
 
@@ -243,7 +244,8 @@ struct NextBusWidgetView: View {
                     Spacer()
                     TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                      caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40)
+                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40,
+                                     numberFont: .widgetNumber(size: 40))
                         .frame(width: 120, height: 120)
                     Spacer()
                 }

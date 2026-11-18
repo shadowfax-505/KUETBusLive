@@ -5,6 +5,7 @@
 //  Created by Muttakin Rahman Shoscho.
 //
 //  The colours and type of the widgets and the Live Activity, in one place.
+//  The font itself is the rider's pick (Shared/WidgetFont.swift).
 //  Black and white, like the app: white with near-black text in light mode,
 //  #1C1C1E with white text in dark mode. Colour is kept for status only
 //  (green for seats and on time, amber filling up, red full or late).
@@ -83,25 +84,30 @@ struct KUETMark: View {
 }
 
 // MARK: - Type
+// The font comes from the rider's pick in Settings > Appearance (WidgetFont).
 
 extension View {
     // Small uppercase labels such as "NEXT BUS" and "ARRIVING IN".
     func widgetLabel(_ color: Color = WidgetTheme.secondary) -> some View {
-        self.font(.caption2.weight(.semibold))
-            .tracking(1.2)
+        let font = WidgetFont.current
+        return self.font(font.label())
+            .tracking(font.labelTracking)
             .textCase(.uppercase)
             .foregroundStyle(color)
+    }
+
+    // Bus and trip names.
+    func widgetTitle(_ style: Font.TextStyle) -> some View {
+        let font = WidgetFont.current
+        return self.font(font.title(style))
+            .textCase(font.titleCase)
     }
 }
 
 extension Font {
-    // Bus names and big numbers, in New York.
-    static func widgetSerif(_ style: Font.TextStyle) -> Font {
-        .system(style, design: .serif).weight(.semibold)
-    }
-
-    static func widgetSerif(size: CGFloat) -> Font {
-        .system(size: size, weight: .semibold, design: .serif)
+    // Big numbers: minutes, times and distances.
+    static func widgetNumber(size: CGFloat) -> Font {
+        WidgetFont.current.number(size: size)
     }
 }
 

@@ -211,6 +211,7 @@ struct TripProgressRing: View {
     var trackColor: Color? = nil
     var refined = false
     var numberSize: CGFloat = 24
+    var numberFont: Font? = nil   // refined: the widget passes the rider's widget font
 
     var body: some View {
         ZStack {
@@ -225,7 +226,7 @@ struct TripProgressRing: View {
             if refined {
                 VStack(spacing: 0) {
                     Text(centerText)
-                        .font(.system(size: numberSize, weight: .semibold, design: .serif))
+                        .font(numberFont ?? .system(size: numberSize, weight: .semibold, design: .serif))
                         .monospacedDigit()
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
