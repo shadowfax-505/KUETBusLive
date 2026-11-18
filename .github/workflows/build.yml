@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-26
@@ -22,14 +25,17 @@ jobs:
 
       # Not a real key. Firebase Messaging checks the key's shape at launch
       # (39 characters, starting with "A"), so the placeholder must look like one.
+      # It is put together at run time so secret scanners don't mistake it for a
+      # real Google API key.
       - name: Add placeholder Firebase config
         run: |
-          cat > KUETBusLive/GoogleService-Info.plist <<'PLIST'
+          API_KEY="AIza$(printf 'S%034d' 0)"
+          cat > KUETBusLive/GoogleService-Info.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>API_KEY</key><string>AIzaSy000000000000000000000000000000000</string>
+            <key>API_KEY</key><string>${API_KEY}</string>
             <key>GCM_SENDER_ID</key><string>000000000000</string>
             <key>BUNDLE_ID</key><string>KUETBusLive</string>
             <key>PROJECT_ID</key><string>placeholder</string>
