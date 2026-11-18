@@ -14,6 +14,17 @@
 **Author:** Muttakin Rahman Shoscho ([shadowfax-505](https://github.com/shadowfax-505))
 **Course:** CSE 3218 Mobile Computing Lab, KUET (Open-Ended Project)
 
+## Android
+
+The same app is on Android too, with the same Firebase backend, so riders on both phones see the same buses, timetable and news. The code is in [KUETBusLive-Android](https://github.com/shadowfax-505/KUETBusLive-Android).
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/shadowfax-505/KUETBusLive-Android/main/docs/screenshots/01-sign-in.jpg" alt="Android: sign in" width="24%">
+  <img src="https://raw.githubusercontent.com/shadowfax-505/KUETBusLive-Android/main/docs/screenshots/02-live-map.jpg" alt="Android: live map" width="24%">
+  <img src="https://raw.githubusercontent.com/shadowfax-505/KUETBusLive-Android/main/docs/screenshots/03-bus-selected.jpg" alt="Android: a bus selected on the map" width="24%">
+  <img src="https://raw.githubusercontent.com/shadowfax-505/KUETBusLive-Android/main/docs/screenshots/06-schedule.jpg" alt="Android: bus schedule" width="24%">
+</p>
+
 ---
 
 ## Contents
