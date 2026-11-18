@@ -11,6 +11,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 // The pages of Settings, in the order they are listed.
 enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
@@ -397,6 +398,7 @@ struct SecuritySettingsView: View {
 struct AppearanceSettingsView: View {
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
     @AppStorage(MapStyleChoice.storageKey) private var mapStyle = MapStyleChoice.standard.rawValue
+    @AppStorage(BusStyle.storageKey, store: SharedStore.defaults) private var busStyle = BusStyle.above.rawValue
     @State private var appIcon = AppIconChoice.current
     @State private var iconError: String?
 
@@ -435,6 +437,15 @@ struct AppearanceSettingsView: View {
                 }
                 .padding(.vertical, 6)
             }
+            Section(header: Text("Bus on the trip bar"),
+                    footer: Text("How the bus looks as it drives towards your stop.")) {
+                HStack(spacing: 12) {
+                    ForEach(BusStyle.allCases) { style in
+                        busStyleButton(style)
+                    }
+                }
+                .padding(.vertical, 6)
+            }
             Section(header: Text("Theme")) {
                 Picker("Theme", selection: $appearance) {
                     ForEach(AppAppearance.allCases) { option in
@@ -460,6 +471,38 @@ struct AppearanceSettingsView: View {
         } message: {
             Text(iconError ?? "")
         }
+    }
+
+    // A small trip bar with the bus drawn in this style, as the preview to tap.
+    private func busStyleButton(_ style: BusStyle) -> some View {
+        let selected = busStyle == style.rawValue
+        return Button {
+            busStyle = style.rawValue
+            WidgetCenter.shared.reloadAllTimelines()
+        } label: {
+            VStack(spacing: 8) {
+                TripProgressView(progress: TripProgress(fraction: 0.55, stopFractions: [0.3]),
+                                 endLabel: "", tint: .primary, trackColor: .primary.opacity(0.12),
+                                 showLabels: false, refined: true, stopColor: .secondary,
+                                 busStyle: style)
+                    .padding(.horizontal, 12)
+                    .frame(height: 56)
+                    .frame(maxWidth: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(Color(.systemGroupedBackground)))
+                    .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .stroke(Color.primary.opacity(0.12), lineWidth: 0.5))
+                    .padding(3)
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(selected ? Color.accentColor : .clear, lineWidth: 2.5))
+                Text(style.title)
+                    .font(.caption)
+                    .foregroundStyle(selected ? .primary : .secondary)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(style.title))
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func pickIcon(_ choice: AppIconChoice) {

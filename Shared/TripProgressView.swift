@@ -8,11 +8,14 @@
 //  widget and the Live Activity:
 //  - TripProgressView: a track from KUET to my stop, like a parcel tracker,
 //    with dots for the stops, a filled part, and a bus at its current spot.
+//    The refined look draws the bus from BusArt.swift, from above or from the
+//    side as picked in Settings > Appearance.
 //  - TripProgressRing: the same progress as a ring, with minutes left inside.
 //
 //  Both come in two looks. The app's trip card uses the classic one, coloured
 //  by the bus allocation. The widgets and the Live Activity use the refined
-//  one: a thin track with a soft glow, stops as small rings, and serif numbers.
+//  one: a thin track with a soft glow, small dots for the stops, a ring for my
+//  stop, and serif numbers.
 //
 
 import SwiftUI
@@ -29,8 +32,8 @@ struct TripProgressView: View {
     var showLabels = true
     var thin = false
     var refined = false
-    var stopColor: Color = .white      // refined: the rings for the stops in between
-    var busGlyphColor: Color = .white  // refined: the bus symbol inside the circle
+    var stopColor: Color = .white      // refined: the dots for the stops in between
+    var busStyle: BusStyle = .current  // refined: how the bus on the track is drawn
     var labelColor: Color? = nil
 
     var body: some View {
@@ -50,45 +53,7 @@ struct TripProgressView: View {
 
     private var refinedBody: some View {
         VStack(spacing: 6) {
-            GeometryReader { geometry in
-                let width = geometry.size.width
-                let busSize: CGFloat = thin ? 16 : 20
-                let busX = width * progress.fraction
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(trackColor)
-                        .frame(height: 4)
-                    Capsule()
-                        .fill(tint)
-                        .frame(width: max(busX, 4), height: 4)
-                        .shadow(color: tint.opacity(0.4), radius: 4)
-                        .widgetAccentableIfAvailable()
-                    ForEach(progress.stopFractions, id: \.self) { fraction in
-                        Circle()
-                            .strokeBorder(fraction <= progress.fraction ? tint : stopColor, lineWidth: 1.5)
-                            .frame(width: 7, height: 7)
-                            .offset(x: width * fraction - 3.5)
-                    }
-                    // My stop: a filled dot at the end.
-                    Circle()
-                        .fill(tint)
-                        .frame(width: 9, height: 9)
-                        .offset(x: width - 9)
-                        .widgetAccentableIfAvailable()
-                    // The bus
-                    Image(systemName: "bus.fill")
-                        .font(.system(size: thin ? 8 : 10, weight: .semibold))
-                        .foregroundStyle(busGlyphColor)
-                        .frame(width: busSize, height: busSize)
-                        .background(Circle().fill(tint).shadow(color: tint.opacity(0.4), radius: 4))
-                        .offset(x: min(max(busX - busSize / 2, 0), width - busSize))
-                        .widgetAccentableIfAvailable()
-                }
-                .frame(height: busSize)
-                .frame(maxHeight: .infinity)
-            }
-            .frame(height: thin ? 16 : 20)
-
+            refinedTrack
             if showLabels {
                 HStack {
                     Text(startLabel)
@@ -101,6 +66,82 @@ struct TripProgressView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(labelColor ?? .secondary)
             }
+        }
+    }
+
+    // The bus drawing's size on the track. From above, the bus sits on the line;
+    // from the side, its wheels rest on it.
+    private var busSize: CGSize {
+        switch busStyle {
+        case .above:
+            let length: CGFloat = thin ? 32 : 38
+            return CGSize(width: length, height: length * BusFromAbove.width / BusFromAbove.length)
+        case .side:
+            let length: CGFloat = thin ? 34 : 42
+            return CGSize(width: length, height: length * BusFromSide.size.height / BusFromSide.size.width)
+        }
+    }
+
+    // Where the line runs, measured from the top of the bus drawing.
+    private var lineY: CGFloat {
+        busStyle == .side ? busSize.height * BusFromSide.roadLine : busSize.height / 2
+    }
+
+    // How much of the drawing, front to back, is the bus itself.
+    private var bodyLength: CGFloat {
+        switch busStyle {
+        case .above: return busSize.width * BusFromAbove.bodyShare
+        case .side: return busSize.width * (BusFromSide.bodyEnd - BusFromSide.bodyStart)
+        }
+    }
+
+    private var refinedTrack: some View {
+        let ring: CGFloat = thin ? 9 : 11
+        let line: CGFloat = 4
+        let rowHeight = busSize.height
+        return GeometryReader { geometry in
+            let width = geometry.size.width
+            // The middle of the bus, kept on the track at either end.
+            let busX = min(max(width * progress.fraction, bodyLength / 2), width - bodyLength / 2)
+            ZStack(alignment: .topLeading) {
+                Capsule()
+                    .fill(trackColor)
+                    .frame(width: max(width - ring / 2, 0), height: line)
+                    .offset(y: lineY - line / 2)
+                // The covered part ends under the bus.
+                Capsule()
+                    .fill(tint)
+                    .frame(width: max(busX, line), height: line)
+                    .shadow(color: tint.opacity(0.4), radius: 4)
+                    .offset(y: lineY - line / 2)
+                    .widgetAccentableIfAvailable()
+                ForEach(progress.stopFractions, id: \.self) { fraction in
+                    Circle()
+                        .fill(fraction <= progress.fraction ? tint : stopColor)
+                        .frame(width: 5, height: 5)
+                        .offset(x: width * fraction - 2.5, y: lineY - 2.5)
+                }
+                // My stop: a ring at the end of the track.
+                Circle()
+                    .strokeBorder(tint, lineWidth: 2.2)
+                    .frame(width: ring, height: ring)
+                    .offset(x: width - ring, y: lineY - ring / 2)
+                    .widgetAccentableIfAvailable()
+                // The bus, nose to the right.
+                bus
+                    .frame(width: busSize.width, height: busSize.height)
+                    .offset(x: busX - busSize.width / 2)
+            }
+            .animation(.smooth(duration: 1.2), value: progress.fraction)
+        }
+        .frame(height: rowHeight)
+    }
+
+    @ViewBuilder
+    private var bus: some View {
+        switch busStyle {
+        case .above: BusFromAbove()
+        case .side: BusFromSide()
         }
     }
 

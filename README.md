@@ -263,6 +263,7 @@ Shared/                         Compiled into both the app and the widget (no Fi
 ├── SharedTrip.swift            Widget data + the App Group store
 ├── TripProgress.swift          Where the bus is between KUET and my stop (0...1)
 ├── TripProgressView.swift      The track and the ring
+├── BusArt.swift                The bus on the track, from above or from the side
 ├── BusTripAttributes.swift     Live Activity data
 ├── Localizable.xcstrings       English + Bangla text
 └── kuet_schedule.json          Official KUET timetable
@@ -730,7 +731,7 @@ The small header shows the KUET bus and pin from the app icon, in one colour (`K
 | --- | --- | --- |
 | Background | `#1C1C1E` | white to `#F2F2F7` |
 | Text | white (60% for small text) | near-black `#111111` (55% for small text) |
-| Ring, track, bus | white | near-black `#111111` |
+| Ring, track | white | near-black `#111111` |
 
 Everything is black and white, like the live map. Colour is kept for status only: green for seats free, red for full or no signal, with amber kept in the theme for a "filling up" level. Bus names and big numbers are set in the serif New York face with even-width digits, and the small labels ("ARRIVING IN", "NEXT BUS") are uppercase with wide letter spacing. The large widget's map is a muted, mostly grey snapshot with the route drawn as one solid line (black, or white on the dark map), a square at the first stop and a ring at my stop. The accent parts are marked `widgetAccentable()`, so they take the tint colour on a tinted home screen. The Live Activity always uses a near-black background with white text, and the Dynamic Island keylines are white.
 
@@ -801,7 +802,14 @@ The app sends the updates itself (`pushType: nil`), so the ETA changes while the
 
 ## Trip progress, like a parcel tracker
 
-Text like "7 min, 3.2 km" is useful, but a picture is quicker to read. `TripProgressView` draws a track from **KUET** to **my stop**, with a dot for every stop on the way, a filled part for the distance already covered, and a small bus where the bus is now. `TripProgressRing` shows the same number as a ring.
+Text like "7 min, 3.2 km" is useful, but a picture is quicker to read. `TripProgressView` draws a track from **KUET** to **my stop**, with a dot for every stop on the way, a filled part for the distance already covered that ends under the bus, a ring at my stop, and the bus itself riding along the track with its nose towards my stop. `TripProgressRing` shows the same number as a ring.
+
+The bus is drawn in code (`Shared/BusArt.swift`), so it stays sharp at every size and matches the Android app. There are two looks, picked in **Settings > Appearance > Bus on the trip bar**:
+
+- **From above** (the default): the glossy white bus from the map, with a soft shadow, dark windscreen and mirrors, a light roof with two hatches and an air-con unit, and red tail lights. The track runs through its middle.
+- **From the side**: a glossy side view with tinted windows, a black skirt and two wheels. The track runs under the wheels, like a road.
+
+The choice is kept in the App Group, so the widgets and the Live Activity draw the same bus, and changing it reloads the widget timelines. Widgets can't animate all the time, so the bus is placed from the progress on each update and slides to its new spot with the short animation the system allows.
 
 The same views are used in four places, because `Shared/` is compiled into both the app and the widget extension: the trip card, the medium and large widgets, the Lock Screen, and the expanded Dynamic Island (a thin version).
 
@@ -884,7 +892,7 @@ flowchart LR
   <img src="docs/bangla-dark-profile.png" alt="Profile in Bangla" width="30%">
 </p>
 
-**Appearance.** **Settings > Appearance** has the app icon picker (Black, White, Colour and Pin), the theme (same as iPhone, light or dark) and the live map style (standard or satellite).
+**Appearance.** **Settings > Appearance** has the app icon picker (Black, White, Colour and Pin), the bus on the trip bar (from above or from the side), the theme (same as iPhone, light or dark) and the live map style (standard or satellite).
 
 <p align="center">
   <img src="docs/app-icon-picker.png" alt="Settings > Appearance with the app icon picker" width="30%">
