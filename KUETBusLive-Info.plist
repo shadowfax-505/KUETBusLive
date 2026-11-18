@@ -8,5 +8,11 @@
 	<array>
 		<string>location</string>
 	</array>
+	<!-- Black behind the launch so it runs straight into the black intro. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
 </dict>
 </plist>
