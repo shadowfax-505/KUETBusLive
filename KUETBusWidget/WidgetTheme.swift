@@ -6,8 +6,9 @@
 //
 //  The colours and type of the widgets and the Live Activity, in one place.
 //  The font itself is the rider's pick (Shared/WidgetFont.swift).
-//  Black and white, like the app: white with near-black text in light mode,
-//  #1C1C1E with white text in dark mode. Colour is kept for status only
+//  Classic is black and white, like the app: white with near-black text in light
+//  mode, #1C1C1E with white text in dark mode. The rider can pick a colour instead
+//  (Shared/WidgetColour.swift). Colour is kept for status only
 //  (green for seats and on time, amber filling up, red full or late).
 //
 
@@ -23,18 +24,29 @@ enum WidgetTheme {
     static let darkRaised = UIColor(hex: 0x2C2C2E)
     static let lightRaised = UIColor(hex: 0xF2F2F7)
 
-    // MARK: Colours that follow light and dark mode
+    // MARK: Colours that follow light and dark mode, in the rider's widget colour
 
-    static let backgroundTop = Color(light: .white, dark: darkSurface)
-    static let backgroundBottom = Color(light: lightRaised, dark: darkSurface)
-    static let primary = Color(light: nearBlack, dark: .white)
-    static let secondary = Color(light: nearBlack.withAlphaComponent(0.55), dark: UIColor.white.withAlphaComponent(0.6))
-    // Emphasis is black (white in dark mode): there is no separate accent colour.
-    static let accent = primary
-    static let track = Color(light: nearBlack.withAlphaComponent(0.10), dark: UIColor.white.withAlphaComponent(0.14))
-    static let hairline = Color(light: nearBlack.withAlphaComponent(0.08), dark: UIColor.white.withAlphaComponent(0.08))
+    private static var colour: WidgetColour { WidgetColour.current }
+    private static var classic: Bool { colour == .classic }
+
+    static var backgroundTop: Color { colour.top }
+    static var backgroundBottom: Color { colour.bottom }
+    static var primary: Color { colour.primary }
+    static var secondary: Color { colour.secondary }
+    // Emphasis is the text colour: there is no separate accent colour.
+    static var accent: Color { primary }
+    static var track: Color {
+        classic ? Color(light: nearBlack.withAlphaComponent(0.10), dark: UIColor.white.withAlphaComponent(0.14))
+                : primary.opacity(0.28)
+    }
+    static var hairline: Color {
+        classic ? Color(light: nearBlack.withAlphaComponent(0.08), dark: UIColor.white.withAlphaComponent(0.08))
+                : primary.opacity(0.2)
+    }
     // Small dots for the stops along the track.
-    static let stopRing = Color(light: nearBlack.withAlphaComponent(0.45), dark: .white)
+    static var stopRing: Color {
+        classic ? Color(light: nearBlack.withAlphaComponent(0.45), dark: .white) : primary
+    }
 
     // MARK: Status
 
@@ -108,25 +120,5 @@ extension Font {
     // Big numbers: minutes, times and distances.
     static func widgetNumber(size: CGFloat) -> Font {
         WidgetFont.current.number(size: size)
-    }
-}
-
-// MARK: - Helpers
-
-extension UIColor {
-    convenience init(hex: UInt32, alpha: CGFloat = 1) {
-        self.init(red: CGFloat((hex >> 16) & 0xFF) / 255,
-                  green: CGFloat((hex >> 8) & 0xFF) / 255,
-                  blue: CGFloat(hex & 0xFF) / 255,
-                  alpha: alpha)
-    }
-}
-
-extension Color {
-    // A colour that picks its light or dark version from the view's appearance.
-    init(light: UIColor, dark: UIColor) {
-        self.init(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark ? dark : light
-        })
     }
 }
