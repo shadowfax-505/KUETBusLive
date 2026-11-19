@@ -77,7 +77,9 @@ struct NextBusWidgetView: View {
         TripProgressView(progress: entry.progress, endLabel: stopName,
                          tint: WidgetTheme.accent, trackColor: WidgetTheme.track,
                          refined: true, stopColor: WidgetTheme.stopRing,
-                         labelColor: WidgetTheme.secondary)
+                         labelColor: WidgetTheme.secondary,
+                         labelFont: WidgetFont.current.label(),
+                         stopEmphasis: WidgetTheme.primary)
     }
 
     private var hairline: some View {
@@ -91,32 +93,34 @@ struct NextBusWidgetView: View {
     private var small: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            Spacer(minLength: 4)
+            // Room under the header so the ring doesn't crowd it.
+            Spacer(minLength: 10)
             HStack {
                 Spacer(minLength: 0)
                 TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                  caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24)
-                    .frame(width: 66, height: 66)
+                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24,
+                                 numberFont: .widgetNumber(size: 24))
+                    .frame(width: 62, height: 62)
                 Spacer(minLength: 0)
             }
             Spacer(minLength: 4)
             Group {
                 if let live = entry.live {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(PlaceNames.display(live.stopName))
                         .widgetLabel()
                         .padding(.top, 1)
                 } else if let next = entry.trips.first {
                     Text(next.trip.tripName)
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(next.leavesAt, style: .time)
                         .widgetLabel()
                         .padding(.top, 1)
                 } else {
                     Text("No buses this week")
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                 }
             }
             .lineLimit(1)
@@ -131,7 +135,7 @@ struct NextBusWidgetView: View {
     private var medium: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
-            busSummary
+            busSummary()
             Spacer(minLength: 0)
             track
         }
@@ -139,13 +143,14 @@ struct NextBusWidgetView: View {
     }
 
     // The main line: the live bus and its ETA, or the next timetable bus.
+    // showsETA is false when a ring next to it already shows the minutes.
     @ViewBuilder
-    private var busSummary: some View {
+    private func busSummary(showsETA: Bool = true) -> some View {
         if let live = entry.live {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     // Only when riders on board said it is crowded.
@@ -162,15 +167,17 @@ struct NextBusWidgetView: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("\(live.etaMinutes)")
-                            .font(.widgetSerif(size: 34))
-                            .monospacedDigit()
-                        Text("min")
-                            .widgetLabel()
+                    if showsETA {
+                        HStack(alignment: .firstTextBaseline, spacing: 3) {
+                            Text("\(live.etaMinutes)")
+                                .font(.widgetNumber(size: 34))
+                                .monospacedDigit()
+                            Text("min")
+                                .widgetLabel()
+                        }
                     }
                     Text(String(format: "%.1f km", live.distanceKm))
-                        .font(.caption2)
+                        .font(showsETA ? .caption2 : .widgetNumber(size: 22))
                         .monospacedDigit()
                         .foregroundStyle(WidgetTheme.secondary)
                 }
@@ -179,7 +186,7 @@ struct NextBusWidgetView: View {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(next.trip.title))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     countdown(next)
@@ -188,12 +195,12 @@ struct NextBusWidgetView: View {
                 }
                 Spacer()
                 Text(next.leavesAt, style: .time)
-                    .font(.widgetSerif(size: 26))
+                    .font(.widgetNumber(size: 26))
                     .monospacedDigit()
             }
         } else {
             Text("No more buses this week")
-                .font(.widgetSerif(.title3))
+                .widgetTitle(.title3)
         }
     }
 
@@ -211,7 +218,12 @@ struct NextBusWidgetView: View {
     // MARK: - Large
 
     private var large: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // Without a map the ring stands in for it and already shows the minutes.
+        let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark)
+        // The next two buses from the timetable. While a bus is live the
+        // timetable's first bus is still to come, so it's listed too.
+        let later = Array(entry.trips.dropFirst(entry.live == nil ? 1 : 0).prefix(2))
+        return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 header
                 Spacer()
@@ -223,7 +235,7 @@ struct NextBusWidgetView: View {
             }
 
             // The route map, matching light or dark mode. Without one, just the ring.
-            if let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
+            if let map {
                 Image(uiImage: map)
                     .resizable()
                     .scaledToFill()
@@ -243,32 +255,30 @@ struct NextBusWidgetView: View {
                     Spacer()
                     TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                      caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40)
+                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40,
+                                     numberFont: .widgetNumber(size: 40))
                         .frame(width: 120, height: 120)
                     Spacer()
                 }
                 .frame(maxHeight: 160)
             }
 
-            busSummary
+            busSummary(showsETA: map != nil)
             track
 
             // The next two buses from the timetable.
-            if entry.live == nil {
-                let later = Array(entry.trips.dropFirst().prefix(2))
-                if !later.isEmpty {
-                    hairline
-                    ForEach(later, id: \.self) { trip in
-                        HStack {
-                            Text(PlaceNames.display(trip.trip.title))
-                                .lineLimit(1)
-                            Spacer()
-                            Text(trip.leavesAt, style: .time)
-                                .monospacedDigit()
-                        }
-                        .font(.caption)
-                        .foregroundStyle(WidgetTheme.secondary)
+            if !later.isEmpty {
+                hairline
+                ForEach(later, id: \.self) { trip in
+                    HStack {
+                        Text(PlaceNames.display(trip.trip.title))
+                            .lineLimit(1)
+                        Spacer()
+                        Text(trip.leavesAt, style: .time)
+                            .monospacedDigit()
                     }
+                    .font(.caption)
+                    .foregroundStyle(WidgetTheme.secondary)
                 }
             }
             Spacer(minLength: 0)
