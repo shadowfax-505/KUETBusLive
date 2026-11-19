@@ -6091,6 +6091,66 @@
           }
         }
       }
+    },
+    "Classic": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্লাসিক"
+          }
+        }
+      }
+    },
+    "Forest green": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বনসবুজ"
+          }
+        }
+      }
+    },
+    "Violet": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বেগুনি"
+          }
+        }
+      }
+    },
+    "Butter cream": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মাখন রঙ"
+          }
+        }
+      }
+    },
+    "Widget colour": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উইজেটের রং"
+          }
+        }
+      }
+    },
+    "Each colour has a light and a dark version that follow your phone.": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রতিটি রঙের হালকা আর গাঢ় সংস্করণ আছে, যা আপনার ফোনের সাথে বদলায়।"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
