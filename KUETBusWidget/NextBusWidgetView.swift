@@ -77,7 +77,9 @@ struct NextBusWidgetView: View {
         TripProgressView(progress: entry.progress, endLabel: stopName,
                          tint: WidgetTheme.accent, trackColor: WidgetTheme.track,
                          refined: true, stopColor: WidgetTheme.stopRing,
-                         labelColor: WidgetTheme.secondary)
+                         labelColor: WidgetTheme.secondary,
+                         labelFont: WidgetFont.current.label(),
+                         stopEmphasis: WidgetTheme.primary)
     }
 
     private var hairline: some View {

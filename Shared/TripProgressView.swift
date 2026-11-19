@@ -35,6 +35,8 @@ struct TripProgressView: View {
     var stopColor: Color = .white      // refined: the dots for the stops in between
     var busStyle: BusStyle = .current  // refined: how the bus on the track is drawn
     var labelColor: Color? = nil
+    var labelFont: Font? = nil         // refined: the font of the two end labels
+    var stopEmphasis: Color? = nil     // refined: my stop in this colour, bolder, with a pin
 
     var body: some View {
         Group {
@@ -58,10 +60,23 @@ struct TripProgressView: View {
                 HStack {
                     Text(startLabel)
                     Spacer()
-                    Text(endLabel)
-                        .lineLimit(1)
+                    if let stopEmphasis {
+                        // My stop is what the rider reads, so it stands out from KUET.
+                        HStack(spacing: 3) {
+                            Image(systemName: "mappin")
+                                .imageScale(.small)
+                            Text(endLabel)
+                                .lineLimit(1)
+                        }
+                        .fontWeight(.bold)
+                        .scaleEffect(1.15, anchor: .trailing)
+                        .foregroundStyle(stopEmphasis)
+                    } else {
+                        Text(endLabel)
+                            .lineLimit(1)
+                    }
                 }
-                .font(.caption2.weight(.semibold))
+                .font(labelFont ?? .caption2.weight(.semibold))
                 .tracking(1.2)
                 .textCase(.uppercase)
                 .foregroundStyle(labelColor ?? .secondary)
