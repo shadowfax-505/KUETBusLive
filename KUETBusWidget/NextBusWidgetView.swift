@@ -296,7 +296,7 @@ struct NextBusWidgetBackground: View {
         ZStack(alignment: .top) {
             WidgetTheme.background
             if family == .systemLarge,
-               let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
+               let map = usesDarkMap ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
                 Image(uiImage: map)
                     .resizable()
                     .scaledToFill()
@@ -317,6 +317,12 @@ struct NextBusWidgetBackground: View {
             }
         }
         .accessibilityHidden(true)
+    }
+
+    // Forest and violet are deep colours with light text even in light mode, so
+    // they take the dark map: a pale map would fade into them through a muddy band.
+    private var usesDarkMap: Bool {
+        colorScheme == .dark || WidgetColour.current == .forest || WidgetColour.current == .violet
     }
 }
 
