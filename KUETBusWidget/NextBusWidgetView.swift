@@ -15,9 +15,9 @@ import WidgetKit
 import SwiftUI
 
 struct NextBusWidgetView: View {
-    // The route map in the large widget runs edge to edge across the top and
-    // fades into the background. It is drawn at this size so it isn't cropped.
-    static let mapSize = CGSize(width: 364, height: 210)
+    // The route map in the large widget runs edge to edge across the top, and
+    // the bus details sit on a frosted panel over its lower part. It is drawn at this size so it isn't cropped.
+    static let mapSize = CGSize(width: 364, height: 260)
 
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
@@ -259,10 +259,36 @@ struct NextBusWidgetView: View {
                 .frame(maxHeight: 160)
             }
 
-            busSummary(showsETA: map != nil)
-            track
+            if map != nil {
+                // Over the map, the details sit on a frosted panel that reaches
+                // to 8pt from the widget's edges.
+                details(later: later, showsETA: true)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(LinearGradient(colors: [WidgetTheme.backgroundTop.opacity(0.62),
+                                                          WidgetTheme.backgroundBottom.opacity(0.86)],
+                                                 startPoint: .top, endPoint: .bottom))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 0.5)
+                            )
+                    )
+                    .padding(.horizontal, -8)
+                    .padding(.bottom, -8)
+            } else {
+                details(later: later, showsETA: false)
+                Spacer(minLength: 0)
+            }
+        }
+    }
 
-            // The next two buses from the timetable.
+    // The bus, its track and the next two buses from the timetable.
+    private func details(later: [UpcomingTrip], showsETA: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            busSummary(showsETA: showsETA)
+            track
             if !later.isEmpty {
                 hairline
                 ForEach(later, id: \.self) { trip in
@@ -277,16 +303,14 @@ struct NextBusWidgetView: View {
                     .foregroundStyle(WidgetTheme.secondary)
                 }
             }
-            if map == nil {
-                Spacer(minLength: 0)
-            }
         }
     }
 }
 
 // The widget's background: the rider's colour, and on the large widget the route
-// map running edge to edge across the top. The map fades slowly into the colour
-// below it, and a light veil at the very top keeps the header easy to read.
+// map running edge to edge across the top. Lower down, where the frosted panel
+// sits, a blurred copy of the map shows through, and the map fades into the
+// colour at the bottom. A light veil at the very top keeps the header readable.
 struct NextBusWidgetBackground: View {
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
@@ -297,26 +321,40 @@ struct NextBusWidgetBackground: View {
             WidgetTheme.background
             if family == .systemLarge,
                let map = usesDarkMap ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
-                Image(uiImage: map)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: NextBusWidgetView.mapSize.height)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-                    .mask(
-                        LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black, location: 0.5),
-                                               .init(color: .black.opacity(0.6), location: 0.72),
-                                               .init(color: .black.opacity(0.2), location: 0.88),
-                                               .init(color: .clear, location: 1)],
-                                       startPoint: .top, endPoint: .bottom)
-                    )
+                ZStack {
+                    mapImage(map)
+                    // The frosted part: the same map, blurred, below the route.
+                    mapImage(map)
+                        .blur(radius: 10, opaque: true)
+                        .mask(
+                            LinearGradient(stops: [.init(color: .clear, location: 0.62),
+                                                   .init(color: .black, location: 0.72)],
+                                           startPoint: .top, endPoint: .bottom)
+                        )
+                }
+                .frame(height: NextBusWidgetView.mapSize.height)
+                .clipped()
+                .mask(
+                    LinearGradient(stops: [.init(color: .black, location: 0),
+                                           .init(color: .black, location: 0.8),
+                                           .init(color: .clear, location: 1)],
+                                   startPoint: .top, endPoint: .bottom)
+                )
                 LinearGradient(colors: [WidgetTheme.backgroundTop.opacity(0.85), WidgetTheme.backgroundTop.opacity(0)],
                                startPoint: .top, endPoint: .bottom)
                     .frame(height: 56)
             }
         }
         .accessibilityHidden(true)
+    }
+
+    private func mapImage(_ map: UIImage) -> some View {
+        Image(uiImage: map)
+            .resizable()
+            .scaledToFill()
+            .frame(height: NextBusWidgetView.mapSize.height)
+            .frame(maxWidth: .infinity)
+            .clipped()
     }
 
     // Forest and violet are deep colours with light text even in light mode, so
