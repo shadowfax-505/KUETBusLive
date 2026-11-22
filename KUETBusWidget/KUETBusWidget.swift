@@ -125,7 +125,7 @@ struct NextBusProvider: TimelineProvider {
             return
         }
         let live = entries[0].live
-        RouteMapRenderer.render(route: route, live: live, size: CGSize(width: 330, height: NextBusWidgetView.mapHeight)) { light, dark in
+        RouteMapRenderer.render(route: route, live: live, size: NextBusWidgetView.mapSize) { light, dark in
             let withMaps = entries.map { entry -> NextBusEntry in
                 var copy = entry
                 copy.mapLight = light
@@ -144,7 +144,7 @@ struct KUETBusWidget: Widget {
         StaticConfiguration(kind: kind, provider: NextBusProvider()) { entry in
             NextBusWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
-                    WidgetTheme.background
+                    NextBusWidgetBackground(entry: entry)
                 }
         }
         .configurationDisplayName("Next KUET bus")

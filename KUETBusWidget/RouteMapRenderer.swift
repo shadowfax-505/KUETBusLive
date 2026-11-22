@@ -57,14 +57,19 @@ enum RouteMapRenderer {
         }
     }
 
-    // A map area that fits every stop with a little space around it.
+    // A map area that fits every stop. The widget fades the bottom of the map
+    // into its background and puts its header over the top, so the route is kept
+    // between about 20% and 62% of the way down, clear of both.
     private static func region(fitting points: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
         let lats = points.map { $0.latitude }
         let lngs = points.map { $0.longitude }
-        let center = CLLocationCoordinate2D(latitude: (lats.min()! + lats.max()!) / 2,
+        let routeLat = max(lats.max()! - lats.min()!, 0.004)
+        let height = routeLat / 0.42
+        let top = lats.max()! + height * 0.2
+        let center = CLLocationCoordinate2D(latitude: top - height / 2,
                                             longitude: (lngs.min()! + lngs.max()!) / 2)
-        let span = MKCoordinateSpan(latitudeDelta: max((lats.max()! - lats.min()!) * 1.25, 0.01),
-                                    longitudeDelta: max((lngs.max()! - lngs.min()!) * 1.25, 0.01))
+        let span = MKCoordinateSpan(latitudeDelta: height,
+                                    longitudeDelta: max((lngs.max()! - lngs.min()!) * 1.3, 0.01))
         return MKCoordinateRegion(center: center, span: span)
     }
 

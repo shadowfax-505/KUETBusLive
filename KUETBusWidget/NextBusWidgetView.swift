@@ -15,9 +15,9 @@ import WidgetKit
 import SwiftUI
 
 struct NextBusWidgetView: View {
-    // Height of the route map in the large widget. The map is drawn at this
-    // height too, so the whole route fits without being cropped.
-    static let mapHeight: CGFloat = 130
+    // The route map in the large widget runs edge to edge across the top and
+    // fades into the background. It is drawn at this size so it isn't cropped.
+    static let mapSize = CGSize(width: 364, height: 210)
 
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
@@ -239,22 +239,12 @@ struct NextBusWidgetView: View {
                 }
             }
 
-            // The route map, matching light or dark mode. Without one, just the ring.
-            if let map {
-                Image(uiImage: map)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: Self.mapHeight)
-                    .clipped()
-                    // A soft fade from the map into the background below it.
-                    .mask(
-                        LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black, location: 0.9),
-                                               .init(color: .clear, location: 1)],
-                                       startPoint: .top, endPoint: .bottom)
-                    )
-                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
+            // The route map sits behind this part (see NextBusWidgetBackground).
+            // Without one, the ring stands in for it.
+            if map != nil {
+                Color.clear
+                    .frame(maxHeight: .infinity)
+                    .accessibilityElement()
                     .accessibilityLabel("Map of the route to \(stopName)")
             } else {
                 HStack {
@@ -287,8 +277,46 @@ struct NextBusWidgetView: View {
                     .foregroundStyle(WidgetTheme.secondary)
                 }
             }
-            Spacer(minLength: 0)
+            if map == nil {
+                Spacer(minLength: 0)
+            }
         }
+    }
+}
+
+// The widget's background: the rider's colour, and on the large widget the route
+// map running edge to edge across the top. The map fades slowly into the colour
+// below it, and a light veil at the very top keeps the header easy to read.
+struct NextBusWidgetBackground: View {
+    let entry: NextBusEntry
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            WidgetTheme.background
+            if family == .systemLarge,
+               let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
+                Image(uiImage: map)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: NextBusWidgetView.mapSize.height)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .mask(
+                        LinearGradient(stops: [.init(color: .black, location: 0),
+                                               .init(color: .black, location: 0.5),
+                                               .init(color: .black.opacity(0.6), location: 0.72),
+                                               .init(color: .black.opacity(0.2), location: 0.88),
+                                               .init(color: .clear, location: 1)],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+                LinearGradient(colors: [WidgetTheme.backgroundTop.opacity(0.85), WidgetTheme.backgroundTop.opacity(0)],
+                               startPoint: .top, endPoint: .bottom)
+                    .frame(height: 56)
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 
