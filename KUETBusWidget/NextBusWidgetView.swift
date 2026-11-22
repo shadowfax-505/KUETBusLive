@@ -250,7 +250,7 @@ struct NextBusWidgetView: View {
                     // A soft fade from the map into the background below it.
                     .mask(
                         LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black, location: 0.7),
+                                               .init(color: .black, location: 0.9),
                                                .init(color: .clear, location: 1)],
                                        startPoint: .top, endPoint: .bottom)
                     )
