@@ -327,8 +327,8 @@ struct NextBusWidgetBackground: View {
                     mapImage(map)
                         .blur(radius: 10, opaque: true)
                         .mask(
-                            LinearGradient(stops: [.init(color: .clear, location: 0.6),
-                                                   .init(color: .black, location: 0.66)],
+                            LinearGradient(stops: [.init(color: .clear, location: 0.44),
+                                                   .init(color: .black, location: 0.49)],
                                            startPoint: .top, endPoint: .bottom)
                         )
                 }
