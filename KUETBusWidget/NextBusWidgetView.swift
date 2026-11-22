@@ -17,7 +17,7 @@ import SwiftUI
 struct NextBusWidgetView: View {
     // The route map in the large widget runs edge to edge across the top, and
     // the bus details sit on a frosted panel over its lower part. It is drawn at this size so it isn't cropped.
-    static let mapSize = CGSize(width: 364, height: 260)
+    static let mapSize = CGSize(width: 364, height: 330)
 
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
@@ -327,8 +327,8 @@ struct NextBusWidgetBackground: View {
                     mapImage(map)
                         .blur(radius: 10, opaque: true)
                         .mask(
-                            LinearGradient(stops: [.init(color: .clear, location: 0.62),
-                                                   .init(color: .black, location: 0.72)],
+                            LinearGradient(stops: [.init(color: .clear, location: 0.6),
+                                                   .init(color: .black, location: 0.66)],
                                            startPoint: .top, endPoint: .bottom)
                         )
                 }
@@ -336,7 +336,7 @@ struct NextBusWidgetBackground: View {
                 .clipped()
                 .mask(
                     LinearGradient(stops: [.init(color: .black, location: 0),
-                                           .init(color: .black, location: 0.8),
+                                           .init(color: .black, location: 0.92),
                                            .init(color: .clear, location: 1)],
                                    startPoint: .top, endPoint: .bottom)
                 )
