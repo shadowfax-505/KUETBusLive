@@ -17,7 +17,7 @@ import SwiftUI
 struct NextBusWidgetView: View {
     // Height of the route map in the large widget. The map is drawn at this
     // height too, so the whole route fits without being cropped.
-    static let mapHeight: CGFloat = 110
+    static let mapHeight: CGFloat = 130
 
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
