@@ -125,7 +125,7 @@ struct NextBusProvider: TimelineProvider {
             return
         }
         let live = entries[0].live
-        RouteMapRenderer.render(route: route, live: live, size: CGSize(width: 330, height: 170)) { light, dark in
+        RouteMapRenderer.render(route: route, live: live, size: CGSize(width: 330, height: NextBusWidgetView.mapHeight)) { light, dark in
             let withMaps = entries.map { entry -> NextBusEntry in
                 var copy = entry
                 copy.mapLight = light

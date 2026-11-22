@@ -15,6 +15,10 @@ import WidgetKit
 import SwiftUI
 
 struct NextBusWidgetView: View {
+    // Height of the route map in the large widget. The map is drawn at this
+    // height too, so the whole route fits without being cropped.
+    static let mapHeight: CGFloat = 110
+
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
     @Environment(\.colorScheme) private var colorScheme
@@ -240,8 +244,8 @@ struct NextBusWidgetView: View {
                 Image(uiImage: map)
                     .resizable()
                     .scaledToFill()
-                    // Shorter when trip rows follow, so everything fits the large widget.
-                    .frame(maxWidth: .infinity, maxHeight: later.isEmpty ? 160 : 110)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: Self.mapHeight)
                     .clipped()
                     // A soft fade from the map into the background below it.
                     .mask(
