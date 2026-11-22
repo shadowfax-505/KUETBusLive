@@ -189,9 +189,11 @@ struct NextBusWidgetView: View {
                         .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    countdown(next)
-                        .font(.caption2)
-                        .foregroundStyle(WidgetTheme.secondary)
+                    if showsETA {
+                        countdown(next)
+                            .font(.caption2)
+                            .foregroundStyle(WidgetTheme.secondary)
+                    }
                 }
                 Spacer()
                 Text(next.leavesAt, style: .time)
@@ -220,9 +222,8 @@ struct NextBusWidgetView: View {
     private var large: some View {
         // Without a map the ring stands in for it and already shows the minutes.
         let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark)
-        // The next two buses from the timetable. While a bus is live the
-        // timetable's first bus is still to come, so it's listed too.
-        let later = Array(entry.trips.dropFirst(entry.live == nil ? 1 : 0).prefix(2))
+        // The next two buses after the first one, which is live or shown above.
+        let later = Array(entry.trips.dropFirst().prefix(2))
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 header
@@ -239,7 +240,8 @@ struct NextBusWidgetView: View {
                 Image(uiImage: map)
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: 160)
+                    // Shorter when trip rows follow, so everything fits the large widget.
+                    .frame(maxWidth: .infinity, maxHeight: later.isEmpty ? 160 : 110)
                     .clipped()
                     // A soft fade from the map into the background below it.
                     .mask(
