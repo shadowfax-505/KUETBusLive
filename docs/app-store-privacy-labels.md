@@ -24,18 +24,20 @@ Tick these seven, and nothing else:
 | Identifiers | **User ID** | The Firebase user ID and the KUET roll, employee or driver ID |
 | User Content | **Other User Content** | Favourite stop, crowd reports, drivers' "I can't drive" requests |
 | User Content | **Customer Support** | Complaints sent with Report a problem, and the transport office's reply |
+| Diagnostics | **Crash Data** | Crash reports from release builds (Firebase Crashlytics): the stack trace, device model and OS version. **Not linked** to the user: no name, email or user ID is attached |
 | Usage Data | **Product Interaction** | Ride history for smart suggestions, **only** if the rider turns on "Keep my ride history in my account" (off by default) |
 
 Leave everything else unticked. In particular:
 
 - **Coarse Location:** no. Only precise positions are collected (listed above).
 - **Device ID:** no. The only device-level value is the Firebase push token, which is used only to deliver notifications. Firebase's own SDK privacy manifests cover what the Firebase libraries do. If App Review asks about it, ticking Device ID (App Functionality, linked, not tracking) is the cautious answer, and then add `NSPrivacyCollectedDataTypeDeviceID` to the app's privacy manifest too.
-- **Other Usage Data, Diagnostics, Purchases, Financial Info, Health, Contacts, Browsing/Search History, Sensitive Info:** no. The app has no analytics, crash reporting, ads or payments.
+- **Other Usage Data, Performance Data, Other Diagnostic Data, Purchases, Financial Info, Health, Contacts, Browsing/Search History, Sensitive Info:** no. The app has no analytics, ads or payments; the only diagnostics are crash reports (above).
+- **Crash Data** answers differ from the others: App Functionality, **not linked** to the user, not tracking.
 - The rider's own location on the map never leaves the phone, so it is not "collected".
 
 ## Questions for each data type
 
-Answer the same way for all seven:
+Answer the same way for the seven above Crash Data (Crash Data: not linked, not tracking, App Functionality):
 
 | Question | Answer |
 |---|---|
