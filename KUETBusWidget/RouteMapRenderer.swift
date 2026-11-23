@@ -49,7 +49,8 @@ enum RouteMapRenderer {
 
         MKMapSnapshotter(options: options).start { snapshot, error in
             guard let snapshot = snapshot else {
-                print("Map snapshot failed: \(error?.localizedDescription ?? "unknown")")
+                Log.app.error("Map snapshot failed: \(error?.localizedDescription ?? "unknown")")
+
                 completion(nil)
                 return
             }

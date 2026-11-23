@@ -127,7 +127,8 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             learnFromTrip(busId: id) {
                 busRef.delete { error in
                     if let error = error {
-                        print("Error ending trip: \(error)")
+                        Log.data.error("Error ending trip: \(error.localizedDescription)")
+
                     }
                 }
             }

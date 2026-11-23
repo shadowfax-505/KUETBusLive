@@ -19,7 +19,8 @@ class RouteViewModel: ObservableObject {
         guard listener == nil else { return }
         listener = db.collection("routes").order(by: "name").addSnapshotListener { snapshot, error in
             if let error = error {
-                print("Error getting routes: \(error)")
+                Log.data.error("Error getting routes: \(error.localizedDescription)")
+
                 return
             }
             self.routes = snapshot?.documents.compactMap { document in
@@ -56,7 +57,8 @@ class RouteViewModel: ObservableObject {
         guard let id = route.id else { return }
         db.collection("routes").document(id).delete { error in
             if let error = error {
-                print("Error deleting route: \(error)")
+                Log.data.error("Error deleting route: \(error.localizedDescription)")
+
             }
         }
     }
@@ -83,7 +85,8 @@ class RouteViewModel: ObservableObject {
             do {
                 _ = try db.collection("routes").addDocument(from: route)
             } catch {
-                print("Error adding route: \(error)")
+                Log.data.error("Error adding route: \(error.localizedDescription)")
+
             }
         }
     }

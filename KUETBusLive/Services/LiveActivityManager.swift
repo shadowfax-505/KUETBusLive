@@ -58,7 +58,8 @@ class LiveActivityManager: ObservableObject {
             lastState = state
             followedBusId = busId
         } catch {
-            print("Could not start Live Activity: \(error)")
+            Log.app.error("Could not start Live Activity: \(error.localizedDescription)")
+
         }
     }
 

@@ -63,7 +63,8 @@ class AuthViewModel: ObservableObject {
             if let error = error {
                 self.errorMessage = error.localizedDescription
                 // Full details (error code and server message) go to the Xcode console.
-                print("Sign up error: \((error as NSError).userInfo)")
+                Log.auth.error("Sign up error: \(String(describing: (error as NSError).userInfo))")
+
                 return
             }
             guard let firebaseUser = result?.user else { return }
@@ -106,7 +107,8 @@ class AuthViewModel: ObservableObject {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
                 self.errorMessage = error.localizedDescription
-                print("Sign in error: \((error as NSError).userInfo)")
+                Log.auth.error("Sign in error: \(String(describing: (error as NSError).userInfo))")
+
                 return
             }
             self.user = result?.user

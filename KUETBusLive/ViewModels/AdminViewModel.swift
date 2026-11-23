@@ -28,7 +28,8 @@ class AdminViewModel: ObservableObject {
             .whereField("role", in: [UserRole.teacher.rawValue, UserRole.driver.rawValue])
             .addSnapshotListener { snapshot, error in
                 if let error = error {
-                    print("Error getting users: \(error)")
+                    Log.data.error("Error getting users: \(error.localizedDescription)")
+
                     return
                 }
                 self.users = snapshot?.documents.compactMap { document in

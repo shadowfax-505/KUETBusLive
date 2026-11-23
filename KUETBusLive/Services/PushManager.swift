@@ -66,7 +66,8 @@ class PushManager: NSObject, MessagingDelegate {
         for topic in newTopics {
             Messaging.messaging().subscribe(toTopic: topic) { error in
                 if let error = error {
-                    print("Could not subscribe to \(topic): \(error)")
+                    Log.push.error("Could not subscribe to \(topic): \(error.localizedDescription)")
+
                 }
             }
         }
@@ -83,7 +84,8 @@ class PushManager: NSObject, MessagingDelegate {
         guard let token = fcmToken, let uid = Auth.auth().currentUser?.uid else { return }
         Firestore.firestore().collection("users").document(uid).updateData(["fcmToken": token]) { error in
             if let error = error {
-                print("Could not save FCM token: \(error)")
+                Log.push.error("Could not save FCM token: \(error.localizedDescription)")
+
             }
         }
     }
@@ -111,7 +113,8 @@ class PushManager: NSObject, MessagingDelegate {
         fcmToken = nil
         Messaging.messaging().deleteToken { error in
             if let error = error {
-                print("Could not delete FCM token: \(error)")
+                Log.push.error("Could not delete FCM token: \(error.localizedDescription)")
+
             }
         }
     }
@@ -141,6 +144,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         // Expected in the simulator or without the Push Notifications capability.
-        print("Push registration failed: \(error.localizedDescription)")
+        Log.push.error("Push registration failed: \(error.localizedDescription)")
+
     }
 }

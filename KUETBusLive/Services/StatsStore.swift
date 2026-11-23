@@ -61,7 +61,8 @@ final class StatsStore: ObservableObject {
 
         db.collection("segmentStats").whereField("routeId", isEqualTo: routeId).getDocuments { snapshot, error in
             guard let documents = snapshot?.documents else {
-                print("Could not load travel times: \(error?.localizedDescription ?? "")")
+                Log.data.error("Could not load travel times: \(error?.localizedDescription ?? "")")
+
                 return
             }
             var stats: [String: RunningStat] = [:]
@@ -184,7 +185,8 @@ final class StatsStore: ObservableObject {
             return nil
         }) { _, error in
             if let error {
-                print("Could not save travel time \(id): \(error.localizedDescription)")
+                Log.data.error("Could not save travel time \(id): \(error.localizedDescription)")
+
             }
             group.leave()
         }
@@ -221,7 +223,8 @@ final class StatsStore: ObservableObject {
             return nil
         }) { _, error in
             if let error {
-                print("Could not save wave outcome: \(error.localizedDescription)")
+                Log.data.error("Could not save wave outcome: \(error.localizedDescription)")
+
             }
             self.recordWaves(waves.dropFirst(), routeId: routeId, busId: busId, driverId: driverId, done: done)
         }
@@ -246,7 +249,8 @@ final class StatsStore: ObservableObject {
             return nil
         }) { _, error in
             if let error {
-                print("Could not save drop-off: \(error.localizedDescription)")
+                Log.data.error("Could not save drop-off: \(error.localizedDescription)")
+
             }
         }
     }

@@ -31,9 +31,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
             if let error = error {
-                print("Notification permission error: \(error)")
+                Log.push.error("Notification permission error: \(error.localizedDescription)")
+
             }
-            print("Notifications allowed: \(granted)")
+            Log.push.info("Notifications allowed: \(granted)")
+
         }
     }
 

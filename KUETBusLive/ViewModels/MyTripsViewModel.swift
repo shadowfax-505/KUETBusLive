@@ -29,7 +29,8 @@ class MyTripsViewModel: ObservableObject {
         self.uid = uid
         listener = collection(uid).addSnapshotListener { [weak self] snapshot, error in
             if let error = error {
-                print("Could not load my trips: \(error)")
+                Log.data.error("Could not load my trips: \(error.localizedDescription)")
+
                 return
             }
             self?.trips = snapshot?.documents.compactMap { try? $0.data(as: MyTrip.self) } ?? []

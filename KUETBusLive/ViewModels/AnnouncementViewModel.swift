@@ -100,7 +100,8 @@ class AnnouncementViewModel: ObservableObject {
             .limit(to: 50)
             .addSnapshotListener { snapshot, error in
                 if let error = error {
-                    print("Error getting announcements: \(error)")
+                    Log.data.error("Error getting announcements: \(error.localizedDescription)")
+
                     return
                 }
                 self.announcements = snapshot?.documents.compactMap { document in
@@ -139,7 +140,8 @@ class AnnouncementViewModel: ObservableObject {
         guard let id = announcement.id else { return }
         db.collection("announcements").document(id).delete { error in
             if let error = error {
-                print("Error deleting announcement: \(error)")
+                Log.data.error("Error deleting announcement: \(error.localizedDescription)")
+
             }
         }
     }

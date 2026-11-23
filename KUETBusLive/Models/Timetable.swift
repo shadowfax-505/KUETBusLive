@@ -40,7 +40,8 @@ struct TimetableRow: Codable {
     // JSON parsing: read the file from the app bundle and decode it.
     static func loadBundled() -> [BusSchedule] {
         guard let url = Bundle.main.url(forResource: "kuet_schedule", withExtension: "json") else {
-            print("kuet_schedule.json is missing from the app bundle")
+            Log.app.error("kuet_schedule.json is missing from the app bundle")
+
             return []
         }
         do {
@@ -48,7 +49,8 @@ struct TimetableRow: Codable {
             let file = try JSONDecoder().decode(TimetableFile.self, from: data)
             return file.trips.map { $0.schedule }
         } catch {
-            print("Error reading timetable: \(error)")
+            Log.app.error("Error reading timetable: \(error.localizedDescription)")
+
             return []
         }
     }

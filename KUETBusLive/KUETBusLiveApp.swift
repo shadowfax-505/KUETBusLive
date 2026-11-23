@@ -42,7 +42,8 @@ struct KUETBusLiveApp: App {
         settings.isSSLEnabled = false
         settings.cacheSettings = MemoryCacheSettings()
         Firestore.firestore().settings = settings
-        print("Using the local Firebase emulators")
+        Log.app.info("Using the local Firebase emulators")
+
         #endif
     }
 

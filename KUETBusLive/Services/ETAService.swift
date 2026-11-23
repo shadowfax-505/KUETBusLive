@@ -13,7 +13,26 @@ import Foundation
 import CoreLocation
 
 class ETAService {
-    static let baseURL = "https://router.project-osrm.org/route/v1/driving/"
+    // The public OSRM demo server is fine for a campus pilot but has fair-use limits.
+    // For a wide release, run your own OSRM (or another OSRM-compatible server) and put
+    // its address in Info.plist under OSRMBaseURL, for example
+    // "https://osrm.example.org/route/v1/driving/". No code change is needed.
+    static let defaultBaseURL = "https://router.project-osrm.org/route/v1/driving/"
+    static var baseURL: String {
+        guard let custom = Bundle.main.object(forInfoDictionaryKey: "OSRMBaseURL") as? String,
+              custom.hasPrefix("https://") else { return defaultBaseURL }
+        return custom.hasSuffix("/") ? custom : custom + "/"
+    }
+
+    // A slow network must not hold an ETA forever: give up and let the caller estimate.
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 15
+        config.waitsForConnectivity = false
+        config.httpAdditionalHeaders = ["User-Agent": "KUETBusLive-iOS"]
+        return URLSession(configuration: config)
+    }()
 
     // Bus -> my stop: travel time, distance and the road path.
     func fetchETA(from start: CLLocationCoordinate2D,
@@ -46,8 +65,13 @@ class ETAService {
             return
         }
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
+        Self.session.dataTask(with: url) { data, response, error in
+            // Busy or refusing (429, 5xx): no route, so the caller falls back to an estimate.
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard let data = data, error == nil, status == 200 else {
+                if status != 0 && status != 200 {
+                    Log.network.notice("Routing server answered \(status)")
+                }
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
@@ -55,7 +79,7 @@ class ETAService {
                 let decoded = try JSONDecoder().decode(RouteResponse.self, from: data)
                 DispatchQueue.main.async { completion(decoded.routes.first) }
             } catch {
-                print("JSON error: \(error)")
+                Log.network.error("Could not read the route: \(error.localizedDescription)")
                 DispatchQueue.main.async { completion(nil) }
             }
         }.resume()
