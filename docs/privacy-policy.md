@@ -56,6 +56,10 @@ Riders can tap "Seats available" or "Full" for a running bus. The report is save
 
 If you allow notifications, Firebase Cloud Messaging gives your phone a **push token**. The app saves it on your profile and subscribes your phone to your route, so you can be told when your bus leaves campus.
 
+### Crash reports
+
+If the app crashes, **Firebase Crashlytics** sends a crash report: where in the code it stopped, the phone model, the system version and a random installation ID. It does not include your name, email, user ID or location. Crash reports are used only to fix bugs, and Crashlytics deletes them after 90 days.
+
 ### Things that stay on your phone
 
 These never leave your device:
@@ -71,7 +75,7 @@ These never leave your device:
 
 ## Where it is kept
 
-Account details, places, complaints, push tokens, driver assignments and running buses are stored in **Google Firebase** (Firebase Authentication and Cloud Firestore), run by Google. Google's own privacy terms are at <https://firebase.google.com/support/privacy>.
+Account details, places, complaints, push tokens, driver assignments and running buses are stored in **Google Firebase** (Firebase Authentication and Cloud Firestore; crash reports in Firebase Crashlytics), run by Google. Google's own privacy terms are at <https://firebase.google.com/support/privacy>.
 
 To draw route lines and estimate arrival times, the app asks the public OSRM routing service (router.project-osrm.org) for a route between a bus and its stops. Only those map coordinates are sent, never your name, email or account.
 

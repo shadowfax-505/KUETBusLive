@@ -11,6 +11,19 @@
 	<!-- What the app stores in Firebase. All of it is tied to the account and used only to run the app. -->
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array>
+		<!-- Crash reports (Firebase Crashlytics), not linked to the user. -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCrashData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
 		<!-- Name shown on the profile and to the transport admin. -->
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>

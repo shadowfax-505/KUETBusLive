@@ -31,7 +31,13 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     // Riders who asked the bus to stop where they get off, nearest first.
     @Published var dropoffsAhead: [(wave: Wave, metres: Double)] = []
 
+    // Riders' phones read the bus once for every write, so a write is sent only when it
+    // tells them something: the bus moved at least `sendMinMetres` (at most every
+    // `sendIntervalSeconds`), or `heartbeatSeconds` passed so they know it is still there.
+    // The Android app uses the same numbers.
     static let sendIntervalSeconds: TimeInterval = 5
+    static let sendMinMetres: CLLocationDistance = 15
+    static let heartbeatSeconds: TimeInterval = 20
 
     private let db = Firestore.firestore()
     private let locationManager = LocationManager()
@@ -40,6 +46,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
     private var pendingBus: Bus?
     private var hasCreatedDocument = false
     private var lastSent = Date.distantPast
+    private var lastSentLocation: CLLocation?
     private var tripRecordId: String?
     private var wavesListener: ListenerRegistration?
     private var waves: [Wave] = []
@@ -94,6 +101,7 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         recordTripStart(driverId: driverId, fleetBusId: fleetBusId, scheduleId: scheduleId, routeId: routeId)
         hasCreatedDocument = false
         lastSent = .distantPast
+        lastSentLocation = nil
         updatesSent = 0
         isOnTrip = true
         statusMessage = String(localized: "Waiting for GPS...")
@@ -119,7 +127,8 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
             learnFromTrip(busId: id) {
                 busRef.delete { error in
                     if let error = error {
-                        print("Error ending trip: \(error)")
+                        Log.data.error("Error ending trip: \(error.localizedDescription)")
+
                     }
                 }
             }
@@ -158,8 +167,16 @@ class DriverViewModel: ObservableObject, LocationUpdateDelegate {
         }
 
         guard isOnTrip, let docId = busDocId else { return }
-        guard Date().timeIntervalSince(lastSent) >= Self.sendIntervalSeconds else { return }
+        let sinceLast = Date().timeIntervalSince(lastSent)
+        guard sinceLast >= Self.sendIntervalSeconds else { return }
+        // Standing at a stop or a signal: only the occasional "still here".
+        if hasCreatedDocument, let previous = lastSentLocation,
+           location.distance(from: previous) < Self.sendMinMetres,
+           sinceLast < Self.heartbeatSeconds {
+            return
+        }
         lastSent = Date()
+        lastSentLocation = location
 
         let busRef = db.collection("buses").document(docId)
 

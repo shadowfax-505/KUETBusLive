@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseCrashlytics
 
 @main
 struct KUETBusLiveApp: App {
@@ -23,6 +24,12 @@ struct KUETBusLiveApp: App {
 
     init() {
         FirebaseApp.configure()
+        // Crash reports come only from release builds, and carry no name, email or user ID.
+        #if DEBUG
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
+        #else
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+        #endif
         Self.useLocalEmulatorsIfAsked()
         AppLanguage.current.apply()
         WidgetFont.registerFonts()   // for the widget font picker in Settings
@@ -42,7 +49,8 @@ struct KUETBusLiveApp: App {
         settings.isSSLEnabled = false
         settings.cacheSettings = MemoryCacheSettings()
         Firestore.firestore().settings = settings
-        print("Using the local Firebase emulators")
+        Log.app.info("Using the local Firebase emulators")
+
         #endif
     }
 

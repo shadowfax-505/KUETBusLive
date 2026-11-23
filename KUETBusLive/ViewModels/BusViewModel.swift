@@ -68,7 +68,8 @@ class BusViewModel: ObservableObject {
             if let error = error {
                 // A listener that fails is closed for good (for example "permission
                 // denied" while a fresh sign-in token is on its way), so open it again.
-                print("Error getting buses: \(error)")
+                Log.data.error("Error getting buses: \(error.localizedDescription)")
+
                 self.listener?.remove()
                 self.listener = nil
                 let wait = self.retryDelay
@@ -128,7 +129,8 @@ class BusViewModel: ObservableObject {
         guard routeStops[routeId] == nil else { return }
         db.collection("routes").document(routeId).getDocument { snapshot, error in
             guard let route = try? snapshot?.data(as: BusRoute.self) else {
-                print("Could not load route: \(error?.localizedDescription ?? "not found")")
+                Log.data.error("Could not load route: \(error?.localizedDescription ?? "not found")")
+
                 return
             }
             self.routeStops[routeId] = route.stops
@@ -347,7 +349,8 @@ class BusViewModel: ObservableObject {
         do {
             try db.collection("buses").document(busId).collection("dropoffs").document(uid).setData(from: request)
         } catch {
-            print("Could not send drop-off request: \(error)")
+            Log.data.error("Could not send drop-off request: \(error.localizedDescription)")
+
         }
     }
 
@@ -371,7 +374,8 @@ class BusViewModel: ObservableObject {
             UserDefaults.standard.set(busId, forKey: Self.wavingAtKey)
             UserDefaults.standard.set(wave.expiresAt.timeIntervalSince1970, forKey: Self.wavingUntilKey)
         } catch {
-            print("Could not send wave: \(error)")
+            Log.data.error("Could not send wave: \(error.localizedDescription)")
+
         }
     }
 

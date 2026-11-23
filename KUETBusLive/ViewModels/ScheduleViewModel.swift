@@ -25,7 +25,8 @@ class ScheduleViewModel: ObservableObject {
         listener = db.collection("schedules").order(by: "campusTime").addSnapshotListener { [weak self] snapshot, error in
             guard let self = self else { return }
             if let error = error {
-                print("Error getting schedules: \(error)")
+                Log.data.error("Error getting schedules: \(error.localizedDescription)")
+
                 return
             }
             self.schedules = snapshot?.documents.compactMap { document in
@@ -65,7 +66,8 @@ class ScheduleViewModel: ObservableObject {
                 _ = try db.collection("schedules").addDocument(from: schedule)
             }
         } catch {
-            print("Error saving schedule: \(error)")
+            Log.data.error("Error saving schedule: \(error.localizedDescription)")
+
         }
     }
 
@@ -74,7 +76,8 @@ class ScheduleViewModel: ObservableObject {
         guard let id = schedule.id else { return }
         db.collection("schedules").document(id).delete { error in
             if let error = error {
-                print("Error deleting schedule: \(error)")
+                Log.data.error("Error deleting schedule: \(error.localizedDescription)")
+
             }
         }
     }
@@ -94,12 +97,14 @@ class ScheduleViewModel: ObservableObject {
             do {
                 try batch.setData(from: trip, forDocument: db.collection("schedules").document())
             } catch {
-                print("Error adding trip: \(error)")
+                Log.data.error("Error adding trip: \(error.localizedDescription)")
+
             }
         }
         batch.commit { error in
             if let error = error {
-                print("Error loading timetable: \(error)")
+                Log.data.error("Error loading timetable: \(error.localizedDescription)")
+
             }
         }
     }

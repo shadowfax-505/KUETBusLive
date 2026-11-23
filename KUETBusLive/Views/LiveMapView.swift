@@ -70,6 +70,8 @@ struct LiveMapView: View {
         return busViewModel.bus(withId: id)
     }
 
+    @ObservedObject private var network = NetworkMonitor.shared
+
     var body: some View {
         NavigationStack {
             TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !glider.isGliding(at: Date()))) { timeline in
@@ -225,6 +227,10 @@ struct LiveMapView: View {
             }
             .overlay(alignment: .top) {
                 VStack(spacing: 8) {
+                    if !network.isOnline {
+                        OfflineBanner(message: "Offline: bus positions may be out of date")
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     if let bus = selectedBus {
                         SelectedPlaceBar(title: busViewModel.boardingPoint(for: bus).map { PlaceNames.display($0.name) }
                                             ?? PlaceNames.display(bus.routeName),
@@ -267,6 +273,7 @@ struct LiveMapView: View {
                 }
                 .padding(.top, 8)
                 .animation(.spring, value: bannerAnnouncement?.id)
+                .animation(.spring, value: network.isOnline)
             }
             .sheet(isPresented: $showAnnouncements) {
                 NavigationStack {

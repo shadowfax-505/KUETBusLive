@@ -654,12 +654,14 @@ function stat(extra = {}) {
            lastBusId: "student-bus", updatedAt: new Date(), ...extra };
 }
 
-test("everyone signed in reads the learned model; signed-out people don't", async () => {
+test("everyone with a profile reads the learned model; others don't", async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     await setDoc(doc(context.firestore(), "segmentStats", "r1_t0_all"), stat());
   });
   await assertSucceeds(getDoc(doc(db("student"), "segmentStats", "r1_t0_all")));
   await assertFails(getDoc(doc(db(), "segmentStats", "r1_t0_all")));
+  // A login made straight through the API, with no profile in the app.
+  await assertFails(getDoc(doc(db("stranger"), "segmentStats", "r1_t0_all")));
 });
 
 test("the driver of a running bus adds one trip at a time to its own route", async () => {
@@ -744,6 +746,53 @@ test("only the admin keeps the special-days calendar; everyone reads it", async 
 });
 
 // ---------- Everything else ----------
+
+// ---------- Sizes and shapes ----------
+
+test("a login without a profile can't read the fleet or driver stats", async () => {
+  await assertFails(getDoc(doc(db("stranger"), "fleet", "normal-1")));
+  await assertFails(getDoc(doc(db("stranger"), "driverStats", "driver")));
+  await assertSucceeds(getDoc(doc(db("student"), "fleet", "normal-1")));
+});
+
+test("profile fields have the right type and size", async () => {
+  await assertSucceeds(updateDoc(doc(db("student"), "users", "student"), { fcmToken: "token-123" }));
+  await assertFails(updateDoc(doc(db("student"), "users", "student"), { fcmToken: "x".repeat(5000) }));
+  await assertFails(updateDoc(doc(db("student"), "users", "student"), { favoriteStopLat: "north" }));
+  await assertFails(updateDoc(doc(db("student"), "users", "student"), { favoriteStopName: "x".repeat(101) }));
+  await assertSucceeds(updateDoc(doc(db("student"), "users", "student"),
+    { favoriteStopName: "Fulbarigate", favoriteStopLat: 22.89, favoriteStopLng: 89.5 }));
+});
+
+test("complaint fields are short, and dates are dates", async () => {
+  await assertFails(setDoc(doc(db("student"), "complaints", "c1"),
+    complaint("student", "student", { userName: "x".repeat(101) })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c2"),
+    complaint("student", "student", { busName: "x".repeat(5000) })));
+  await assertFails(setDoc(doc(db("student"), "complaints", "c3"),
+    complaint("student", "student", { createdAt: "yesterday" })));
+  await assertSucceeds(setDoc(doc(db("student"), "complaints", "c4"),
+    complaint("student", "student", { routeName: "Rupsha", tripTime: new Date() })));
+});
+
+test("a trip's start and end are timestamps", async () => {
+  const trip = { driverId: "driver", fleetBusId: "normal-1", scheduleId: "s1", routeId: "r1", startedAt: new Date() };
+  await assertFails(setDoc(doc(db("driver"), "trips", "t1"), { ...trip, startedAt: "now" }));
+  await assertSucceeds(setDoc(doc(db("driver"), "trips", "t2"), trip));
+  await assertFails(updateDoc(doc(db("driver"), "trips", "t2"), { endedAt: "later" }));
+});
+
+test("waves and places must be real positions", async () => {
+  await assertFails(setDoc(doc(db("student"), "buses", "student-bus", "waves", "student"), wave("student", { lat: 500 })));
+  await assertFails(setDoc(doc(db("student"), "users", "student", "places", "p1"),
+    { label: "Home", kind: "home", lat: 22.8, lng: 999 }));
+});
+
+test("drop-off counts are only for routes that exist", async () => {
+  const { lastBusId, ...noBus } = spot({ asks: 0, stops: 0, dropoffs: 1 });
+  await assertFails(setDoc(doc(db("student"), "spotStats", "r9_22.8891_89.5095"), { ...noBus, routeId: "r9" }));
+  await assertSucceeds(setDoc(doc(db("student"), "spotStats", "r1_22.8891_89.5095"), noBus));
+});
 
 test("unknown collections are closed", async () => {
   await assertFails(setDoc(doc(db("admin"), "secrets", "x"), { a: 1 }));

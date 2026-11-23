@@ -47,6 +47,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             // Ask for "Always". If the driver only allows "While Using", tracking still
             // works in the background because it was started while the app was open.
             manager.requestAlwaysAuthorization()
+            // Every fix, even standing still, so the driver's phone can send a
+            // "still here" every 20 s (DriverViewModel decides what is sent).
+            manager.distanceFilter = kCLDistanceFilterNone
             manager.allowsBackgroundLocationUpdates = true
             manager.showsBackgroundLocationIndicator = true
             if #available(iOS 17.0, *) {
@@ -54,6 +57,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             }
         } else {
             manager.requestWhenInUseAuthorization()
+            manager.distanceFilter = 10
         }
         manager.startUpdatingLocation()
     }

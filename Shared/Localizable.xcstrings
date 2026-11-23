@@ -6151,6 +6151,26 @@
           }
         }
       }
+    },
+    "Offline: bus positions may be out of date": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অফলাইন: বাসের অবস্থান পুরোনো হতে পারে"
+          }
+        }
+      }
+    },
+    "Offline: riders can't see the bus until the signal is back": {
+      "localizations": {
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অফলাইন: নেটওয়ার্ক ফিরে না আসা পর্যন্ত যাত্রীরা বাস দেখতে পাবে না"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
