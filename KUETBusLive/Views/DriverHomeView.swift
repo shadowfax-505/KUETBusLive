@@ -74,6 +74,8 @@ struct DriverHomeView: View {
         routeViewModel.routes.first { $0.id == selectedRouteId } ?? routeViewModel.routes.first
     }
 
+    @ObservedObject private var network = NetworkMonitor.shared
+
     var body: some View {
         NavigationStack {
             Form {
@@ -176,6 +178,11 @@ struct DriverHomeView: View {
 
                     Text(driverViewModel.statusMessage)
                         .foregroundColor(.secondary)
+
+                    // Positions wait on the phone while offline and are sent when the signal returns.
+                    if driverViewModel.isOnTrip && !network.isOnline {
+                        OfflineBanner(message: "Offline: riders can't see the bus until the signal is back")
+                    }
 
                     if let lat = driverViewModel.currentLat, let lng = driverViewModel.currentLng {
                         Text(String(format: "%.5f, %.5f", lat, lng))
