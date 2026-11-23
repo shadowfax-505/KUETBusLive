@@ -10,7 +10,7 @@ project to the whole campus. Last reviewed 23 November 2026.
 | Firestore cost | A driver's phone sends the bus position only after moving 15 m (at most every 5 s), plus a "still here" update every 20 s while standing. Every write is one read for every rider watching, so this cuts reads at stops and signals. | both |
 | Battery and data | Android pauses the live bus feed and the ETA refresh a minute after the rider leaves the map (15 minutes when arrival alerts are on). iOS already stops when the map closes. | Android |
 | Offline | An "Offline" pill on the live map and on the driver screen during a trip. | both |
-| Routing | 10 s timeout, status check, and a swappable server (`OSRMBaseURL` in Info.plist on iOS, `Osrm.BASE_URL` on Android). | iOS |
+| Routing | 10 s timeout and status check (iOS; Android already had them), and a swappable server (`OSRMBaseURL` in Info.plist on iOS, `kuetbus.osrmBaseUrl` in gradle.properties on Android). | both |
 | Logs | `os.Logger` with private values instead of `print`, so release logs hold no emails or IDs. | iOS |
 | Crash reporting | Firebase Crashlytics in release builds, not linked to the user. Privacy policy, labels and manifest updated. | both |
 | Release build | R8 shrinking, upload key from CI secrets or `~/.gradle/gradle.properties`, target API 36, no cloud backup or device transfer, CI builds the release too. | Android |
