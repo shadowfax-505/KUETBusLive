@@ -12,6 +12,11 @@ import SwiftUI
 
 @main
 struct KUETBusWidgetBundle: WidgetBundle {
+    init() {
+        // The rider's widget font (Settings > Appearance) is one of the bundled fonts.
+        WidgetFont.registerFonts()
+    }
+
     var body: some Widget {
         KUETBusWidget()
         BusLiveActivity()

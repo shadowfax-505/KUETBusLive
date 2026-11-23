@@ -35,6 +35,8 @@ struct TripProgressView: View {
     var stopColor: Color = .white      // refined: the dots for the stops in between
     var busStyle: BusStyle = .current  // refined: how the bus on the track is drawn
     var labelColor: Color? = nil
+    var labelFont: Font? = nil         // refined: the font of the two end labels
+    var stopEmphasis: Color? = nil     // refined: my stop in this colour, bolder, with a pin
 
     var body: some View {
         Group {
@@ -58,10 +60,23 @@ struct TripProgressView: View {
                 HStack {
                     Text(startLabel)
                     Spacer()
-                    Text(endLabel)
-                        .lineLimit(1)
+                    if let stopEmphasis {
+                        // My stop is what the rider reads, so it stands out from KUET.
+                        HStack(spacing: 3) {
+                            Image(systemName: "mappin")
+                                .imageScale(.small)
+                            Text(endLabel)
+                                .lineLimit(1)
+                        }
+                        .fontWeight(.bold)
+                        .scaleEffect(1.15, anchor: .trailing)
+                        .foregroundStyle(stopEmphasis)
+                    } else {
+                        Text(endLabel)
+                            .lineLimit(1)
+                    }
                 }
-                .font(.caption2.weight(.semibold))
+                .font(labelFont ?? .caption2.weight(.semibold))
                 .tracking(1.2)
                 .textCase(.uppercase)
                 .foregroundStyle(labelColor ?? .secondary)
@@ -211,6 +226,7 @@ struct TripProgressRing: View {
     var trackColor: Color? = nil
     var refined = false
     var numberSize: CGFloat = 24
+    var numberFont: Font? = nil   // refined: the widget passes the rider's widget font
 
     var body: some View {
         ZStack {
@@ -225,7 +241,7 @@ struct TripProgressRing: View {
             if refined {
                 VStack(spacing: 0) {
                     Text(centerText)
-                        .font(.system(size: numberSize, weight: .semibold, design: .serif))
+                        .font(numberFont ?? .system(size: numberSize, weight: .semibold, design: .serif))
                         .monospacedDigit()
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)

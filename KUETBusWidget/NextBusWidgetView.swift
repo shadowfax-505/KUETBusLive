@@ -15,6 +15,10 @@ import WidgetKit
 import SwiftUI
 
 struct NextBusWidgetView: View {
+    // The route map in the large widget runs edge to edge across the top and
+    // fades into the background. It is drawn at this size so it isn't cropped.
+    static let mapSize = CGSize(width: 364, height: 210)
+
     let entry: NextBusEntry
     @Environment(\.widgetFamily) private var family
     @Environment(\.colorScheme) private var colorScheme
@@ -77,7 +81,9 @@ struct NextBusWidgetView: View {
         TripProgressView(progress: entry.progress, endLabel: stopName,
                          tint: WidgetTheme.accent, trackColor: WidgetTheme.track,
                          refined: true, stopColor: WidgetTheme.stopRing,
-                         labelColor: WidgetTheme.secondary)
+                         labelColor: WidgetTheme.secondary,
+                         labelFont: WidgetFont.current.label(),
+                         stopEmphasis: WidgetTheme.primary)
     }
 
     private var hairline: some View {
@@ -91,32 +97,34 @@ struct NextBusWidgetView: View {
     private var small: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            Spacer(minLength: 4)
+            // Room under the header so the ring doesn't crowd it.
+            Spacer(minLength: 10)
             HStack {
                 Spacer(minLength: 0)
                 TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                  caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24)
-                    .frame(width: 66, height: 66)
+                                 trackColor: WidgetTheme.track, refined: true, numberSize: 24,
+                                 numberFont: .widgetNumber(size: 24))
+                    .frame(width: 62, height: 62)
                 Spacer(minLength: 0)
             }
             Spacer(minLength: 4)
             Group {
                 if let live = entry.live {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(PlaceNames.display(live.stopName))
                         .widgetLabel()
                         .padding(.top, 1)
                 } else if let next = entry.trips.first {
                     Text(next.trip.tripName)
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                     Text(next.leavesAt, style: .time)
                         .widgetLabel()
                         .padding(.top, 1)
                 } else {
                     Text("No buses this week")
-                        .font(.widgetSerif(.footnote))
+                        .widgetTitle(.footnote)
                 }
             }
             .lineLimit(1)
@@ -131,7 +139,7 @@ struct NextBusWidgetView: View {
     private var medium: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
-            busSummary
+            busSummary()
             Spacer(minLength: 0)
             track
         }
@@ -139,13 +147,14 @@ struct NextBusWidgetView: View {
     }
 
     // The main line: the live bus and its ETA, or the next timetable bus.
+    // showsETA is false when a ring next to it already shows the minutes.
     @ViewBuilder
-    private var busSummary: some View {
+    private func busSummary(showsETA: Bool = true) -> some View {
         if let live = entry.live {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(live.busNumber))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     // Only when riders on board said it is crowded.
@@ -162,15 +171,17 @@ struct NextBusWidgetView: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("\(live.etaMinutes)")
-                            .font(.widgetSerif(size: 34))
-                            .monospacedDigit()
-                        Text("min")
-                            .widgetLabel()
+                    if showsETA {
+                        HStack(alignment: .firstTextBaseline, spacing: 3) {
+                            Text("\(live.etaMinutes)")
+                                .font(.widgetNumber(size: 34))
+                                .monospacedDigit()
+                            Text("min")
+                                .widgetLabel()
+                        }
                     }
                     Text(String(format: "%.1f km", live.distanceKm))
-                        .font(.caption2)
+                        .font(showsETA ? .caption2 : .widgetNumber(size: 22))
                         .monospacedDigit()
                         .foregroundStyle(WidgetTheme.secondary)
                 }
@@ -179,21 +190,23 @@ struct NextBusWidgetView: View {
             HStack(alignment: .lastTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(PlaceNames.display(next.trip.title))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    countdown(next)
-                        .font(.caption2)
-                        .foregroundStyle(WidgetTheme.secondary)
+                    if showsETA {
+                        countdown(next)
+                            .font(.caption2)
+                            .foregroundStyle(WidgetTheme.secondary)
+                    }
                 }
                 Spacer()
                 Text(next.leavesAt, style: .time)
-                    .font(.widgetSerif(size: 26))
+                    .font(.widgetNumber(size: 26))
                     .monospacedDigit()
             }
         } else {
             Text("No more buses this week")
-                .font(.widgetSerif(.title3))
+                .widgetTitle(.title3)
         }
     }
 
@@ -211,7 +224,11 @@ struct NextBusWidgetView: View {
     // MARK: - Large
 
     private var large: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // Without a map the ring stands in for it and already shows the minutes.
+        let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark)
+        // The next two buses after the first one, which is live or shown above.
+        let later = Array(entry.trips.dropFirst().prefix(2))
+        return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 header
                 Spacer()
@@ -222,57 +239,90 @@ struct NextBusWidgetView: View {
                 }
             }
 
-            // The route map, matching light or dark mode. Without one, just the ring.
-            if let map = colorScheme == .dark ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
-                Image(uiImage: map)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: 160)
-                    .clipped()
-                    // A soft fade from the map into the background below it.
-                    .mask(
-                        LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black, location: 0.7),
-                                               .init(color: .clear, location: 1)],
-                                       startPoint: .top, endPoint: .bottom)
-                    )
-                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: 14, topTrailingRadius: 14))
+            // The route map sits behind this part (see NextBusWidgetBackground).
+            // Without one, the ring stands in for it.
+            if map != nil {
+                Color.clear
+                    .frame(maxHeight: .infinity)
+                    .accessibilityElement()
                     .accessibilityLabel("Map of the route to \(stopName)")
             } else {
                 HStack {
                     Spacer()
                     TripProgressRing(fraction: entry.progress.fraction, centerText: minutesLeft,
                                      caption: minutesCaption, tint: WidgetTheme.accent, lineWidth: 6,
-                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40)
+                                     trackColor: WidgetTheme.track, refined: true, numberSize: 40,
+                                     numberFont: .widgetNumber(size: 40))
                         .frame(width: 120, height: 120)
                     Spacer()
                 }
                 .frame(maxHeight: 160)
             }
 
-            busSummary
+            busSummary(showsETA: map != nil)
             track
 
             // The next two buses from the timetable.
-            if entry.live == nil {
-                let later = Array(entry.trips.dropFirst().prefix(2))
-                if !later.isEmpty {
-                    hairline
-                    ForEach(later, id: \.self) { trip in
-                        HStack {
-                            Text(PlaceNames.display(trip.trip.title))
-                                .lineLimit(1)
-                            Spacer()
-                            Text(trip.leavesAt, style: .time)
-                                .monospacedDigit()
-                        }
-                        .font(.caption)
-                        .foregroundStyle(WidgetTheme.secondary)
+            if !later.isEmpty {
+                hairline
+                ForEach(later, id: \.self) { trip in
+                    HStack {
+                        Text(PlaceNames.display(trip.trip.title))
+                            .lineLimit(1)
+                        Spacer()
+                        Text(trip.leavesAt, style: .time)
+                            .monospacedDigit()
                     }
+                    .font(.caption)
+                    .foregroundStyle(WidgetTheme.secondary)
                 }
             }
-            Spacer(minLength: 0)
+            if map == nil {
+                Spacer(minLength: 0)
+            }
         }
+    }
+}
+
+// The widget's background: the rider's colour, and on the large widget the route
+// map running edge to edge across the top. The map fades slowly into the colour
+// below it, and a light veil at the very top keeps the header easy to read.
+struct NextBusWidgetBackground: View {
+    let entry: NextBusEntry
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            WidgetTheme.background
+            if family == .systemLarge,
+               let map = usesDarkMap ? (entry.mapDark ?? entry.mapLight) : (entry.mapLight ?? entry.mapDark) {
+                Image(uiImage: map)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: NextBusWidgetView.mapSize.height)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .mask(
+                        LinearGradient(stops: [.init(color: .black, location: 0),
+                                               .init(color: .black, location: 0.5),
+                                               .init(color: .black.opacity(0.6), location: 0.72),
+                                               .init(color: .black.opacity(0.2), location: 0.88),
+                                               .init(color: .clear, location: 1)],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+                LinearGradient(colors: [WidgetTheme.backgroundTop.opacity(0.85), WidgetTheme.backgroundTop.opacity(0)],
+                               startPoint: .top, endPoint: .bottom)
+                    .frame(height: 56)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    // Forest and violet are deep colours with light text even in light mode, so
+    // they take the dark map: a pale map would fade into them through a muddy band.
+    private var usesDarkMap: Bool {
+        colorScheme == .dark || WidgetColour.current == .forest || WidgetColour.current == .violet
     }
 }
 

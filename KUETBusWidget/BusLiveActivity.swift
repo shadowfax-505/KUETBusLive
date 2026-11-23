@@ -40,7 +40,7 @@ struct BusLiveActivity: Widget {
                     VStack(alignment: .leading, spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(PlaceNames.display(context.attributes.busNumber))
-                                .font(.widgetSerif(.headline))
+                                .widgetTitle(.headline)
                                 .foregroundStyle(Night.primary)
                             Text("To \(PlaceNames.display(context.attributes.stopName)) · \(context.state.distanceText)")
                                 .font(.caption)
@@ -65,7 +65,7 @@ struct BusLiveActivity: Widget {
                     .accessibilityLabel(context.state.crowd == "full" ? "Bus, crowded" : "Bus")
             } compactTrailing: {
                 Text(context.state.etaText)
-                    .font(.system(.footnote, design: .serif).weight(.semibold))
+                    .widgetTitle(.footnote)
                     .monospacedDigit()
                     .foregroundStyle(context.state.isStale ? WidgetTheme.terracotta : Night.primary)
                     .contentTransition(.numericText())
@@ -87,10 +87,10 @@ private struct MinutesText: View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
             if state.hasArrived {
                 Text("Here")
-                    .font(.widgetSerif(size: size))
+                    .font(.widgetNumber(size: size))
             } else {
                 Text("\(state.etaMinutes)")
-                    .font(.widgetSerif(size: size))
+                    .font(.widgetNumber(size: size))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                 Text("min")
@@ -157,7 +157,7 @@ struct LockScreenTripView: View {
                     .font(.caption2)
                     .accessibilityHidden(true)
                     Text(PlaceNames.display(attributes.busNumber))
-                        .font(.widgetSerif(.title3))
+                        .widgetTitle(.title3)
                         .foregroundStyle(Night.primary)
                         .lineLimit(1)
                     Text("To \(PlaceNames.display(attributes.stopName)) · \(state.distanceText)")

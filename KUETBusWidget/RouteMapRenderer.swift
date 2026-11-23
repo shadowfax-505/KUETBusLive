@@ -7,8 +7,8 @@
 //  Widgets can't show a live, moving MapKit map. Instead MKMapSnapshotter takes
 //  a still picture of the map, and the route is drawn on top of that picture:
 //  a solid line through the stops (black, or white on the dark map), a small dot
-//  for each stop, a ring at my stop, and the bus where it was last seen. The map itself is
-//  muted, with no points of interest, so the route stands out. One light and
+//  for each stop, a ring at my stop, and the bus where it was last seen. The map is
+//  slightly softened, with no points of interest, so the route stands out. One light and
 //  one dark picture are made, so the widget matches the phone's appearance.
 //
 
@@ -43,7 +43,7 @@ enum RouteMapRenderer {
         options.scale = 2   // sharp on the screen, but small enough for the widget's memory limit
         options.traitCollection = UITraitCollection(userInterfaceStyle: style)
         options.pointOfInterestFilter = .excludingAll
-        let configuration = MKStandardMapConfiguration(emphasisStyle: .muted)
+        let configuration = MKStandardMapConfiguration(emphasisStyle: .default)
         configuration.pointOfInterestFilter = .excludingAll
         options.preferredConfiguration = configuration
 
@@ -57,14 +57,19 @@ enum RouteMapRenderer {
         }
     }
 
-    // A map area that fits every stop with a little space around it.
+    // A map area that fits every stop. The widget fades the bottom of the map
+    // into its background and puts its header over the top, so the route is kept
+    // between about 20% and 62% of the way down, clear of both.
     private static func region(fitting points: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
         let lats = points.map { $0.latitude }
         let lngs = points.map { $0.longitude }
-        let center = CLLocationCoordinate2D(latitude: (lats.min()! + lats.max()!) / 2,
+        let routeLat = max(lats.max()! - lats.min()!, 0.004)
+        let height = routeLat / 0.42
+        let top = lats.max()! + height * 0.2
+        let center = CLLocationCoordinate2D(latitude: top - height / 2,
                                             longitude: (lngs.min()! + lngs.max()!) / 2)
-        let span = MKCoordinateSpan(latitudeDelta: max((lats.max()! - lats.min()!) * 1.4, 0.01),
-                                    longitudeDelta: max((lngs.max()! - lngs.min()!) * 1.4, 0.01))
+        let span = MKCoordinateSpan(latitudeDelta: height,
+                                    longitudeDelta: max((lngs.max()! - lngs.min()!) * 1.3, 0.01))
         return MKCoordinateRegion(center: center, span: span)
     }
 
@@ -75,8 +80,8 @@ enum RouteMapRenderer {
         let line = dark ? UIColor.white : WidgetTheme.nearBlack
         let fill = dark ? WidgetTheme.darkSurface : UIColor.white
         return renderer.image { context in
-            // Most of the map's colour is taken out, so only the route stands out.
-            muted(snapshot.image, saturation: dark ? 0.2 : 0.35).draw(at: .zero)
+            // Some of the map's colour is taken out, so the route still stands out.
+            muted(snapshot.image, saturation: dark ? 0.6 : 0.8).draw(at: .zero)
             let points = stops.map { snapshot.point(for: $0.coordinate) }
 
             // The route: one solid line.
@@ -84,7 +89,7 @@ enum RouteMapRenderer {
             for (index, point) in points.enumerated() {
                 index == 0 ? path.move(to: point) : path.addLine(to: point)
             }
-            path.lineWidth = 3
+            path.lineWidth = 4
             path.lineCapStyle = .round
             path.lineJoinStyle = .round
             line.setStroke()

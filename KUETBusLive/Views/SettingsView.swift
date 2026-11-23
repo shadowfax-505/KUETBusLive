@@ -399,6 +399,8 @@ struct AppearanceSettingsView: View {
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
     @AppStorage(MapStyleChoice.storageKey) private var mapStyle = MapStyleChoice.standard.rawValue
     @AppStorage(BusStyle.storageKey, store: SharedStore.defaults) private var busStyle = BusStyle.above.rawValue
+    @AppStorage(WidgetFont.storageKey, store: SharedStore.defaults) private var widgetFont = WidgetFont.board.rawValue
+    @AppStorage(WidgetColour.storageKey, store: SharedStore.defaults) private var widgetColour = WidgetColour.classic.rawValue
     @State private var appIcon = AppIconChoice.current
     @State private var iconError: String?
 
@@ -446,6 +448,24 @@ struct AppearanceSettingsView: View {
                 }
                 .padding(.vertical, 6)
             }
+            Section(header: Text("Widget font"),
+                    footer: Text("The type on your home screen widget and Live Activity.")) {
+                HStack(spacing: 12) {
+                    ForEach(WidgetFont.allCases) { font in
+                        widgetFontButton(font)
+                    }
+                }
+                .padding(.vertical, 6)
+            }
+            Section(header: Text("Widget colour"),
+                    footer: Text("Each colour has a light and a dark version that follow your phone.")) {
+                HStack(spacing: 10) {
+                    ForEach(WidgetColour.allCases) { colour in
+                        widgetColourButton(colour)
+                    }
+                }
+                .padding(.vertical, 6)
+            }
             Section(header: Text("Theme")) {
                 Picker("Theme", selection: $appearance) {
                     ForEach(AppAppearance.allCases) { option in
@@ -471,6 +491,74 @@ struct AppearanceSettingsView: View {
         } message: {
             Text(iconError ?? "")
         }
+    }
+
+    // A small widget tile in this colour, as the preview to tap.
+    private func widgetColourButton(_ colour: WidgetColour) -> some View {
+        let selected = widgetColour == colour.rawValue
+        return Button {
+            widgetColour = colour.rawValue
+            WidgetCenter.shared.reloadAllTimelines()
+        } label: {
+            VStack(spacing: 8) {
+                Text(verbatim: "8")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(colour.primary)
+                    .frame(width: 56, height: 56)
+                    .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(colour.background))
+                    .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .stroke(Color.primary.opacity(0.12), lineWidth: 0.5))
+                    .padding(3)
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(selected ? Color.accentColor : .clear, lineWidth: 2.5))
+                Text(colour.title)
+                    .font(.caption)
+                    .foregroundStyle(selected ? .primary : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(colour.title))
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    // A bus name and its minutes in this font, as the preview to tap.
+    private func widgetFontButton(_ font: WidgetFont) -> some View {
+        let selected = widgetFont == font.rawValue
+        return Button {
+            widgetFont = font.rawValue
+            WidgetCenter.shared.reloadAllTimelines()
+        } label: {
+            VStack(spacing: 8) {
+                VStack(spacing: 0) {
+                    Text(verbatim: "Normal-1")
+                        .font(font.title(.footnote))
+                        .textCase(font.titleCase)
+                        .lineLimit(1)
+                    Text(verbatim: "12")
+                        .font(font.number(size: 26))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 64)
+                .background(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(Color(.systemGroupedBackground)))
+                .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .stroke(Color.primary.opacity(0.12), lineWidth: 0.5))
+                .padding(3)
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(selected ? Color.accentColor : .clear, lineWidth: 2.5))
+                Text(font.title)
+                    .font(.caption)
+                    .foregroundStyle(selected ? .primary : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(font.title))
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     // A small trip bar with the bus drawn in this style, as the preview to tap.
