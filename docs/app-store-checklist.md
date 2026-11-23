@@ -46,7 +46,7 @@ Both location messages say exactly when location is used, in English and Bangla 
 
 ## 6. Clean up test data and deploy production rules 🟡
 
-The tightened `firestore.rules` is written and covered by 73 emulator tests (`firestore-tests/`, also run in CI). It is **not deployed yet**, and no accounts or data have been deleted, because the `@test.com` accounts are needed for the lab viva. The rules now check sign-up emails (KUET student email holding the roll, or a KUET staff email) and require a verified email to see buses, so once deployed `@test.com` riders can no longer sign up or see buses.
+The tightened `firestore.rules` is written and covered by 79 emulator tests (`firestore-tests/`, also run in CI). It is **not deployed yet**, and no accounts or data have been deleted, because the `@test.com` accounts are needed for the lab viva. The rules now check sign-up emails (KUET student email holding the roll, or a KUET staff email) and require a verified email to see buses, so once deployed `@test.com` riders can no longer sign up or see buses.
 
 **Still to do, after the viva:** follow [scripts/cleanup-test-data.md](../scripts/cleanup-test-data.md), then `firebase deploy --only firestore:rules`.
 
